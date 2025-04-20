@@ -3,11 +3,11 @@
 
 using namespace glm;
 
-template <class ProjectedPrimitive>
+template <class PrimitiveProjected>
 struct PreprocessResult {
     fvec2 image_point;
     float depth;
-    ProjectedPrimitive projected_primitive;
+    PrimitiveProjected primitive_projected;
     fvec2 center;
     fvec2 radius;
 };
@@ -21,13 +21,13 @@ struct PreprocessParameters {
     float filter_size;
 };
 
-template <class CameraModel, class PrimitiveIn, class ProjectedPrimitive>
+template <class CameraModel, class PrimitiveIn, class PrimitiveProjected>
 __forceinline__ __device__ auto preprocess_impl(
     const CameraModel d_camera,
     const PrimitiveIn d_primitives_in,
     const PreprocessParameters& params
-) -> std::pair<PreprocessResult<ProjectedPrimitive>, bool> {
-    PreprocessResult<ProjectedPrimitive> result;
+) -> std::pair<PreprocessResult<PrimitiveProjected>, bool> {
+    PreprocessResult<PrimitiveProjected> result;
 
     // Check: If the primitive is outside the camera frustum, skip it
     auto const &[image_point, depth] = d_camera.point_world_to_image(d_primitives_in.get_position());
@@ -46,14 +46,14 @@ __forceinline__ __device__ auto preprocess_impl(
     }
 
     // Compute the projected primitive on the image plane
-    auto const &[projected_primitive, projected_valid_flag] = d_camera.primitive_world_to_image(d_primitives_in);
+    auto const &[primitive_projected, projected_valid_flag] = d_camera.primitive_world_to_image(d_primitives_in);
     if (!projected_valid_flag) {
         return {result, false};
     }
-    projected_primitive.set_filter_size(params.filter_size);
+    primitive_projected.set_filter_size(params.filter_size);
 
     // Compute the bounding box of this primitive on the image plane
-    auto const &[center, radius] = projected_primitive.compute_aabb();
+    auto const &[center, radius] = primitive_projected.compute_aabb();
 
     // Check again if the primitive is outside the image plane
     if (center.x - radius.x < 0 || center.x + radius.x > params.render_width ||
@@ -63,7 +63,7 @@ __forceinline__ __device__ auto preprocess_impl(
 
     result.image_point = image_point;
     result.depth = depth;
-    result.projected_primitive = projected_primitive;
+    result.primitive_projected = primitive_projected;
     result.center = center;
     result.radius = radius;
     return {result, true};
@@ -74,7 +74,7 @@ template <
 class CameraModel, 
 class PrimitiveIn, 
 class PrimitiveOut, 
-class ProjectedPrimitive, 
+class PrimitiveProjected, 
 bool PACKED, 
 // Total number of threads in a block, only used in PACKED mode
 int NUM_THREADS>
