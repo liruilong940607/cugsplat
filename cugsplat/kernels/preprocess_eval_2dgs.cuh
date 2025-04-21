@@ -33,7 +33,7 @@ struct DeviceGaussianOutWorld2DGS {
         const PreprocessParameters& params
     ) {
         // Check: If the gaussian is outside the camera frustum, skip it
-        auto const depth = d_gaussians_in.depth_to_image(d_camera);
+        auto const depth = d_gaussians_in.image_depth(d_camera);
         if (depth < params.near_plane || depth > params.far_plane) {
             return false;
         }
