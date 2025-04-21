@@ -5,6 +5,29 @@ namespace cugsplat {
 
 using namespace glm;
 
+inline __device__ auto compute_radius(float opacity, fmat2 covar) -> fvec2 {
+    constexpr float alpha_threshold = 1.0f / 255.0f;
+    if (opacity < alpha_threshold) {
+        return fvec2(0.0f, 0.0f);
+    }
+
+    // Compute opacity-aware bounding box.
+    // https://arxiv.org/pdf/2402.00525 Section B.2
+    float extend = 3.33f;
+    extend = min(extend, sqrt(2.0f * __logf(opacity / alpha_threshold)));
+
+    // compute tight rectangular bounding box (non differentiable)
+    // https://arxiv.org/pdf/2402.00525
+    auto const b = 0.5f * (covar[0][0] + covar[1][1]);
+    auto const det = determinant(covar);
+    auto const tmp = sqrtf(max(0.01f, b * b - det));
+    auto const v1 = b + tmp; // larger eigenvalue
+    auto const r1 = extend * sqrtf(v1);
+    auto const radius_x = ceilf(min(extend * sqrtf(covar[0][0]), r1));
+    auto const radius_y = ceilf(min(extend * sqrtf(covar[1][1]), r1));
+    return fvec2(radius_x, radius_y);
+}
+
 struct PreprocessParameters {
     uint32_t render_width;
     uint32_t render_height;
