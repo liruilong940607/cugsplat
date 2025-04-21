@@ -34,14 +34,14 @@ struct DeviceGaussianOutWorldDGS {
         const PreprocessParameters& params
     ) {
         // Check: If the gaussian is outside the camera frustum, skip it
-        auto const depth = d_camera.distance_to_image(d_gaussians_in);
+        auto const depth = d_gaussians_in.depth_to_image(d_camera);
         if (depth < params.near_plane || depth > params.far_plane) {
             return false;
         }
 
         // Compute the projected gaussian on the image plane
         auto &[mean, covar, valid_flag] = 
-            d_camera.gaussian_world_to_image(d_gaussians_in);
+            d_gaussians_in.world_to_image(d_camera);
         if (!valid_flag) {
             return false;
         }

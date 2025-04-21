@@ -142,7 +142,7 @@
 // //     }
 
 // //     // Compute the projected gaussian on the image plane
-// //     auto const &[gaussian_projected, projected_valid_flag] = d_camera.gaussian_world_to_image(d_gaussians_in);
+// //     auto const &[gaussian_projected, projected_valid_flag] = d_gaussians_in.world_to_image(d_camera);
 // //     if (!projected_valid_flag) {
 // //         return {result, false};
 // //     }
