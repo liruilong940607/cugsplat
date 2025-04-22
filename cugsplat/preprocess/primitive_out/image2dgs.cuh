@@ -69,13 +69,13 @@ struct DevicePrimitiveOutImage2DGS {
             auto const det_blur = glm::determinant(covar);
             opacity *= sqrtf(det_orig / det_blur);
         }
-
+        
         // Compute the bounding box of this gaussian on the image plane
         auto const radii = solve_tight_radius(covar, opacity, 1.0f / 255.0f);
 
         // Check again if the gaussian is outside the image plane
-        if (mean.x - radii.x < 0 || mean.x + radii.x > render_width ||
-            mean.y - radii.y < 0 || mean.y + radii.y > render_height) {
+        if (mean.x + radii.x < 0 || mean.x - radii.x > render_width ||
+            mean.y + radii.y < 0 || mean.y - radii.y > render_height) {
             return false;
         }
 

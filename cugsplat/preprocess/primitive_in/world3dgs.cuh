@@ -64,6 +64,7 @@ struct DevicePrimitiveInWorld3DGS {
         DeviceCameraModel &d_camera
     ) -> std::tuple<glm::fvec2, glm::fmat2, bool> {
         auto const world_point = this->get_mean();
+        // TODO
         // auto const world_covar = quat_scale_to_covar(
         //     this->get_quat(), this->get_scale()
         // );

@@ -77,10 +77,10 @@ class DevicePrimitiveOut,
 bool PACKED, 
 int THREADS_PER_BLOCK>
 __global__ void PreprocessKernel(
-    DeviceCameraModel &d_camera,
-    DevicePrimitiveIn &d_primitives_in,
+    DeviceCameraModel d_camera,
+    DevicePrimitiveIn d_primitives_in,
     // outputs
-    DevicePrimitiveOut &d_primitives_out,
+    DevicePrimitiveOut d_primitives_out,
     int32_t* block_cnts,
     int32_t* block_offsets
 ) {

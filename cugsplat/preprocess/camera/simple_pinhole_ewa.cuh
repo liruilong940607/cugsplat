@@ -97,6 +97,7 @@ struct DeviceSimplePinholeCameraEWA {
             -focal_length.x * x * rz2,
             -focal_length.y * y * rz2 // 3rd column
         );
+        return J;
     }
 
     inline __host__ void free() {

@@ -55,7 +55,7 @@ int main(){
     d_gaussian_out.margin_factor = 100.0f;
     d_gaussian_out.filter_size = 0.1f;
 
-    dim3 blockDim(1, 1, 1);
+    dim3 blockDim(256, 1, 1);
     dim3 gridDim(1, 1, 1);
 
     cugsplat::preprocess::PreprocessKernel<
@@ -71,6 +71,28 @@ int main(){
         nullptr,
         nullptr
     );
+    cudaDeviceSynchronize();
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        std::cerr << "CUDA error: " << cudaGetErrorString(err) << std::endl;
+    }
+
+    // copy output data back to host
+    float opacity_out;
+    glm::fvec2 mean_out;
+    glm::fvec3 conic_out;
+    float depth_out;
+    glm::fvec2 radius_out;
+    cudaMemcpy(&opacity_out, d_gaussian_out.opacities, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&mean_out, d_gaussian_out.means, sizeof(glm::fvec2), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&conic_out, d_gaussian_out.conics, sizeof(glm::fvec3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&depth_out, d_gaussian_out.depths, sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(&radius_out, d_gaussian_out.radius, sizeof(glm::fvec2), cudaMemcpyDeviceToHost);
+    std::cout << "Opacity: " << opacity_out << std::endl;
+    std::cout << "Mean: " << mean_out.x << ", " << mean_out.y << std::endl;
+    std::cout << "Conic: " << conic_out.x << ", " << conic_out.y << ", " << conic_out.z << std::endl;
+    std::cout << "Depth: " << depth_out << std::endl;
+    std::cout << "Radius: " << radius_out.x << ", " << radius_out.y << std::endl;
 
     // free memory
     d_camera.free();
