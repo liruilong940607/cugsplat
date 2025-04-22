@@ -14,8 +14,8 @@
 //     uint32_t index;
 //     fmat3* __restrict__ transforms;
 //     float* __restrict__ depths;
-//     fvec2* __restrict__ centers;
-//     fvec2* __restrict__ radius;
+//     glm::fvec2* __restrict__ centers;
+//     glm::fvec2* __restrict__ radius;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
@@ -23,8 +23,8 @@
 //     // ctx
 //     fmat3 transform;
 //     float depth;
-//     fvec2 center;
-//     fvec2 radius;
+//     glm::fvec2 center;
+//     glm::fvec2 radius;
 
 //     template <class DeviceCameraModel, class DeviceGaussianIn>
 //     inline __device__ bool preprocess(
@@ -58,14 +58,14 @@
 //         // Compute aabb
 //         auto const M = transpose(fmat3(KWH[0], KWH[1], mean));
 //         auto const M0 = M[0], M1 = M[1], M2 = M[2];
-//         auto const temp_point = fvec3(1.0f, 1.0f, -1.0f);
+//         auto const temp_point = glm::fvec3(1.0f, 1.0f, -1.0f);
 //         auto const distance = compAdd(temp_point * M2 * M2);
 //         if (distance == 0.0f) {
 //             return false;
 //         }
 //         auto const f = (1.0f / distance) * temp_point;
-//         auto const center = fvec2(compAdd(f * M0 * M2), compAdd(f * M1 * M2));
-//         auto const temp = fvec2(compAdd(f * M0 * M0), compAdd(f * M1 * M1));
+//         auto const center = glm::fvec2(compAdd(f * M0 * M2), compAdd(f * M1 * M2));
+//         auto const temp = glm::fvec2(compAdd(f * M0 * M0), compAdd(f * M1 * M1));
 //         auto const half_extend = center * center - temp;
 //         auto const radius = 3.33f * glm::sqrt(glm::max(fvec2(1e-4f), half_extend));
     

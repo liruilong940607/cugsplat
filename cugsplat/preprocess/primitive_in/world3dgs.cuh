@@ -14,15 +14,15 @@ struct DeviceGaussianInWorld3DGS {
 
     // pointers to input buffer
     float* __restrict__ opacities;
-    fvec3* __restrict__ means;
-    fvec4* __restrict__ quats;
-    fvec3* __restrict__ scales;
+    glm::fvec3* __restrict__ means;
+    glm::fvec4* __restrict__ quats;
+    glm::fvec3* __restrict__ scales;
 
     // cached values to avoid repeated memory accesses
     Maybe<float> opacity;
-    Maybe<fvec3> mean;
-    Maybe<fvec4> quat;
-    Maybe<fvec3> scale;
+    Maybe<glm::fvec3> mean;
+    Maybe<glm::fvec4> quat;
+    Maybe<glm::fvec3> scale;
 
     inline __device__ float get_opacity() { 
         if (!this->opacity.has_value()) {
@@ -31,21 +31,21 @@ struct DeviceGaussianInWorld3DGS {
         return this->opacity.get();
     }
 
-    inline __device__ fvec3 get_mean() { 
+    inline __device__ glm::fvec3 get_mean() { 
         if (!this->mean.has_value()) {
             this->mean.set(means[index]);
         }
         return this->mean.get();
     }
 
-    inline __device__ fvec4 get_quat() { 
+    inline __device__ glm::fvec4 get_quat() { 
         if (!this->quat.has_value()) {
             this->quat.set(quats[index]);
         }
         return this->quat.get();
     }
 
-    inline __device__ fvec3 get_scale() { 
+    inline __device__ glm::fvec3 get_scale() { 
         if (!this->scale.has_value()) {
             this->scale.set(scales[index]);
         }

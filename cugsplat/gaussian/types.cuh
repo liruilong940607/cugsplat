@@ -9,9 +9,9 @@
 
 // struct Gaussian3DIn3D {
 //     float opacity;
-//     fvec3 mu;
-//     fvec4 quat;
-//     fvec3 scale;
+//     glm::fvec3 mu;
+//     glm::fvec4 quat;
+//     glm::fvec3 scale;
 //     fmat3 covar;
 // }
 
@@ -19,9 +19,9 @@
 //     uint32_t n;
 //     uint32_t index;
 //     float* __restrict__ opacity;
-//     fvec3* __restrict__ mu;
-//     fvec4* __restrict__ quat;
-//     fvec3* __restrict__ scale;
+//     glm::fvec3* __restrict__ mu;
+//     glm::fvec4* __restrict__ quat;
+//     glm::fvec3* __restrict__ scale;
 //     fmat3* __restrict__ covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
@@ -35,9 +35,9 @@
 
 // struct Gaussian2DIn3D {
 //     float opacity;
-//     fvec3 mu;
-//     fvec4 quat;
-//     fvec2 scale;
+//     glm::fvec3 mu;
+//     glm::fvec4 quat;
+//     glm::fvec2 scale;
 //     fmat3 covar;
 // };
 
@@ -45,9 +45,9 @@
 //     uint32_t n;
 //     uint32_t index;
 //     float* __restrict__ opacity;
-//     fvec3* __restrict__ mu;
-//     fvec4* __restrict__ quat;
-//     fvec2* __restrict__ scale;
+//     glm::fvec3* __restrict__ mu;
+//     glm::fvec4* __restrict__ quat;
+//     glm::fvec2* __restrict__ scale;
 //     fmat3* __restrict__ covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
@@ -61,8 +61,8 @@
 
 // struct Gaussian2DIn2D {
 //     float opacity;
-//     fvec2 mu;
-//     fvec2 scale;
+//     glm::fvec2 mu;
+//     glm::fvec2 scale;
 //     fmat2 covar;
 // };
 
@@ -70,8 +70,8 @@
 //     uint32_t n;
 //     uint32_t index;
 //     float* __restrict__ opacity;
-//     fvec2* __restrict__ mu;
-//     fvec2* __restrict__ scale;
+//     glm::fvec2* __restrict__ mu;
+//     glm::fvec2* __restrict__ scale;
 //     fmat2* __restrict__ covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)

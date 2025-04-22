@@ -12,20 +12,20 @@
 //     uint32_t n;
 //     uint32_t index;
 //     float* __restrict__ opacities;
-//     fvec2* __restrict__ means;
+//     glm::fvec2* __restrict__ means;
 //     float* __restrict__ triuLs; // [6]
 //     float* __restrict__ depths;
-//     fvec2* __restrict__ radius;
+//     glm::fvec2* __restrict__ radius;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
 
 //     // ctx
 //     float opacity;
-//     fvec2 mean;
+//     glm::fvec2 mean;
 //     float triuL[6];
 //     float depth;
-//     fvec2 radius;
+//     glm::fvec2 radius;
 
 //     template <class DeviceCameraModel, class DeviceGaussianIn>
 //     inline __device__ bool preprocess(

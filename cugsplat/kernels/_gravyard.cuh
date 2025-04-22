@@ -33,7 +33,7 @@
 
 // // template <>
 // // __forceinline__ __device__
-// // auto Gaussian<fvec2, fvec3, fvec2, mat2>::compute_aabb() const -> std::pair<fvec2, fvec2> {
+// // auto Gaussian<fvec2, glm::fvec3, glm::fvec2, mat2>::compute_aabb() const -> std::pair<fvec2, glm::fvec2> {
 // //     // Compute opacity-aware bounding box.
 // //     // https://arxiv.org/pdf/2402.00525 Section B.2
 // //     float extend = 3.33f;
@@ -49,9 +49,9 @@
 // //     radius_y = ceilf(min(extend * sqrtf(covar[1][1]), r1));
 // // }
 
-// using Gaussian3DIn3D = Gaussian<fvec3, fvec4, fvec3, mat3>;
-// using Gaussian2DIn3D = Gaussian<fvec2, fvec4, fvec3, mat3>;
-// using Gaussian2DIn2D = Gaussian<fvec2, fvec3, fvec2, mat2>;
+// using Gaussian3DIn3D = Gaussian<fvec3, glm::fvec4, glm::fvec3, glm::mat3>;
+// using Gaussian2DIn3D = Gaussian<fvec2, glm::fvec4, glm::fvec3, glm::mat3>;
+// using Gaussian2DIn2D = Gaussian<fvec2, glm::fvec3, glm::fvec2, mat2>;
 
 
 // template <typename TypeMu, typename TypeQuat, typename TypeScale, typename TypeCovar>
@@ -83,10 +83,10 @@
 //     TypeCovar get_covar() const {return covar[index];}
 // };
 
-// using DeviceGaussian3DIn3D = DeviceGaussian<fvec3, fvec4, fvec3, mat3>;
-// using DeviceGaussian2DIn3D = DeviceGaussian<fvec3, fvec4, fvec2, mat3>;
+// using DeviceGaussian3DIn3D = DeviceGaussian<fvec3, glm::fvec4, glm::fvec3, glm::mat3>;
+// using DeviceGaussian2DIn3D = DeviceGaussian<fvec3, glm::fvec4, glm::fvec2, glm::mat3>;
 
-// struct DeviceGaussian2DIn2D : DeviceGaussian<fvec2, fvec3, fvec2, mat2> {
+// struct DeviceGaussian2DIn2D : DeviceGaussian<fvec2, glm::fvec3, glm::fvec2, mat2> {
 //     __forceinline__ __device__ void set_data(const Gaussian2DIn2D& g2d) {
 //         opacity[index] = g2d.opacity;
 //         mu[index] = g2d.get_mu();
@@ -110,11 +110,11 @@
 
 
 // // struct PreprocessResult {
-// //     fvec2 image_point;
+// //     glm::fvec2 image_point;
 // //     float depth;
 // //     DeviceGaussian2DIn2D gaussian_projected;
-// //     fvec2 center;
-// //     fvec2 radius;
+// //     glm::fvec2 center;
+// //     glm::fvec2 radius;
 // // };
 
 // // template <class DeviceCameraModel, class DeviceGaussianIn>
@@ -248,9 +248,9 @@
 //     TypeCovar covar;
 // };
 
-// using Gaussian3DIn3D = Gaussian<fvec3, fvec4, fvec3, mat3>;
-// using Gaussian2DIn3D = Gaussian<fvec2, fvec4, fvec3, mat3>;
-// using Gaussian2DIn2D = Gaussian<fvec2, fvec3, fvec2, mat2>;
+// using Gaussian3DIn3D = Gaussian<fvec3, glm::fvec4, glm::fvec3, glm::mat3>;
+// using Gaussian2DIn3D = Gaussian<fvec2, glm::fvec4, glm::fvec3, glm::mat3>;
+// using Gaussian2DIn2D = Gaussian<fvec2, glm::fvec3, glm::fvec2, mat2>;
 
 // template <typename TypeMu, typename TypeQuat, typename TypeScale, typename TypeCovar>
 // struct DeviceGaussian {
@@ -270,7 +270,7 @@
 // };
 
 
-// struct DeviceGaussian3DIn3D : public DeviceGaussian<fvec3, fvec4, fvec3, mat3> {
+// struct DeviceGaussian3DIn3D : public DeviceGaussian<fvec3, glm::fvec4, glm::fvec3, glm::mat3> {
 //     __forceinline__ __device__ void set_data(const Gaussian3DIn3D& g3d, const Gaussian2DIn2D& g2d) {
 //         filter_size = g2d.get_filter();
 //         if (filter_size == 0) {

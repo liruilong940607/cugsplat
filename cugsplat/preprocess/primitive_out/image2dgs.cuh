@@ -7,10 +7,10 @@ namespace cugsplat::preprocess {
 struct DeviceGaussianOutImage2DGS {
     // pointers to output buffer
     float* __restrict__ opacities;
-    fvec2* __restrict__ means;
-    fvec3* __restrict__ conics;
+    glm::fvec2* __restrict__ means;
+    glm::fvec3* __restrict__ conics;
     float* __restrict__ depths;
-    fvec2* __restrict__ radius;
+    glm::fvec2* __restrict__ radius;
 
     // parameters
     uint32_t render_width;
@@ -22,10 +22,10 @@ struct DeviceGaussianOutImage2DGS {
 
     // ctx: internal state to be written to output buffer
     float opacity;
-    fvec2 mean;
-    fvec3 conic;
+    glm::fvec2 mean;
+    glm::fvec3 conic;
     float depth;
-    fvec2 radius;
+    glm::fvec2 radius;
 
     template <class DeviceCameraModel, class DeviceGaussianIn>
     inline __device__ bool preprocess(
