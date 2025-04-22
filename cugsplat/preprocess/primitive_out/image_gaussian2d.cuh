@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <glm/glm.hpp>
 
 #include "preprocess/util.cuh"
@@ -6,7 +5,7 @@
 namespace cugsplat::preprocess {
 
 struct DeviceGaussianOutImage2DGS {
-    // pointers to output data
+    // pointers to output buffer
     float* __restrict__ opacities;
     fvec2* __restrict__ means;
     fvec3* __restrict__ conics;
@@ -21,7 +20,7 @@ struct DeviceGaussianOutImage2DGS {
     float margin_factor;
     float filter_size;
 
-    // ctx: internal state
+    // ctx: internal state to be written to output buffer
     float opacity;
     fvec2 mean;
     fvec3 conic;
@@ -57,7 +56,7 @@ struct DeviceGaussianOutImage2DGS {
         }
 
         // Check: If the covariance matrix is not positive definite, skip it
-        auto const det_orig = determinant(covar);
+        auto const det_orig = glm::determinant(covar);
         if (det_orig < 0) {
             return false;
         }
@@ -68,7 +67,7 @@ struct DeviceGaussianOutImage2DGS {
         // Apply anti-aliasing filter
         if (params.filter_size > 0) {
             covar += mat2(params.filter_size);
-            auto const det_blur = determinant(covar);
+            auto const det_blur = glm::determinant(covar);
             opacity *= sqrtf(det_orig / det_blur);
         }
 
@@ -83,7 +82,7 @@ struct DeviceGaussianOutImage2DGS {
 
         this->opacity = opacity;
         this->mean = mean;
-        auto const preci = inverse(covar);
+        auto const preci = glm::inverse(covar);
         this->conic = {preci[0][0], preci[1][1], preci[0][1]};
         this->depth = depth;
         this->radius = radius;

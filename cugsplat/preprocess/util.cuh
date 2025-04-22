@@ -4,6 +4,25 @@
 
 namespace cugsplat::preprocess {
 
+template <typename T>
+struct Maybe {
+    bool has_value = false;
+    T value;
+
+    __device__ inline T get() const {
+        return this->has_value ? this->value : T{};
+    }
+
+    __device__ inline bool has_value() const {
+        return this->has_value;
+    }
+
+    __device__ inline void set(const T& v) {
+        this->value = v;
+        this->has_value = true;
+    }
+};
+
 // Solve the tight axis-aligned bounding box radius for a Gaussian defined as
 //      sigma = 1/2 * xᵀ * covar⁻¹ * x
 //      y = prefactor * exp(-sigma)
