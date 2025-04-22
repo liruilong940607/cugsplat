@@ -11,11 +11,11 @@
 // struct DevicePrimitiveOutWorldDGS {
 //     uint32_t n;
 //     uint32_t index;
-//     float* __restrict__ opacities;
-//     glm::fvec2* __restrict__ means;
-//     float* __restrict__ triuLs; // [6]
-//     float* __restrict__ depths;
-//     glm::fvec2* __restrict__ radius;
+//     float* opacities;
+//     glm::fvec2* means;
+//     float* triuLs; // [6]
+//     float* depths;
+//     glm::fvec2* radius;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
@@ -92,7 +92,7 @@
 //         return true;
 //     }
 
-//     inline __device__ void export() {
+//     inline __device__ void write_to_buffer() {
 //         this->opacities[index] = this->opacity;
 //         this->means[index] = this->mean;
 //         #pragma unroll

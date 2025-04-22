@@ -18,11 +18,11 @@
 // struct DeviceGaussian3DIn3D {
 //     uint32_t n;
 //     uint32_t index;
-//     float* __restrict__ opacity;
-//     glm::fvec3* __restrict__ mu;
-//     glm::fvec4* __restrict__ quat;
-//     glm::fvec3* __restrict__ scale;
-//     fmat3* __restrict__ covar;
+//     float* opacity;
+//     glm::fvec3* mu;
+//     glm::fvec4* quat;
+//     glm::fvec3* scale;
+//     fmat3* covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
@@ -44,11 +44,11 @@
 // struct DeviceGaussian2DIn3D {
 //     uint32_t n;
 //     uint32_t index;
-//     float* __restrict__ opacity;
-//     glm::fvec3* __restrict__ mu;
-//     glm::fvec4* __restrict__ quat;
-//     glm::fvec2* __restrict__ scale;
-//     fmat3* __restrict__ covar;
+//     float* opacity;
+//     glm::fvec3* mu;
+//     glm::fvec4* quat;
+//     glm::fvec2* scale;
+//     fmat3* covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
@@ -69,10 +69,10 @@
 // struct DeviceGaussian2DIn2D {
 //     uint32_t n;
 //     uint32_t index;
-//     float* __restrict__ opacity;
-//     glm::fvec2* __restrict__ mu;
-//     glm::fvec2* __restrict__ scale;
-//     fmat2* __restrict__ covar;
+//     float* opacity;
+//     glm::fvec2* mu;
+//     glm::fvec2* scale;
+//     fmat2* covar;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)

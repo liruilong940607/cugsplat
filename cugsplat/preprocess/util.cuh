@@ -6,20 +6,20 @@ namespace cugsplat::preprocess {
 
 template <typename T>
 struct Maybe {
-    bool has_value = false;
-    T value;
+    bool _has_value = false;
+    T _value;
 
     __device__ inline T get() const {
-        return this->has_value ? this->value : T{};
+        return this->_has_value ? this->_value : T{};
     }
 
     __device__ inline bool has_value() const {
-        return this->has_value;
+        return this->_has_value;
     }
 
     __device__ inline void set(const T& v) {
-        this->value = v;
-        this->has_value = true;
+        this->_value = v;
+        this->_has_value = true;
     }
 };
 
@@ -64,7 +64,7 @@ inline __device__ auto solve_tight_radius(
     v2 *= sqrtf(Q * lambda2);
 
     // Compute max extent along world x/y axes (bounding box)
-    auto const radius = glm::sqrtf(v1 * v1 + v2 * v2);
+    auto const radius = glm::sqrt(v1 * v1 + v2 * v2);
     return radius;
 }
 

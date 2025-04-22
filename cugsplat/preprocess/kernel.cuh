@@ -52,13 +52,13 @@ namespace cugsplat::preprocess {
  *         A device-side structure for storing and exporting output primitives.
  *         Must implement:
  *           __device__ bool preprocess(const DeviceCameraModel&, const DevicePrimitiveIn&);
- *           __device__ void export() const;
+ *           __device__ void write_to_buffer() const;
  *
  *         // Example:
  *         struct DummyPrimitiveOut {
  *             template <typename Cam, typename In, typename Param>
  *             __device__ bool preprocess(const Cam&, const In&) { return false; }
- *             __device__ void export(uint32_t) const {}
+ *             __device__ void write_to_buffer(uint32_t) const {}
  *         };
  *
  * @tparam PACKED
@@ -83,8 +83,8 @@ __global__ void PreprocessKernel(
     const DevicePrimitiveIn d_primitives_in,
     // outputs
     DevicePrimitiveOut d_primitives_out,
-    int32_t* __restrict__ block_cnts,
-    int32_t* __restrict__ block_offsets
+    int32_t* block_cnts,
+    int32_t* block_offsets
 ) {
     auto const cidx = blockIdx.x * blockDim.x + threadIdx.x; // camera index
     auto const pidx = blockIdx.y * blockDim.y + threadIdx.y; // primitive index
@@ -128,13 +128,13 @@ __global__ void PreprocessKernel(
             if (valid_flag) {
                 // Write the primitive to the output buffer:
                 // `thread_data` is the index of where to write the primitive
-                d_primitives_out.export(thread_data);
+                d_primitives_out.write_to_buffer(thread_data);
             }
         }
     } else {
         if (valid_flag) {
             // Write the primitive to the output buffer
-            d_primitives_out.export(cidx * num_primitives + pidx);
+            d_primitives_out.write_to_buffer(cidx * num_primitives + pidx);
         }
     }
 }

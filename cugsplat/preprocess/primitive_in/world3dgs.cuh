@@ -13,10 +13,10 @@ struct DevicePrimitiveInWorld3DGS {
     __device__ int get_n() const { return this->n; }
 
     // pointers to input buffer
-    float* __restrict__ opacities;
-    glm::fvec3* __restrict__ means;
-    glm::fvec4* __restrict__ quats;
-    glm::fvec3* __restrict__ scales;
+    float* opacities;
+    glm::fvec3* means;
+    glm::fvec4* quats;
+    glm::fvec3* scales;
 
     // cached values to avoid repeated memory accesses
     Maybe<float> opacity;
@@ -62,7 +62,7 @@ struct DevicePrimitiveInWorld3DGS {
     template <class DeviceCameraModel>
     inline __device__ auto world_to_image(
         const DeviceCameraModel d_camera
-    ) -> std::pair<glm::fvec2, glm::fmat2, bool> {
+    ) -> std::tuple<glm::fvec2, glm::fmat2, bool> {
         auto const world_point = this->get_mean();
         auto const world_covar = quat_scale_to_covar(
             this->get_quat(), this->get_scale()
@@ -71,6 +71,13 @@ struct DevicePrimitiveInWorld3DGS {
         auto const J = d_camera.jacobian_world_to_image(world_point);
         auto const image_covar = J * world_covar * transpose(J);
         return {image_point, image_covar, true};
+    }
+
+    inline __host__ void free() {
+        cudaFree(this->opacities);
+        cudaFree(this->means);
+        cudaFree(this->quats);
+        cudaFree(this->scales);
     }
 };
 

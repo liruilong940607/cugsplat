@@ -12,10 +12,10 @@
 // struct DevicePrimitiveOutWorld2DGS {
 //     uint32_t n;
 //     uint32_t index;
-//     fmat3* __restrict__ transforms;
-//     float* __restrict__ depths;
-//     glm::fvec2* __restrict__ centers;
-//     glm::fvec2* __restrict__ radius;
+//     fmat3* transforms;
+//     float* depths;
+//     glm::fvec2* centers;
+//     glm::fvec2* radius;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
@@ -83,7 +83,7 @@
 //         return true;
 //     }
 
-//     inline __device__ void export() {
+//     inline __device__ void write_to_buffer() {
 //         this->centers[index] = this->center;
 //         this->transforms[index] = this->transform;
 //         this->depths[index] = this->depth;

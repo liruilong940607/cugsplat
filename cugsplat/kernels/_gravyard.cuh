@@ -64,11 +64,11 @@
 //     uint32_t get_index() const {return index;}
 //     uint32_t get_n() const {return num_elements;}
 
-//     float* __restrict__ opacity;
-//     TypeMu* __restrict__ mu;
-//     TypeQuat* __restrict__ quat;
-//     TypeScale* __restrict__ scale;
-//     TypeCovar* __restrict__ covar;
+//     float* opacity;
+//     TypeMu* mu;
+//     TypeQuat* quat;
+//     TypeScale* scale;
+//     TypeCovar* covar;
 
 //     // TOOD: what if they are nullptr?
 //     void set_opacity(float opacity) {this->opacity[index] = opacity;}
@@ -178,8 +178,8 @@
 //     const PreprocessParameters& params,
 //     // outputs
 //     DeviceGaussianOut d_gaussians_out,
-//     int32_t* __restrict__ block_cnts,
-//     int32_t* __restrict__ block_offsets
+//     int32_t* block_cnts,
+//     int32_t* block_offsets
 // ) {
 //     // Parallelize over [num_cameras, num_gaussians]. should be launched
 //     // as a 2D grid of threads, with each thread processing a single
@@ -262,11 +262,11 @@
 //     uint32_t get_index() const {return index;}
 //     uint32_t get_n() const {return num_elements;}
 
-//     float* __restrict__ opacity;
-//     TypeMu* __restrict__ mu;
-//     TypeQuat* __restrict__ quat;
-//     TypeScale* __restrict__ scale;
-//     TypeCovar* __restrict__ covar;
+//     float* opacity;
+//     TypeMu* mu;
+//     TypeQuat* quat;
+//     TypeScale* scale;
+//     TypeCovar* covar;
 // };
 
 

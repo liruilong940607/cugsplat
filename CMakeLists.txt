@@ -5,7 +5,13 @@ set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
 
 # Header-only core
 add_library(cugsplat INTERFACE)
-target_include_directories(cugsplat INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat)
+target_include_directories(cugsplat INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat
+    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat/third_party/glm
+)
+
+# relax restrictions on glm constexpr functions so they can be called in device code.
+add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
 function(build_cuda_executables_from DIR SUBDIR_NAME)
     file(GLOB CU_FILES "${DIR}/*.cu")
