@@ -9,7 +9,7 @@
 
 // using namespace glm;
 
-// struct DeviceGaussianOutWorld2DGS {
+// struct DevicePrimitiveOutWorld2DGS {
 //     uint32_t n;
 //     uint32_t index;
 //     fmat3* __restrict__ transforms;
@@ -26,10 +26,10 @@
 //     glm::fvec2 center;
 //     glm::fvec2 radius;
 
-//     template <class DeviceCameraModel, class DeviceGaussianIn>
+//     template <class DeviceCameraModel, class DevicePrimitiveIn>
 //     inline __device__ bool preprocess(
 //         const DeviceCameraModel d_camera,
-//         const DeviceGaussianIn d_gaussians_in,
+//         const DevicePrimitiveIn d_gaussians_in,
 //         const PreprocessParameters& params
 //     ) {
 //         // Check: If the gaussian is outside the camera frustum, skip it

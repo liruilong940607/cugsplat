@@ -4,7 +4,7 @@
 
 namespace cugsplat::preprocess {
 
-struct DeviceGaussianOutImage2DGS {
+struct DevicePrimitiveOutImage2DGS {
     // pointers to output buffer
     float* __restrict__ opacities;
     glm::fvec2* __restrict__ means;
@@ -27,10 +27,10 @@ struct DeviceGaussianOutImage2DGS {
     float depth;
     glm::fvec2 radius;
 
-    template <class DeviceCameraModel, class DeviceGaussianIn>
+    template <class DeviceCameraModel, class DevicePrimitiveIn>
     inline __device__ bool preprocess(
         const DeviceCameraModel d_camera,
-        const DeviceGaussianIn d_gaussians_in,
+        const DevicePrimitiveIn d_gaussians_in,
         const Parameters& params
     ) {
         // Check: If the gaussian is outside the camera frustum, skip it

@@ -5,7 +5,7 @@
 
 namespace cugsplat::preprocess {
 
-struct DeviceGaussianInWorld3DGS {
+struct DevicePrimitiveInWorld3DGS {
     uint32_t n;
     uint32_t index;
 
