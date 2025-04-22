@@ -53,7 +53,7 @@ struct DevicePrimitiveInWorld3DGS {
     }
 
     template <class DeviceCameraModel>
-    inline __device__ float image_depth(const DeviceCameraModel d_camera) {
+    inline __device__ float image_depth(DeviceCameraModel &d_camera) {
         auto const world_point = this->get_mean();
         auto const camera_point = d_camera.point_world_to_camera(world_point);
         return camera_point.z;
@@ -61,12 +61,13 @@ struct DevicePrimitiveInWorld3DGS {
 
     template <class DeviceCameraModel>
     inline __device__ auto world_to_image(
-        const DeviceCameraModel d_camera
+        DeviceCameraModel &d_camera
     ) -> std::tuple<glm::fvec2, glm::fmat2, bool> {
         auto const world_point = this->get_mean();
-        auto const world_covar = quat_scale_to_covar(
-            this->get_quat(), this->get_scale()
-        );
+        // auto const world_covar = quat_scale_to_covar(
+        //     this->get_quat(), this->get_scale()
+        // );
+        auto const world_covar = glm::fmat3(1.0f);
         auto const image_point = d_camera.point_world_to_image(world_point);
         auto const J = d_camera.jacobian_world_to_image(world_point);
         auto const image_covar = J * world_covar * transpose(J);

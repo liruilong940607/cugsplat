@@ -75,7 +75,7 @@ struct DeviceSimplePinholeCameraEWA {
         );
     }
 
-    inline __device__ glm::fmat2 jacobian_world_to_image(const glm::fvec3& world_point) {
+    inline __device__ glm::fmat3x2 jacobian_world_to_image(const glm::fvec3& world_point) {
         auto const camera_point = this->point_world_to_camera(world_point);
         auto const camera_J = this->jacobian_camera_to_image(camera_point);
         auto const world_to_camera_R = this->get_world_to_camera_R();

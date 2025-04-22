@@ -7,7 +7,7 @@
 // class DeviceCameraModel, 
 // class DeviceGaussianIn>
 // inline __host__ __device__ auto preprocess_impl_dispatch(
-//     const DeviceCameraModel d_camera,
+//     const DeviceCameraModel &d_camera,
 //     const DeviceGaussianIn d_gaussians_in,
 //     const PreprocessParameters& params
 // ) {
@@ -119,7 +119,7 @@
 
 // // template <class DeviceCameraModel, class DeviceGaussianIn>
 // // __forceinline__ __device__ auto preprocess_impl(
-// //     const DeviceCameraModel d_camera,
+// //     const DeviceCameraModel &d_camera,
 // //     const DeviceGaussianIn d_gaussians_in,
 // //     const PreprocessParameters& params
 // // ) -> std::pair<PreprocessResult, bool> {
@@ -173,7 +173,7 @@
 // // Total number of threads in a block, only used in PACKED mode
 // int NUM_THREADS>
 // __global__ void PreprocessKernel(
-//     const DeviceCameraModel d_camera,
+//     const DeviceCameraModel &d_camera,
 //     const DeviceGaussianIn d_gaussians_in,
 //     const PreprocessParameters& params,
 //     // outputs

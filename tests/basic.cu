@@ -55,6 +55,23 @@ int main(){
     d_gaussian_out.margin_factor = 100.0f;
     d_gaussian_out.filter_size = 0.1f;
 
+    dim3 blockDim(1, 1, 1);
+    dim3 gridDim(1, 1, 1);
+
+    cugsplat::preprocess::PreprocessKernel<
+        cugsplat::preprocess::DeviceSimplePinholeCameraEWA,
+        cugsplat::preprocess::DevicePrimitiveInWorld3DGS,
+        cugsplat::preprocess::DevicePrimitiveOutImage2DGS,
+        false,
+        1
+    ><<<gridDim, blockDim>>>(
+        d_camera,
+        d_gaussian_in,
+        d_gaussian_out,
+        nullptr,
+        nullptr
+    );
+
     // free memory
     d_camera.free();
     d_gaussian_in.free();

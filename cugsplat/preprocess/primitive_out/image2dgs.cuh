@@ -29,8 +29,8 @@ struct DevicePrimitiveOutImage2DGS {
 
     template <class DeviceCameraModel, class DevicePrimitiveIn>
     inline __device__ bool preprocess(
-        const DeviceCameraModel d_camera,
-        const DevicePrimitiveIn d_gaussians_in
+        DeviceCameraModel &d_camera,
+        DevicePrimitiveIn &d_gaussians_in
     ) {
         // Check: If the gaussian is outside the camera frustum, skip it
         auto const depth = d_gaussians_in.image_depth(d_camera);
@@ -39,7 +39,7 @@ struct DevicePrimitiveOutImage2DGS {
         }
 
         // Compute the projected gaussian on the image plane
-        auto &[mean, covar, valid_flag] = 
+        auto [mean, covar, valid_flag] = 
             d_gaussians_in.world_to_image(d_camera);
         if (!valid_flag) {
             return false;

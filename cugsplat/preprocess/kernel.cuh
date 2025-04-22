@@ -22,7 +22,6 @@ namespace cugsplat::preprocess {
  *          (num_primitives + THREADS_FOR_PRIMITIVE - 1) / THREADS_FOR_PRIMITIVE
  *      );
  * 
- * Template Parameters:
  * 
  * @tparam DeviceCameraModel
  *         A lightweight device-side structure that represents a camera model.
@@ -32,7 +31,7 @@ namespace cugsplat::preprocess {
  *
  *         // Example:
  *         struct DummyCameraModel {
- *             __device__ void set_index(int) const {}
+ *             __device__ void set_index(int) {}
  *             __device__ int get_n() const { return 1; }
  *         };
  * 
@@ -44,21 +43,21 @@ namespace cugsplat::preprocess {
  *
  *         // Example:
  *         struct DummyPrimitiveIn {
- *             __device__ void set_index(int) const {}
+ *             __device__ void set_index(int) {}
  *             __device__ int get_n() const { return 1; }
  *         };
  *
  * @tparam DevicePrimitiveOut
  *         A device-side structure for storing and exporting output primitives.
  *         Must implement:
- *           __device__ bool preprocess(const DeviceCameraModel&, const DevicePrimitiveIn&);
- *           __device__ void write_to_buffer() const;
+ *           __device__ bool preprocess(DeviceCameraModel&, DevicePrimitiveIn&);
+ *           __device__ void write_to_buffer();
  *
  *         // Example:
  *         struct DummyPrimitiveOut {
  *             template <typename Cam, typename In, typename Param>
- *             __device__ bool preprocess(const Cam&, const In&) { return false; }
- *             __device__ void write_to_buffer(uint32_t) const {}
+ *             __device__ bool preprocess(Cam&, In&) { return false; }
+ *             __device__ void write_to_buffer(uint32_t) {}
  *         };
  *
  * @tparam PACKED
@@ -75,14 +74,13 @@ template <
 class DeviceCameraModel, 
 class DevicePrimitiveIn, 
 class DevicePrimitiveOut, 
-class Parameters,
 bool PACKED, 
 int THREADS_PER_BLOCK>
 __global__ void PreprocessKernel(
-    const DeviceCameraModel d_camera,
-    const DevicePrimitiveIn d_primitives_in,
+    DeviceCameraModel &d_camera,
+    DevicePrimitiveIn &d_primitives_in,
     // outputs
-    DevicePrimitiveOut d_primitives_out,
+    DevicePrimitiveOut &d_primitives_out,
     int32_t* block_cnts,
     int32_t* block_offsets
 ) {

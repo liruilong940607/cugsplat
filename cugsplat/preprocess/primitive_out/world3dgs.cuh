@@ -29,8 +29,8 @@
 
 //     template <class DeviceCameraModel, class DevicePrimitiveIn>
 //     inline __device__ bool preprocess(
-//         const DeviceCameraModel d_camera,
-//         const DevicePrimitiveIn d_gaussians_in,
+//         DeviceCameraModel &d_camera,
+//         DevicePrimitiveIn &d_gaussians_in,
 //         const PreprocessParameters& params
 //     ) {
 //         // Check: If the gaussian is outside the camera frustum, skip it
