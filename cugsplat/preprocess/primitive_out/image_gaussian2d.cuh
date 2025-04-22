@@ -1,29 +1,30 @@
 #include <stdint.h>
 #include <glm/glm.hpp>
 
-#include "kernels/preprocess.cuh"
-#include "util/macros.cuh"
+#include "preprocess/util.cuh"
 
-namespace cugsplat {
+namespace cugsplat::preprocess {
 
-using namespace glm;
-
-struct DeviceGaussianOutWorldDGS {
-    uint32_t n;
-    uint32_t index;
+struct DeviceGaussianOutImage2DGS {
+    // pointers to output data
     float* __restrict__ opacities;
     fvec2* __restrict__ means;
-    float* __restrict__ triuLs; // [6]
+    fvec3* __restrict__ conics;
     float* __restrict__ depths;
     fvec2* __restrict__ radius;
 
-    DEFINE_VALUE_SETGET(uint32_t, n)
-    DEFINE_VALUE_SETGET(uint32_t, index)
+    // parameters
+    uint32_t render_width;
+    uint32_t render_height;
+    float near_plane;
+    float far_plane;
+    float margin_factor;
+    float filter_size;
 
-    // ctx
+    // ctx: internal state
     float opacity;
     fvec2 mean;
-    float triuL[6];
+    fvec3 conic;
     float depth;
     fvec2 radius;
 
@@ -31,7 +32,7 @@ struct DeviceGaussianOutWorldDGS {
     inline __device__ bool preprocess(
         const DeviceCameraModel d_camera,
         const DeviceGaussianIn d_gaussians_in,
-        const PreprocessParameters& params
+        const Parameters& params
     ) {
         // Check: If the gaussian is outside the camera frustum, skip it
         auto const depth = d_gaussians_in.image_depth(d_camera);
@@ -65,13 +66,14 @@ struct DeviceGaussianOutWorldDGS {
         auto opacity = d_gaussians_in.get_opacity();
 
         // Apply anti-aliasing filter
-        fmat3 L;
         if (params.filter_size > 0) {
-            // TODO: implement anti-aliasing filter
+            covar += mat2(params.filter_size);
+            auto const det_blur = determinant(covar);
+            opacity *= sqrtf(det_orig / det_blur);
         }
 
         // Compute the bounding box of this gaussian on the image plane
-        auto const radius = compute_radius(opacity, covar);
+        auto const radius = solve_tight_radius(covar, opacity, 1.0f / 255.0f);
 
         // Check again if the gaussian is outside the image plane
         if (mean.x - radius.x < 0 || mean.x + radius.x > params.render_width ||
@@ -81,30 +83,21 @@ struct DeviceGaussianOutWorldDGS {
 
         this->opacity = opacity;
         this->mean = mean;
-        this->triuL[0] = L[0][0];
-        this->triuL[1] = L[0][1];
-        this->triuL[2] = L[0][2];
-        this->triuL[3] = L[1][1];
-        this->triuL[4] = L[1][2];
-        this->triuL[5] = L[2][2];
+        auto const preci = inverse(covar);
+        this->conic = {preci[0][0], preci[1][1], preci[0][1]};
         this->depth = depth;
         this->radius = radius;
         return true;
     }
 
-    inline __device__ void export() {
+    inline __device__ void export(uint32_t index) {
         this->opacities[index] = this->opacity;
         this->means[index] = this->mean;
-        #pragma unroll
-        for (int i = 0; i < 6; ++i)
-            this->triuLs[index * 6 + i] = this->triuL[i];
+        this->conics[index] = this->conic;
         this->depths[index] = this->depth;
         this->radius[index] = this->radius;
     }
 };
 
-
-
-
-} // namespace cugsplat
+} // namespace cugsplat::preprocess
 
