@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_relational.hpp>
 
+#include <torch/torch.h>
+
+#include "glm_tensor.h"
 #include "math/cholesky3x3.h"
 
 using namespace gsplat;
@@ -102,11 +105,29 @@ void test_cholesky_Linv_vjp() {
     A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
     A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
 
+    glm::fmat3 v_Linv(0.0f); // gradient of L^-1, lower triangular
+    v_Linv[0][0] = 1.0f;
+    v_Linv[0][1] = 0.3f; v_Linv[1][1] = -0.2f;
+    v_Linv[0][2] = 0.5f; v_Linv[1][2] = 0.7f; v_Linv[2][2] = 2.0f;
+
     auto [L, ok] = cholesky(A);
     assert(ok && "cholesky decomposition failed");
     glm::fmat3 Linv = cholesky_Linv(L);
-    glm::fmat3 grad = cholesky_Linv_vjp(L, Linv);
-    assert(grad[0][0] < 0);
+    glm::fmat3 v_L = cholesky_Linv_vjp(L, v_Linv);
+
+    // reference
+    torch::Tensor L_torch = glm_to_tensor(L).requires_grad_(true);
+    torch::Tensor Linv_torch = torch::linalg_inv(L_torch);
+    torch::Tensor v_Linv_torch = glm_to_tensor(v_Linv);
+    std::vector<torch::Tensor> grads = torch::autograd::grad(
+        {Linv_torch},
+        {L_torch},
+        {v_Linv_torch},
+        /*retain_graph=*/false,
+        /*create_graph=*/false
+    );
+    glm::fmat3 v_L_reference = tensor_to_glm<glm::fmat3>(grads[0]);
+    assert(glm::all(glm::equal(v_L, v_L_reference, 1e-5f)));
 }
 
 void test_cholesky_vjp() {
@@ -115,10 +136,28 @@ void test_cholesky_vjp() {
     A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
     A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
 
+    glm::fmat3 v_L(0.0f); // gradient of L, lower triangular
+    v_L[0][0] = 1.0f;
+    v_L[0][1] = 0.3f; v_L[1][1] = -0.2f;
+    v_L[0][2] = 0.5f; v_L[1][2] = 0.7f; v_L[2][2] = 2.0f;
+
     auto [L, ok] = cholesky(A);
     assert(ok && "cholesky decomposition failed");
-    glm::fmat3 grad = cholesky_vjp(L, L);
-    assert(grad[0][0] > 0);
+    glm::fmat3 v_A = cholesky_vjp(L, v_L);
+
+    // reference
+    torch::Tensor A_torch = glm_to_tensor(A).requires_grad_(true);
+    torch::Tensor L_torch = torch::linalg_cholesky(A_torch);
+    torch::Tensor v_L_torch = glm_to_tensor(v_L);
+    std::vector<torch::Tensor> grads = torch::autograd::grad(
+        {L_torch},
+        {A_torch},
+        {v_L_torch},
+        /*retain_graph=*/false,
+        /*create_graph=*/false
+    );
+    glm::fmat3 v_A_reference = tensor_to_glm<glm::fmat3>(grads[0]);
+    assert(glm::all(glm::equal(v_A, v_A_reference, 1e-5f)));
 }
 
 int main() {
