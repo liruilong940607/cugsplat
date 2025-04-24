@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <glm/glm.hpp>
 
-#include "utils/types.cuh"
+#include "utils/types.h"
 
 namespace gsplat::device {
 
