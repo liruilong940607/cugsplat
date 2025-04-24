@@ -2,5 +2,6 @@
 # unzip libtorch-cxx11-abi-shared-with-deps-2.5.0+cu121.zip
 
 rm -rf build && mkdir -p build && cd build
-cmake .. -DCMAKE_PREFIX_PATH="$(pwd)/../libtorch"
+# cmake .. -DCMAKE_PREFIX_PATH="$(pwd)/../libtorch"
+cmake ..
 make -j

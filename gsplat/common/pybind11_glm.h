@@ -65,7 +65,7 @@ template <glm::length_t C, glm::length_t R>
 struct glm_mat_caster<glm::mat<C, R, float, glm::defaultp>> {
     using glm_type = glm::mat<C, R, float, glm::defaultp>;
 
-    // glm::mat3x2 (C=3, R=2) is 3 columns x 2 rows (2x3 in python)
+    // glm::fmat3x2 (C=3, R=2) is 3 columns x 2 rows (2x3 in python)
     static constexpr auto type_name() {
         if constexpr (C == 2 && R == 2)
             return _("List[List[float]] 2x2");
@@ -121,17 +121,17 @@ struct glm_mat_caster<glm::mat<C, R, float, glm::defaultp>> {
     }
 };
 
-template <> struct type_caster<glm::mat2> : glm_mat_caster<glm::mat2> {};
-template <> struct type_caster<glm::mat3> : glm_mat_caster<glm::mat3> {};
-template <> struct type_caster<glm::mat4> : glm_mat_caster<glm::mat4> {};
-template <> struct type_caster<glm::mat2x3> : glm_mat_caster<glm::mat2x3> {};
-template <> struct type_caster<glm::mat3x2> : glm_mat_caster<glm::mat3x2> {};
+template <> struct type_caster<glm::fmat2> : glm_mat_caster<glm::fmat2> {};
+template <> struct type_caster<glm::fmat3> : glm_mat_caster<glm::fmat3> {};
+template <> struct type_caster<glm::fmat4> : glm_mat_caster<glm::fmat4> {};
+template <> struct type_caster<glm::fmat2x3> : glm_mat_caster<glm::fmat2x3> {};
+template <> struct type_caster<glm::fmat3x2> : glm_mat_caster<glm::fmat3x2> {};
 
 // -- quat --
-template <> struct type_caster<glm::quat> {
+template <> struct type_caster<glm::fquat> {
   public:
     PYBIND11_TYPE_CASTER(
-        glm::quat, _("Tuple[float, float, float, float]")
+        glm::fquat, _("Tuple[float, float, float, float]")
     ); // (w, x, y, z)
 
     bool load(handle src, bool) {
@@ -140,7 +140,7 @@ template <> struct type_caster<glm::quat> {
         auto seq = reinterpret_borrow<sequence>(src);
         if (seq.size() != 4)
             return false;
-        value = glm::quat(
+        value = glm::fquat(
             seq[0].cast<float>(), // w
             seq[1].cast<float>(), // x
             seq[2].cast<float>(), // y
@@ -149,7 +149,7 @@ template <> struct type_caster<glm::quat> {
         return true;
     }
 
-    static handle cast(glm::quat const &src, return_value_policy, handle) {
+    static handle cast(glm::fquat const &src, return_value_policy, handle) {
         return py::make_tuple(src.w, src.x, src.y, src.z).release();
     }
 };

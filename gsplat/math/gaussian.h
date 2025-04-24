@@ -41,13 +41,13 @@ inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
 inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat
-) -> glm::mat3 {
+) -> glm::fmat3 {
     auto const quat_n = quat * rsqrtf(glm::dot(quat, quat));
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
     float x2 = x * x, y2 = y * y, z2 = z * z;
     float xy = x * y, xz = x * z, yz = y * z;
     float wx = w * x, wy = w * y, wz = w * z;
-    return glm::mat3(
+    return glm::fmat3(
         (1.f - 2.f * (y2 + z2)),
         (2.f * (xy + wz)),
         (2.f * (xz - wy)), // 1st col
@@ -62,7 +62,7 @@ inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat
 
 // Given d(o)/d(R), Return d(o)/d(quat)
 inline GSPLAT_HOST_DEVICE auto
-quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::mat3 v_R) -> glm::fvec4 {
+quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
     auto const inv_norm = rsqrtf(glm::dot(quat, quat));
     auto const quat_n = quat * inv_norm;
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
@@ -94,7 +94,7 @@ quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::mat3 v_R) -> glm::fvec4 {
 //     covar = L * Lᵀ
 inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
     glm::fvec3 const &mu,
-    glm::mat3 const &L,
+    glm::fmat3 const &L,
     glm::fvec3 const &ray_o,
     glm::fvec3 const &ray_d
 ) -> float {
@@ -114,10 +114,10 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
 // - v_covar: d(sigma)/d(covar)
 inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     glm::fvec3 const &mu,
-    glm::mat3 const &L,
+    glm::fmat3 const &L,
     glm::fvec3 const &ray_o,
     glm::fvec3 const &ray_d
-) -> std::tuple<float, glm::fvec3, glm::mat3> {
+) -> std::tuple<float, glm::fvec3, glm::fmat3> {
     // forward
     auto const o_minus_mu = ray_o - mu;
     auto const gro = cholesky_Linv_y(L, o_minus_mu);
@@ -159,7 +159,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
     glm::fvec3 const &ray_d
 ) -> float {
     auto const R = quat_to_rotmat(quat);
-    auto const Sinv = glm::mat3(
+    auto const Sinv = glm::fmat3(
         1.f / scale[0],
         0.f,
         0.f,
@@ -195,7 +195,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
 ) -> std::tuple<float, glm::fvec3, glm::fvec4, glm::fvec3> {
     // forward
     auto const R = quat_to_rotmat(quat);
-    auto const Sinv = glm::mat3(
+    auto const Sinv = glm::fmat3(
         1.f / scale[0],
         0.f,
         0.f,
@@ -243,8 +243,8 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
 // to the ray direction, which leads to a new covariace matrix.
 inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
     glm::fvec3 const &mu,
-    glm::mat3 const &L,
-    glm::mat3 const &L2,
+    glm::fmat3 const &L,
+    glm::fmat3 const &L2,
     glm::fvec3 const &ray_o,
     glm::fvec3 const &ray_d
 ) -> float {
@@ -279,11 +279,11 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
 // - v_covar2: d(o)/d(covar2)
 inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     glm::fvec3 const &mu,
-    glm::mat3 const &L,
-    glm::mat3 const &L2,
+    glm::fmat3 const &L,
+    glm::fmat3 const &L2,
     glm::fvec3 const &ray_o,
     glm::fvec3 const &ray_d
-) -> std::tuple<float, glm::fvec3, glm::mat3, glm::mat3> {
+) -> std::tuple<float, glm::fvec3, glm::fmat3, glm::fmat3> {
     // forward
     auto const o_minus_mu = ray_o - mu;
     auto const gro2 = forward_substitution(L2, o_minus_mu);
@@ -298,13 +298,13 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     auto const sqrt_det = L[0][0] * L[1][1] * L[2][2];
     auto const sqrt_det2 = L2[0][0] * L2[1][1] * L2[2][2];
     if (isnan(sqrt_det)) {
-        return {-1.f, glm::fvec3(0.f), glm::mat3(0.f), glm::mat3(0.f)};
+        return {-1.f, glm::fvec3(0.f), glm::fmat3(0.f), glm::fmat3(0.f)};
     }
     auto const grdgrd = glm::dot(grd, grd);
     auto const grd2grd2 = glm::dot(grd2, grd2);
     auto const coeff = sqrt_det / sqrt_det2 * sqrt(grdgrd / grd2grd2);
     if (coeff < (1.f / 255.f) || isnan(coeff)) {
-        return {-1.f, glm::fvec3(0.f), glm::mat3(0.f), glm::mat3(0.f)};
+        return {-1.f, glm::fvec3(0.f), glm::fmat3(0.f), glm::fmat3(0.f)};
     }
 
     // backward: d(sigma)/d(mu), d(sigma)/d(covar2)

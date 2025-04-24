@@ -42,7 +42,7 @@ inline __device__ void warpSum(glm::fvec2 &val, WarpT &warp) {
 }
 
 template <class WarpT>
-inline __device__ void warpSum(glm::mat4 &val, WarpT &warp) {
+inline __device__ void warpSum(glm::fmat4 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
@@ -50,14 +50,14 @@ inline __device__ void warpSum(glm::mat4 &val, WarpT &warp) {
 }
 
 template <class WarpT>
-inline __device__ void warpSum(glm::mat3 &val, WarpT &warp) {
+inline __device__ void warpSum(glm::fmat3 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
 }
 
 template <class WarpT>
-inline __device__ void warpSum(glm::mat2 &val, WarpT &warp) {
+inline __device__ void warpSum(glm::fmat2 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
 }

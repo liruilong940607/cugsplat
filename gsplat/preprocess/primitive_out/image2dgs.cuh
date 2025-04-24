@@ -65,7 +65,7 @@ struct DevicePrimitiveOutImage2DGS {
 
         // Apply anti-aliasing filter
         if (filter_size > 0) {
-            covar += glm::mat2(filter_size);
+            covar += glm::fmat2(filter_size);
             auto const det_blur = glm::determinant(covar);
             opacity *= sqrtf(det_orig / det_blur);
         }

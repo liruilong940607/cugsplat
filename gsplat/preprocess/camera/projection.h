@@ -181,7 +181,7 @@ struct OpencvPinholeProjection {
     }
 
     GSPLAT_HOST_DEVICE auto camera_gaussian_to_image_gaussian(
-        const glm::fvec3 &camera_point, const glm::mat3 camera_covar
+        const glm::fvec3 &camera_point, const glm::fmat3 camera_covar
     ) const -> MaybeValidGaussian2D {
         if (!is_perfect) {
             assert(
@@ -196,9 +196,9 @@ struct OpencvPinholeProjection {
         auto const fxrz = focal_length[0] * rz;
         auto const fyrz = focal_length[1] * rz;
 
-        // glm::mat3x2 is 3 columns x 2 rows.
+        // glm::fmat3x2 is 3 columns x 2 rows.
         auto const J =
-            glm::mat3x2{fxrz, 0.f, 0.f, fyrz, -fxrz * x * rz, -fyrz * y * rz};
+            glm::fmat3x2{fxrz, 0.f, 0.f, fyrz, -fxrz * x * rz, -fyrz * y * rz};
 
         auto const image_covar = J * camera_covar * transpose(J);
         auto const image_point = glm::fvec2{
@@ -210,11 +210,11 @@ struct OpencvPinholeProjection {
     GSPLAT_HOST_DEVICE auto camera_gaussian_to_image_gaussian_vjp(
         // input
         const glm::fvec3 &camera_point,
-        const glm::mat3 &camera_covar,
+        const glm::fmat3 &camera_covar,
         // output gradient
         const glm::fvec2 &v_image_point,
-        const glm::mat2 &v_image_covar
-    ) const -> std::pair<glm::fvec3, glm::mat3> {
+        const glm::fmat2 &v_image_covar
+    ) const -> std::pair<glm::fvec3, glm::fmat3> {
         if (!is_perfect) {
             assert(
                 false && "camera_gaussian_to_image_gaussian_vjp() is not "
@@ -227,9 +227,9 @@ struct OpencvPinholeProjection {
         auto const fxrz = focal_length[0] * rz;
         auto const fyrz = focal_length[1] * rz;
 
-        // glm::mat3x2 is 3 columns x 2 rows.
+        // glm::fmat3x2 is 3 columns x 2 rows.
         auto const J =
-            glm::mat3x2{fxrz, 0.f, 0.f, fyrz, -fxrz * x * rz, -fyrz * y * rz};
+            glm::fmat3x2{fxrz, 0.f, 0.f, fyrz, -fxrz * x * rz, -fyrz * y * rz};
 
         auto const v_J = v_image_covar * J * transpose(camera_covar) +
                          transpose(v_image_covar) * J * camera_covar;
@@ -335,7 +335,7 @@ struct OpencvPinholeProjection {
 
     GSPLAT_HOST_DEVICE auto _residual_jacobian(
         const glm::fvec2 &xy, const glm::fvec2 &xy_dist
-    ) const -> std::pair<glm::fvec2, glm::mat2> {
+    ) const -> std::pair<glm::fvec2, glm::fmat2> {
         auto const x_dist = xy_dist[0];
         auto const y_dist = xy_dist[1];
         auto const x = xy[0];
@@ -385,7 +385,7 @@ struct OpencvPinholeProjection {
         auto const d_delta_y_dx = p2y + p1x + x * d_sy_dr2;
         auto const d_delta_y_dy = p2x + p1y * 3.f + y * d_sy_dr2;
 
-        auto const J = glm::mat2{
+        auto const J = glm::fmat2{
             icD + x * d_icD_dx + d_delta_x_dx,
             y * d_icD_dx + d_delta_y_dx,
             x * d_icD_dy + d_delta_x_dy,

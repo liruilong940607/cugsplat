@@ -1,18 +1,12 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-#include <ATen/ATen.h>
-
 #include "preprocess/camera/simple_pinhole_ewa.cuh"
 #include "preprocess/primitive_in/world3dgs.cuh"
 #include "preprocess/primitive_out/image2dgs.cuh"
 #include "preprocess/kernel.cuh"
 
 int main(){
-    auto focal_length_ = at::empty({1, 2}, at::kFloat);
-    focal_length_[0][0] = 800.0f;
-    focal_length_[0][1] = 600.0f;
-
     // create camera
     auto const focal_length = glm::fvec2(800.0f, 600.0f);
     auto const principal_point = glm::fvec2(400.0f, 300.0f);

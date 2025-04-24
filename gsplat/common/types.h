@@ -41,22 +41,22 @@ struct MaybeValidPoint2D {
 
 struct MaybeValidGaussian3D {
     glm::fvec3 mean;
-    glm::mat3 covar;
+    glm::fmat3 covar;
     bool valid_flag;
 };
 
 struct MaybeValidGaussian2D {
     glm::fvec2 mean;
-    glm::mat2 covar;
+    glm::fmat2 covar;
     bool valid_flag;
 };
 
 struct ShutterPose {
     glm::fvec3 t;
-    glm::quat q;
+    glm::fquat q;
 
     GSPLAT_HOST_DEVICE ShutterPose() {}
-    GSPLAT_HOST_DEVICE ShutterPose(glm::fvec3 t, glm::quat q) : t(t), q(q) {}
+    GSPLAT_HOST_DEVICE ShutterPose(glm::fvec3 t, glm::fquat q) : t(t), q(q) {}
 };
 
 enum class ShutterType {
