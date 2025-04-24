@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "utils/types.h"
+#include "utils/gaussian.h"
 
 namespace gsplat::device {
 
@@ -66,11 +67,8 @@ struct DevicePrimitiveInWorld3DGS {
         DeviceCameraModel &d_camera
     ) -> std::tuple<glm::fvec2, glm::fmat2, bool> {
         auto const world_point = this->get_mean();
-        // TODO
-        // auto const world_covar = quat_scale_to_covar(
-        //     this->get_quat(), this->get_scale()
-        // );
-        auto const world_covar = glm::fmat3(1.0f);
+        auto const world_covar = quat_scale_to_covar(
+            this->get_quat(), this->get_scale());
         auto const image_point = d_camera.point_world_to_image(world_point);
         auto const J = d_camera.jacobian_world_to_image(world_point);
         auto const image_covar = J * world_covar * transpose(J);

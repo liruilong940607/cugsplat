@@ -6,7 +6,7 @@
 #include <torch/torch.h>
 
 #include "glm_tensor.h"
-#include "math/cholesky3x3.h"
+#include "utils/cholesky3x3.h"
 
 void test_cholesky() {
     glm::fmat3 A(0.0f);

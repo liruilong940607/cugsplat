@@ -1,10 +1,10 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-#include "preprocess/camera/simple_pinhole_ewa.cuh"
-#include "preprocess/primitive_in/world3dgs.cuh"
-#include "preprocess/primitive_out/image2dgs.cuh"
-#include "preprocess/kernel.cuh"
+#include "device/projection/camera/simple_pinhole_ewa.cuh"
+#include "device/projection/primitive_in/world3dgs.cuh"
+#include "device/projection/primitive_out/image2dgs.cuh"
+#include "device/projection/kernels.cuh"
 
 int main(){
     // create camera
