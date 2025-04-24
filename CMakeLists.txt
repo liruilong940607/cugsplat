@@ -9,7 +9,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 # Header-only core
 add_library(gsplat INTERFACE)
 target_include_directories(gsplat INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/gsplat
+    ${CMAKE_CURRENT_SOURCE_DIR}/gsplat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
 
