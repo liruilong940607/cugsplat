@@ -3,7 +3,7 @@
 
 #include "preprocess/util.cuh"
 
-namespace gsplat::preprocess {
+namespace gsplat::device {
 
 struct DeviceSimplePinholeCameraEWA {
     uint32_t n;
@@ -108,5 +108,5 @@ struct DeviceSimplePinholeCameraEWA {
     }
 };
 
-} // namespace gsplat::preprocess
+} // namespace gsplat::device
 

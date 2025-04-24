@@ -5,9 +5,28 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "common/macros.h"
+#include "utils/macros.h"
 
 namespace gsplat {
+
+template <typename T>
+struct Maybe {
+    bool _has_value = false;
+    T _value;
+
+    GSPLAT_HOST_DEVICE inline T get() const {
+        return this->_has_value ? this->_value : T{};
+    }
+
+    GSPLAT_HOST_DEVICE inline bool has_value() const {
+        return this->_has_value;
+    }
+
+    GSPLAT_HOST_DEVICE inline void set(const T& v) {
+        this->_value = v;
+        this->_has_value = true;
+    }
+};
 
 template <typename T, size_t N>
 inline GSPLAT_HOST_DEVICE std::array<T, N>

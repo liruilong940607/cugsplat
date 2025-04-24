@@ -1,12 +1,13 @@
 #pragma once
 
+#include <cmath>
 #include <algorithm>
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <tuple>
 
-#include "cholesky3x3.h"
-#include "macros.h" // for GSPLAT_HOST_DEVICE
+#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
+#include "utils/cholesky3x3.h"
 
 namespace gsplat {
 
@@ -260,13 +261,13 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
     auto const grd = forward_substitution(L, ray_d);
     auto const sqrt_det = L[0][0] * L[1][1] * L[2][2];
     auto const sqrt_det2 = L2[0][0] * L2[1][1] * L2[2][2];
-    if (isnan(sqrt_det)) {
+    if (std::isnan(sqrt_det)) {
         return -1.f;
     }
     auto const grdgrd = glm::dot(grd, grd);
     auto const grd2grd2 = glm::dot(grd2, grd2);
     auto const coeff = sqrt_det / sqrt_det2 * sqrt(grdgrd / grd2grd2);
-    if (coeff < (1.f / 255.f) || isnan(coeff)) {
+    if (coeff < (1.f / 255.f) || std::isnan(coeff)) {
         return -1.f;
     }
     return sigma - log(coeff);
@@ -297,13 +298,13 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     auto const grd = forward_substitution(L, ray_d);
     auto const sqrt_det = L[0][0] * L[1][1] * L[2][2];
     auto const sqrt_det2 = L2[0][0] * L2[1][1] * L2[2][2];
-    if (isnan(sqrt_det)) {
+    if (std::isnan(sqrt_det)) {
         return {-1.f, glm::fvec3(0.f), glm::fmat3(0.f), glm::fmat3(0.f)};
     }
     auto const grdgrd = glm::dot(grd, grd);
     auto const grd2grd2 = glm::dot(grd2, grd2);
     auto const coeff = sqrt_det / sqrt_det2 * sqrt(grdgrd / grd2grd2);
-    if (coeff < (1.f / 255.f) || isnan(coeff)) {
+    if (coeff < (1.f / 255.f) || std::isnan(coeff)) {
         return {-1.f, glm::fvec3(0.f), glm::fmat3(0.f), glm::fmat3(0.f)};
     }
 
@@ -325,5 +326,51 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
         0.5f * (cholesky_Winv(L2) - glm::outerProduct(ggrd2, ggrd2) / grd2grd2);
     return {sigma - log(coeff), v_mu, v_covar, v_covar2};
 }
+
+// Solve the tight axis-aligned bounding box radius for a Gaussian defined as
+//      y = prefactor * exp(-1/2 * xᵀ * covar⁻¹ * x)
+// at the given y value.
+inline GSPLAT_HOST_DEVICE auto solve_tight_radius(
+    glm::fmat2 covar, float prefactor, float y = 1.0f / 255.0f
+) -> glm::fvec2 {
+    if (prefactor < y) {
+        return glm::fvec2(0.0f);
+    }
+
+    // Threshold distance squared on ellipse
+    float sigma = -logf(y / prefactor);
+    float Q = 2.0f * sigma;
+
+    // Eigenvalues of covariance matrix
+    float det = glm::determinant(covar);
+    float half_trace = 0.5f * (covar[0][0] + covar[1][1]);
+    float discrim = sqrtf(std::max(0.f, half_trace * half_trace - det));
+    float lambda1 = half_trace + discrim;
+    float lambda2 = half_trace - discrim;
+
+    // Compute unit eigenvectors
+    glm::fvec2 v1, v2;
+    if (covar[0][1] == 0.0f) {
+        // pick the axis that corresponds to the larger eigenvalue
+        if (covar[0][0] >= covar[1][1]) {
+            v1 = glm::fvec2(1,0);
+        } else {
+            v1 = glm::fvec2(0,1);
+        }
+    } else {
+        v1 = glm::normalize(glm::fvec2(lambda1 - covar[1][1], covar[0][1]));
+    }
+    v2 = glm::fvec2(-v1.y, v1.x);  // perpendicular
+
+    // Scale eigenvectors with eigenvalues
+    v1 *= sqrtf(Q * lambda1);
+    v2 *= sqrtf(Q * lambda2);
+
+    // Compute max extent along world x/y axes (bounding box)
+    auto const radius = glm::sqrt(v1 * v1 + v2 * v2);
+    return radius;
+}
+
+
 
 } // namespace gsplat

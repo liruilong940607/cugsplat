@@ -1,8 +1,10 @@
+#pragma once
+
 #include <glm/glm.hpp>
 
-#include "preprocess/util.cuh"
+#include "utils/types.h"
 
-namespace gsplat::preprocess {
+namespace gsplat::device {
 
 struct DevicePrimitiveOutImage2DGS {
     // pointers to output buffer
@@ -105,5 +107,5 @@ struct DevicePrimitiveOutImage2DGS {
     }
 };
 
-} // namespace gsplat::preprocess
+} // namespace gsplat::device
 

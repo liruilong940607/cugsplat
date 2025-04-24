@@ -4,9 +4,9 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
+#include <glm/glm.hpp>
 
-#include "macros.h" // for GSPLAT_HOST_DEVICE
-#include "types.h"
+#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace gsplat {
 

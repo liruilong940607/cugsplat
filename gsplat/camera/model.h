@@ -7,9 +7,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp> // glm rotate
 
-#include "camera_projection.h"
-#include "macros.h" // for GSPLAT_HOST_DEVICE
-#include "types.h"  // for MaybeValidRay, MaybeValidPoint2D
+#include "camera/projection.h"
+#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
+#include "utils/types.h"  // for MaybeValidRay, MaybeValidPoint2D
 
 namespace gsplat {
 

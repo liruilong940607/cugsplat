@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "common/macros.h"  // for GSPLAT_HOST_DEVICE
+#include "utils/macros.h"  // for GSPLAT_HOST_DEVICE
 
 namespace gsplat {
 

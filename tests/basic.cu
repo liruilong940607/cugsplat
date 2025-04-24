@@ -13,7 +13,7 @@ int main(){
     auto const world_to_camera_R = glm::fmat3(1.0f);
     auto const world_to_camera_t = glm::fvec3(0.0f, 0.0f, 0.0f);
 
-    gsplat::preprocess::DeviceSimplePinholeCameraEWA d_camera;
+    gsplat::device::DeviceSimplePinholeCameraEWA d_camera;
     d_camera.n = 1;
     cudaMalloc(&d_camera.focal_lengths, 1 * sizeof(glm::fvec2));
     cudaMemcpy(d_camera.focal_lengths, &focal_length, 1 * sizeof(glm::fvec2), cudaMemcpyHostToDevice);
@@ -30,7 +30,7 @@ int main(){
     auto const quat = glm::fvec4(1.0f, 0.0f, 0.0f, 0.0f);
     auto const scale = glm::fvec3(1.0f, 1.0f, 1.0f);
 
-    gsplat::preprocess::DevicePrimitiveInWorld3DGS d_gaussian_in;
+    gsplat::device::DevicePrimitiveInWorld3DGS d_gaussian_in;
     d_gaussian_in.n = 1;
     cudaMalloc(&d_gaussian_in.opacities, 1 * sizeof(float));
     cudaMemcpy(d_gaussian_in.opacities, &opacity, 1 * sizeof(float), cudaMemcpyHostToDevice);
@@ -42,7 +42,7 @@ int main(){
     cudaMemcpy(d_gaussian_in.scales, &scale, 1 * sizeof(glm::fvec3), cudaMemcpyHostToDevice);
 
     // create primitive output
-    gsplat::preprocess::DevicePrimitiveOutImage2DGS d_gaussian_out;
+    gsplat::device::DevicePrimitiveOutImage2DGS d_gaussian_out;
     cudaMalloc(&d_gaussian_out.opacities, 1 * sizeof(float));
     cudaMalloc(&d_gaussian_out.means, 1 * sizeof(glm::fvec2));
     cudaMalloc(&d_gaussian_out.conics, 1 * sizeof(glm::fvec3));
@@ -58,10 +58,10 @@ int main(){
     dim3 blockDim(256, 1, 1);
     dim3 gridDim(1, 1, 1);
 
-    gsplat::preprocess::PreprocessKernel<
-        gsplat::preprocess::DeviceSimplePinholeCameraEWA,
-        gsplat::preprocess::DevicePrimitiveInWorld3DGS,
-        gsplat::preprocess::DevicePrimitiveOutImage2DGS,
+    gsplat::device::PreprocessKernel<
+        gsplat::device::DeviceSimplePinholeCameraEWA,
+        gsplat::device::DevicePrimitiveInWorld3DGS,
+        gsplat::device::DevicePrimitiveOutImage2DGS,
         false,
         1
     ><<<gridDim, blockDim>>>(

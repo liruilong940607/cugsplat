@@ -1,9 +1,11 @@
+#pragma once
+
 #include <stdint.h>
 #include <glm/glm.hpp>
 
-#include "preprocess/util.cuh"
+#include "utils/types.h"
 
-namespace gsplat::preprocess {
+namespace gsplat::device {
 
 struct DevicePrimitiveInWorld3DGS {
     uint32_t n;
@@ -83,5 +85,5 @@ struct DevicePrimitiveInWorld3DGS {
     }
 };
 
-} // namespace gsplat::preprocess
+} // namespace gsplat::device
 

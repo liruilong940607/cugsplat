@@ -3,7 +3,7 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
-namespace gsplat::preprocess {
+namespace gsplat::device {
 
 /**
  * @brief PreprocessKernel performs preprocessing of input primitives from a specific camera view.
@@ -137,4 +137,4 @@ __global__ void PreprocessKernel(
     }
 }
 
-} // namespace gsplat::preprocess
+} // namespace gsplat::device

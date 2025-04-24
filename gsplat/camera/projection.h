@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "macros.h" // for GSPLAT_HOST_DEVICE
-#include "solver.h" // for solver_newton
-#include "types.h"  // for MaybeValidRay, MaybeValidPoint2D
+#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
+#include "utils/solver.h" // for solver_newton
+#include "utils/types.h"  // for MaybeValidRay, MaybeValidPoint2D
 
 namespace gsplat {
 
