@@ -1,0 +1,72 @@
+#pragma once
+
+#include <cstdint>
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
+#include "common/macros.h"
+
+namespace gsplat {
+
+template <typename T, size_t N>
+inline GSPLAT_HOST_DEVICE std::array<T, N>
+make_array(const T *ptr, size_t offset = 0) {
+    std::array<T, N> arr{}; // zero-initialize
+    if (!ptr) {
+        return arr;
+    }
+#pragma unroll
+    for (std::size_t i = 0; i < N; ++i) {
+        arr[i] = ptr[offset + i];
+    }
+    return arr;
+}
+
+struct MaybeValidRay {
+    glm::fvec3 o;
+    glm::fvec3 d;
+    bool valid_flag;
+};
+
+struct MaybeValidPoint3D {
+    glm::fvec3 p;
+    bool valid_flag;
+};
+
+struct MaybeValidPoint2D {
+    glm::fvec2 p;
+    bool valid_flag;
+};
+
+struct MaybeValidGaussian3D {
+    glm::fvec3 mean;
+    glm::mat3 covar;
+    bool valid_flag;
+};
+
+struct MaybeValidGaussian2D {
+    glm::fvec2 mean;
+    glm::mat2 covar;
+    bool valid_flag;
+};
+
+struct ShutterPose {
+    glm::fvec3 t;
+    glm::quat q;
+
+    GSPLAT_HOST_DEVICE ShutterPose() {}
+    GSPLAT_HOST_DEVICE ShutterPose(glm::fvec3 t, glm::quat q) : t(t), q(q) {}
+};
+
+enum class ShutterType {
+    ROLLING_TOP_TO_BOTTOM,
+    ROLLING_LEFT_TO_RIGHT,
+    ROLLING_BOTTOM_TO_TOP,
+    ROLLING_RIGHT_TO_LEFT,
+    GLOBAL
+};
+
+enum class CameraType { PINHOLE, ORTHO, FISHEYE };
+
+} // namespace gsplat

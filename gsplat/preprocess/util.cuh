@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-namespace cugsplat::preprocess {
+namespace gsplat::preprocess {
 
 template <typename T>
 struct Maybe {
@@ -69,4 +69,4 @@ inline __device__ auto solve_tight_radius(
 }
 
 
-} // namespace cugsplat::preprocess
+} // namespace gsplat::preprocess

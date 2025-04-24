@@ -121,7 +121,4 @@ venv.bak/
 compile_commands.json
 *.dump
 
-data
-results
-
-!examples/benchmarks/compression/results/
+libtorch/

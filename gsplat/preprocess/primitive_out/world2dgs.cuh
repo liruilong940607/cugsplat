@@ -1,30 +1,29 @@
 // #include <stdint.h>
 // #include <glm/glm.hpp>
+// #include <glm/gtx/component_wise.hpp>
 
 // #include "kernels/preprocess.cuh"
 // #include "util/macros.cuh"
 
-// namespace cugsplat {
+// namespace gsplat {
 
 // using namespace glm;
 
-// struct DevicePrimitiveOutWorldDGS {
+// struct DevicePrimitiveOutWorld2DGS {
 //     uint32_t n;
 //     uint32_t index;
-//     float* opacities;
-//     glm::fvec2* means;
-//     float* triuLs; // [6]
+//     fmat3* transforms;
 //     float* depths;
+//     glm::fvec2* centers;
 //     glm::fvec2* radius;
 
 //     DEFINE_VALUE_SETGET(uint32_t, n)
 //     DEFINE_VALUE_SETGET(uint32_t, index)
 
 //     // ctx
-//     float opacity;
-//     glm::fvec2 mean;
-//     float triuL[6];
+//     fmat3 transform;
 //     float depth;
+//     glm::fvec2 center;
 //     glm::fvec2 radius;
 
 //     template <class DeviceCameraModel, class DevicePrimitiveIn>
@@ -40,7 +39,8 @@
 //         }
 
 //         // Compute the projected gaussian on the image plane
-//         auto &[mean, covar, valid_flag] = 
+//         // KWH is 3x2 matrix; mean is 3D vector
+//         auto &[mean, KWH, valid_flag] = 
 //             d_gaussians_in.world_to_image(d_camera);
 //         if (!valid_flag) {
 //             return false;
@@ -55,56 +55,41 @@
 //             return false;
 //         }
 
-//         // Check: If the covariance matrix is not positive definite, skip it
-//         auto const det_orig = determinant(covar);
-//         if (det_orig < 0) {
+//         // Compute aabb
+//         auto const M = transpose(fmat3(KWH[0], KWH[1], mean));
+//         auto const M0 = M[0], M1 = M[1], M2 = M[2];
+//         auto const temp_point = glm::fvec3(1.0f, 1.0f, -1.0f);
+//         auto const distance = compAdd(temp_point * M2 * M2);
+//         if (distance == 0.0f) {
 //             return false;
 //         }
-
-//         // Fetch the opacity
-//         auto opacity = d_gaussians_in.get_opacity();
-
-//         // Apply anti-aliasing filter
-//         fmat3 L;
-//         if (params.filter_size > 0) {
-//             // TODO: implement anti-aliasing filter
-//         }
-
-//         // Compute the bounding box of this gaussian on the image plane
-//         auto const radius = compute_radius(opacity, covar);
-
+//         auto const f = (1.0f / distance) * temp_point;
+//         auto const center = glm::fvec2(compAdd(f * M0 * M2), compAdd(f * M1 * M2));
+//         auto const temp = glm::fvec2(compAdd(f * M0 * M0), compAdd(f * M1 * M1));
+//         auto const half_extend = center * center - temp;
+//         auto const radius = 3.33f * glm::sqrt(glm::max(fvec2(1e-4f), half_extend));
+    
 //         // Check again if the gaussian is outside the image plane
-//         if (mean.x - radius.x < 0 || mean.x + radius.x > params.render_width ||
-//             mean.y - radius.y < 0 || mean.y + radius.y > params.render_height) {
+//         if (center.x - radius.x < 0 || center.x + radius.x > params.render_width ||
+//             center.y - radius.y < 0 || center.y + radius.y > params.render_height) {
 //             return false;
 //         }
 
 //         this->opacity = opacity;
-//         this->mean = mean;
-//         this->triuL[0] = L[0][0];
-//         this->triuL[1] = L[0][1];
-//         this->triuL[2] = L[0][2];
-//         this->triuL[3] = L[1][1];
-//         this->triuL[4] = L[1][2];
-//         this->triuL[5] = L[2][2];
+//         this->center = center;
+//         this->transform = M;
 //         this->depth = depth;
 //         this->radius = radius;
 //         return true;
 //     }
 
 //     inline __device__ void write_to_buffer() {
-//         this->opacities[index] = this->opacity;
-//         this->means[index] = this->mean;
-//         #pragma unroll
-//         for (int i = 0; i < 6; ++i)
-//             this->triuLs[index * 6 + i] = this->triuL[i];
+//         this->centers[index] = this->center;
+//         this->transforms[index] = this->transform;
 //         this->depths[index] = this->depth;
 //         this->radius[index] = this->radius;
 //     }
 // };
 
-
-
-
-// } // namespace cugsplat
+// } // namespace gsplat
 

@@ -3,7 +3,7 @@
 
 #include "preprocess/util.cuh"
 
-namespace cugsplat::preprocess {
+namespace gsplat::preprocess {
 
 struct DevicePrimitiveInWorld3DGS {
     uint32_t n;
@@ -83,5 +83,5 @@ struct DevicePrimitiveInWorld3DGS {
     }
 };
 
-} // namespace cugsplat::preprocess
+} // namespace gsplat::preprocess
 

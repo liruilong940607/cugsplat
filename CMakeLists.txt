@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-project(cugsplat LANGUAGES CUDA CXX)
+project(gsplat LANGUAGES CUDA CXX)
 
 set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
 
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+
 # Header-only core
-add_library(cugsplat INTERFACE)
-target_include_directories(cugsplat INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat
-    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat/third_party/glm
+add_library(gsplat INTERFACE)
+target_include_directories(gsplat INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/gsplat
+    ${CMAKE_CURRENT_SOURCE_DIR}/gsplat/third_party/glm
 )
 
 # relax restrictions on glm constexpr functions so they can be called in device code.
@@ -33,7 +36,8 @@ function(build_cuda_executables_from DIR SUBDIR_NAME)
         set(OUTPUT_DIR "${CMAKE_BINARY_DIR}/${SUBDIR_NAME}")
 
         add_executable(${TARGET_NAME} ${FILE_PATH})
-        target_link_libraries(${TARGET_NAME} PRIVATE cugsplat)
+        target_link_libraries(${TARGET_NAME} PRIVATE gsplat)
+        target_link_libraries(${TARGET_NAME} PRIVATE ${TORCH_LIBRARIES})
 
         set_target_properties(${TARGET_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}"

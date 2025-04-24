@@ -1,19 +1,25 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
+#include <ATen/ATen.h>
+
 #include "preprocess/camera/simple_pinhole_ewa.cuh"
 #include "preprocess/primitive_in/world3dgs.cuh"
 #include "preprocess/primitive_out/image2dgs.cuh"
 #include "preprocess/kernel.cuh"
 
 int main(){
+    auto focal_length_ = at::empty({1, 2}, at::kFloat);
+    focal_length_[0][0] = 800.0f;
+    focal_length_[0][1] = 600.0f;
+
     // create camera
     auto const focal_length = glm::fvec2(800.0f, 600.0f);
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
     auto const world_to_camera_R = glm::fmat3(1.0f);
     auto const world_to_camera_t = glm::fvec3(0.0f, 0.0f, 0.0f);
 
-    cugsplat::preprocess::DeviceSimplePinholeCameraEWA d_camera;
+    gsplat::preprocess::DeviceSimplePinholeCameraEWA d_camera;
     d_camera.n = 1;
     cudaMalloc(&d_camera.focal_lengths, 1 * sizeof(glm::fvec2));
     cudaMemcpy(d_camera.focal_lengths, &focal_length, 1 * sizeof(glm::fvec2), cudaMemcpyHostToDevice);
@@ -30,7 +36,7 @@ int main(){
     auto const quat = glm::fvec4(1.0f, 0.0f, 0.0f, 0.0f);
     auto const scale = glm::fvec3(1.0f, 1.0f, 1.0f);
 
-    cugsplat::preprocess::DevicePrimitiveInWorld3DGS d_gaussian_in;
+    gsplat::preprocess::DevicePrimitiveInWorld3DGS d_gaussian_in;
     d_gaussian_in.n = 1;
     cudaMalloc(&d_gaussian_in.opacities, 1 * sizeof(float));
     cudaMemcpy(d_gaussian_in.opacities, &opacity, 1 * sizeof(float), cudaMemcpyHostToDevice);
@@ -42,7 +48,7 @@ int main(){
     cudaMemcpy(d_gaussian_in.scales, &scale, 1 * sizeof(glm::fvec3), cudaMemcpyHostToDevice);
 
     // create primitive output
-    cugsplat::preprocess::DevicePrimitiveOutImage2DGS d_gaussian_out;
+    gsplat::preprocess::DevicePrimitiveOutImage2DGS d_gaussian_out;
     cudaMalloc(&d_gaussian_out.opacities, 1 * sizeof(float));
     cudaMalloc(&d_gaussian_out.means, 1 * sizeof(glm::fvec2));
     cudaMalloc(&d_gaussian_out.conics, 1 * sizeof(glm::fvec3));
@@ -58,10 +64,10 @@ int main(){
     dim3 blockDim(256, 1, 1);
     dim3 gridDim(1, 1, 1);
 
-    cugsplat::preprocess::PreprocessKernel<
-        cugsplat::preprocess::DeviceSimplePinholeCameraEWA,
-        cugsplat::preprocess::DevicePrimitiveInWorld3DGS,
-        cugsplat::preprocess::DevicePrimitiveOutImage2DGS,
+    gsplat::preprocess::PreprocessKernel<
+        gsplat::preprocess::DeviceSimplePinholeCameraEWA,
+        gsplat::preprocess::DevicePrimitiveInWorld3DGS,
+        gsplat::preprocess::DevicePrimitiveOutImage2DGS,
         false,
         1
     ><<<gridDim, blockDim>>>(

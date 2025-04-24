@@ -2,7 +2,7 @@
 
 #include "preprocess/util.cuh"
 
-namespace cugsplat::preprocess {
+namespace gsplat::preprocess {
 
 struct DevicePrimitiveOutImage2DGS {
     // pointers to output buffer
@@ -105,5 +105,5 @@ struct DevicePrimitiveOutImage2DGS {
     }
 };
 
-} // namespace cugsplat::preprocess
+} // namespace gsplat::preprocess
 
