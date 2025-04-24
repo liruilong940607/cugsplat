@@ -1,7 +1,9 @@
+#pragma once
+
 #include <stdint.h>
 #include <glm/glm.hpp>
 
-#include "preprocess/util.cuh"
+#include "utils/types.cuh"
 
 namespace gsplat::device {
 
