@@ -275,11 +275,11 @@ struct BatchedOpencvPinholeProjection : OpencvPinholeProjectionImpl<BatchedOpenc
     GSPLAT_HOST_DEVICE int  get_n() const { return n; }                    
 
     // pointer to device memory
-    glm::fvec2* focal_length_ptr;
-    glm::fvec2* principal_point_ptr;
-    std::array<float, 6>* radial_coeffs_ptr;
-    std::array<float, 2>* tangential_coeffs_ptr;
-    std::array<float, 4>* thin_prism_coeffs_ptr;
+    const glm::fvec2* focal_length_ptr;
+    const glm::fvec2* principal_point_ptr;
+    const std::array<float, 6>* radial_coeffs_ptr;
+    const std::array<float, 2>* tangential_coeffs_ptr;
+    const std::array<float, 4>* thin_prism_coeffs_ptr;
 
     // cache
     Maybe<glm::fvec2> focal_length;
@@ -290,8 +290,8 @@ struct BatchedOpencvPinholeProjection : OpencvPinholeProjectionImpl<BatchedOpenc
 
     GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
         uint32_t n,
-        glm::fvec2* focal_length_ptr,
-        glm::fvec2* principal_point_ptr
+        const glm::fvec2* focal_length_ptr,
+        const glm::fvec2* principal_point_ptr
     )
         : n(n),
           focal_length_ptr(focal_length_ptr),
@@ -301,11 +301,11 @@ struct BatchedOpencvPinholeProjection : OpencvPinholeProjectionImpl<BatchedOpenc
     
     GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
         uint32_t n,
-        glm::fvec2* focal_length_ptr,
-        glm::fvec2* principal_point_ptr,
-        std::array<float, 6>* radial_coeffs_ptr,
-        std::array<float, 2>* tangential_coeffs_ptr,
-        std::array<float, 4>* thin_prism_coeffs_ptr
+        const glm::fvec2* focal_length_ptr,
+        const glm::fvec2* principal_point_ptr,
+        const std::array<float, 6>* radial_coeffs_ptr,
+        const std::array<float, 2>* tangential_coeffs_ptr,
+        const std::array<float, 4>* thin_prism_coeffs_ptr
     )
         : n(n),
           focal_length_ptr(focal_length_ptr),

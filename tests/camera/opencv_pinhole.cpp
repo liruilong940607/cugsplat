@@ -10,13 +10,23 @@ int main() {
     std::array<float, 2> tangential_coeffs = {0.1f, -0.1f};
     std::array<float, 4> thin_prism_coeffs = {0.1f, -0.1f, -0.05f, -0.2f};
 
-    auto projector = OpencvPinholeProjection(
-        focal_length,
-        principal_point,
-        radial_coeffs,
-        tangential_coeffs,
-        thin_prism_coeffs
+    // auto projector = OpencvPinholeProjection(
+    //     focal_length,
+    //     principal_point,
+    //     radial_coeffs,
+    //     tangential_coeffs,
+    //     thin_prism_coeffs
+    // );
+
+    auto projector = BatchedOpencvPinholeProjection(
+        1,
+        &focal_length,
+        &principal_point,
+        &radial_coeffs,
+        &tangential_coeffs,
+        &thin_prism_coeffs
     );
+    projector.set_index(0);
 
     auto const camera_point = glm::fvec3(0.2f, 0.4f, 3.0f);
     auto const &[image_point, point_valid_flag] = projector.camera_point_to_image_point(camera_point);
