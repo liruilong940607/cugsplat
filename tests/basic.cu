@@ -30,7 +30,7 @@ int main() {
     auto gaussian = BatchPrimitive3DGS(1, &opacity, &mean, &quat, &scale);
 
     // create operator
-    PrimitiveImage2DGS op;
+    OutputOperatorImage2DGS op;
     op.preprocess(camera, gaussian);
     std::cout << "Opacity: " << op.opacity << std::endl;
     std::cout << "Mean: " << op.mean.x << ", " << op.mean.y << std::endl;

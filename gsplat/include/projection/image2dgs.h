@@ -9,7 +9,7 @@
 
 namespace gsplat {
 
-struct PrimitiveImage2DGS  {
+struct OutputOperatorImage2DGS {
     // pointers to output buffer
     float *opacity_ptr;
     glm::fvec2 *mean_ptr;
