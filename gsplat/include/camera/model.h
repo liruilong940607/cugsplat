@@ -44,7 +44,7 @@ inline GSPLAT_HOST_DEVICE auto interpolate_shutter_pose(
         auto const t_rs = (1.f - relative_frame_time) * pose_start.t +
                           relative_frame_time * pose_end.t;
         auto const q_rs = glm::slerp(
-            glm::mat3_cast(pose_start.R), glm::mat3_cast(pose_end.q), relative_frame_time);
+            glm::quat_cast(pose_start.R), glm::quat_cast(pose_end.R), relative_frame_time);
         auto const R_rs = glm::mat3_cast(q_rs);
         return SE3Mat{t_rs, R_rs};
     } else {

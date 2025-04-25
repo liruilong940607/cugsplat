@@ -4,6 +4,7 @@
 
 #include "utils/types.h"
 #include "camera/model.h"
+#include "primitive/gaussian.h"
 
 namespace gsplat::device {
 
