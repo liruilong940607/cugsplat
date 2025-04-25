@@ -200,17 +200,17 @@ struct CameraModel {
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
     inline GSPLAT_HOST_DEVICE auto world_point_to_image_point(
         const glm::fvec3 &world_point
-    ) -> std::tuple<glm::fvec2, bool, CameraPose> {
+    ) -> std::tuple<glm::fvec2, float, bool, CameraPose> {
         // Perform rolling-shutter-based world point to image point projection /
         // optimization
 
         // Always perform transformation using start pose
-        auto const &[image_point_start, valid_start] = _world_point_to_image_point(
+        auto const &[image_point_start, depth_start, valid_start] = _world_point_to_image_point(
             world_point, pose_start
         );
         if (shutter_type == ShutterType::GLOBAL) {
             // Exit early if we have a global shutter sensor
-            return {image_point_start, valid_start, pose_start};
+            return {image_point_start, depth_start, valid_start, pose_start};
         }
 
         // This selection prefers points at the start-of-frame pose over
@@ -222,7 +222,7 @@ struct CameraModel {
             // Do initial transformations using both start and end poses to
             // determine all candidate points and take union of valid
             // projections as iteration starting points
-            auto const &[image_point_end, valid_end] = _world_point_to_image_point(
+            auto const &[image_point_end, depth_end, valid_end] = _world_point_to_image_point(
                 world_point, pose_end
             );
             if (valid_end) {
@@ -230,28 +230,33 @@ struct CameraModel {
             } else {
                 // No valid projection at start or finish -> mark point as
                 // invalid. Still return projection result at end of frame
-                return {image_point_end, false, pose_end};
+                return {image_point_end, depth_end, false, pose_end};
             }
         }
 
         // Compute the new timestamp and project again
-        auto image_points_rs_prev = init_image_point;
+        auto image_point_rs = init_image_point;
+        float depth_rs;
         CameraPose pose_rs;
 #pragma unroll
         for (auto j = 0; j < N_ROLLING_SHUTTER_ITERATIONS; ++j) {
             pose_rs = interpolate_shutter_pose(
-                shutter_relative_frame_time(image_points_rs_prev),
+                shutter_relative_frame_time(image_point_rs),
                 pose_start,
                 pose_end
             );
-            auto const &[image_point_rs, valid_rs] = _world_point_to_image_point(
+            auto const &[image_point_rs_, depth_rs_, valid_rs] = _world_point_to_image_point(
                 world_point, pose_rs
             );
-            image_points_rs_prev = image_point_rs;
+            image_point_rs = image_point_rs_;
+            depth_rs = depth_rs_;
+            if (!valid_rs) {
+                return {image_point_rs, depth_rs, false, pose_rs};
+            }
             // TODO: add early exit if the image point is not changing
         }
 
-        return {image_points_rs_prev, true, pose_rs};
+        return {image_point_rs, depth_rs, true, pose_rs};
     }
 
 private:
@@ -282,27 +287,27 @@ private:
 
     inline GSPLAT_HOST_DEVICE auto _world_point_to_image_point(
         const glm::fvec3 &world_point, const CameraPose &pose
-    ) -> std::tuple<glm::fvec2, bool> {
+    ) -> std::tuple<glm::fvec2, float, bool> {
         auto const camera_point = 
             world_point_to_camera_point(world_point, pose);
         if (camera_point.z < near_plane || camera_point.z > far_plane) {
-            return {glm::fvec2{}, false};
+            return {glm::fvec2{}, float{}, false};
         }
 
         auto const &[image_point, valid_flag] =
             projector.camera_point_to_image_point(camera_point);
         if (!valid_flag) {
-            return {glm::fvec2{}, false};
+            return {glm::fvec2{}, float{}, false};
         }
 
         auto const in_fov = image_point_in_image_bounds_margin(
             image_point, resolution, margin_factor
         );
         if (!in_fov) {
-            return {glm::fvec2{}, false};
+            return {glm::fvec2{}, float{}, false};
         }
 
-        return {image_point, true};
+        return {image_point, camera_point.z, true};
     }
 };
 
