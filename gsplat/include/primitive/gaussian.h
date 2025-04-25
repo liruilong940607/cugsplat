@@ -23,7 +23,7 @@ namespace gsplat {
             fname.set(fname##_ptr[idx]);                                       \
         return fname.get();                                                    \
     }
-#define GSPLAT_DEVICE_CTOR_PARAM(fname, ftype) const ftype *fname##_ptr,
+#define GSPLAT_DEVICE_CTOR_PARAM(fname, ftype) , const ftype *fname##_ptr
 #define GSPLAT_DEVICE_CTOR_INIT(fname, ftype) this->fname##_ptr = fname##_ptr;
 #define GSPLAT_DEFINE_DEVICE_PRIMITIVE(NAME, FIELD_LIST)                       \
     struct NAME {                                                              \
@@ -35,8 +35,10 @@ namespace gsplat {
         FIELD_LIST(GSPLAT_DECL_DEVICE_CACHE)                                   \
         FIELD_LIST(GSPLAT_DECL_DEVICE_GETTER)                                  \
         /* (d) constructor: assign all pointer fields */                       \
-        GSPLAT_HOST_DEVICE NAME(FIELD_LIST(GSPLAT_DEVICE_CTOR_PARAM)           \
-                                    uint32_t n) {                              \
+        GSPLAT_HOST_DEVICE NAME(                                               \
+            uint32_t n                                                         \
+            FIELD_LIST(GSPLAT_DEVICE_CTOR_PARAM)                               \
+        ) {                                                                    \
             this->n = n;                                                       \
             FIELD_LIST(GSPLAT_DEVICE_CTOR_INIT)                                \
         }                                                                      \

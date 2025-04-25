@@ -27,7 +27,7 @@ int main() {
     auto const mean = glm::fvec3(0.0f, 0.0f, 1.0f);
     auto const quat = glm::fvec4(1.0f, 0.0f, 0.0f, 0.0f);
     auto const scale = glm::fvec3(1.0f, 1.0f, 1.0f);
-    auto gaussian = BatchPrimitive3DGS(&opacity, &mean, &quat, &scale, 1);
+    auto gaussian = BatchPrimitive3DGS(1, &opacity, &mean, &quat, &scale);
 
     // create operator
     PrimitiveImage2DGS op;
