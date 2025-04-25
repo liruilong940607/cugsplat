@@ -216,31 +216,31 @@ struct CameraModel {
 
     inline GSPLAT_HOST_DEVICE auto world_point_to_image_point(
         const glm::fvec3 &world_point
-    ) -> std::pair<glm::fvec2, bool> {
+    ) -> std::tuple<glm::fvec2, float, bool> {
         auto const &[camera_point, image_point, valid_flag, pose] =
             _world_to_camera_and_image_shutter(world_point);
         if (!valid_flag) {
-            return {glm::fvec2{}, false};
+            return {glm::fvec2{}, float{}, false};
         }
-        return {image_point, true};
+        return {image_point, camera_point.z, true};
     }
 
     inline GSPLAT_HOST_DEVICE auto world_gaussian_to_image_gaussian(
         const glm::fvec3 &world_point, const glm::fmat3 &world_covar
-    ) -> std::tuple<glm::fvec2, glm::fmat2, bool> {
+    ) -> std::tuple<glm::fvec2, glm::fmat2, float, bool> {
         auto const &[camera_point, image_point, valid_flag, pose] =
             _world_to_camera_and_image_shutter(world_point);
         if (!valid_flag) {
-            return {glm::fvec2{}, glm::fmat2{}, false};
+            return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
         auto const camera_covar = world_covar_to_camera_covar(world_covar, pose);
         auto const &[J, J_valid_flag] = 
             projector.camera_point_to_image_point_jacobian(camera_point);
         if (!J_valid_flag) {
-            return {glm::fvec2{}, glm::fmat2{}, false};
+            return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
         auto const image_covar = J * camera_covar * glm::transpose(J);
-        return {image_point, image_covar, true};
+        return {image_point, image_covar, camera_point.z, true};
     }
     
 private:

@@ -29,7 +29,7 @@ int main() {
     auto camera_model = CameraModel(resolution, projector, pose_start);
 
     auto const world_point = glm::fvec3(0.2f, 0.4f, 3.0f);
-    auto const &[image_point, valid_flag] =
+    auto const &[image_point, depth_, valid_flag] =
         camera_model.world_point_to_image_point(world_point);
     printf(
         "Image Point: (%f, %f), Valid: %d\n",
@@ -53,7 +53,7 @@ int main() {
 
     const float depth = 12.9f; // arbitrary depth
     auto const world_point_ = world_ray_o + depth * world_ray_d;
-    auto const &[image_point_, valid_flag__] =
+    auto const &[image_point_, depth__, valid_flag__] =
         camera_model.world_point_to_image_point(world_point_);
     printf(
         "Image Point (verify): (%f, %f), Valid: %d\n",
