@@ -6,7 +6,8 @@
 #include "utils/macros.h" // for GSPLAT_HOST_DEVICE
 #include "utils/solver.h" // for solver_newton
 #include "utils/types.h"  // for MaybeValidRay, MaybeValidPoint2D
-
+#include "utils/math.h"
+ 
 namespace gsplat {
 
 // solve 1 + ax + bx^2 + cx^3 = 0
@@ -68,47 +69,6 @@ _poly3_minimal_postivie_root(float a, float b, float c) {
     return INF;
 }
 
-inline GSPLAT_HOST_DEVICE float numerically_stable_norm2(float x, float y) {
-    // Computes 2-norm of a [x,y] vector in a numerically stable way
-    auto const abs_x = std::fabs(x);
-    auto const abs_y = std::fabs(y);
-    auto const min = std::fmin(abs_x, abs_y);
-    auto const max = std::fmax(abs_x, abs_y);
-
-    if (max <= 0.f)
-        return 0.f;
-
-    auto const min_max_ratio = min / max;
-    return max * std::sqrt(1.f + min_max_ratio * min_max_ratio);
-}
-
-template <size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float
-eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
-    // Evaluates a polynomial y=f(x) with
-    //
-    // f(x) = c_0*x^0 + c_1*x^1 + c_2*x^2 + c_3*x^3 + c_4*x^4 ...
-    //
-    // given by poly_coefficients c_i at points x using numerically stable
-    // Horner scheme.
-    //
-    // The degree of the polynomial is N_COEFFS - 1
-
-    auto y = float{0};
-    for (auto cit = poly.rbegin(); cit != poly.rend(); ++cit)
-        y = x * y + (*cit);
-    return y;
-}
-
-template <size_t N>
-inline GSPLAT_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
-#pragma unroll
-    for (size_t i = 0; i < N; ++i) {
-        if (fabsf(arr[i]) >= std::numeric_limits<float>::epsilon())
-            return false;
-    }
-    return true;
-}
 
 struct OrthogonalProjection {
     // Intrinsic Parameters
@@ -144,7 +104,8 @@ struct OrthogonalProjection {
 };
 
 // https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html
-struct OpencvPinholeProjection {
+template<class Derived>
+struct BaseOpencvPinholeProjection {
     // Intrinsic Parameters
     glm::fvec2 focal_length;
     glm::fvec2 principal_point;
@@ -156,6 +117,12 @@ struct OpencvPinholeProjection {
     float max_radial_dist = std::numeric_limits<float>::max();
     // Perfect Camera: Zero Distortion Coefficients
     bool is_perfect = true;
+
+    GSPLAT_HOST_DEVICE glm::fvec2 get_focal_length() const {return focal_length;}
+    GSPLAT_HOST_DEVICE glm::fvec2 get_principal_point() const {return principal_point;}
+    GSPLAT_HOST_DEVICE std::array<float, 6> get_radial_coeffs() const {return radial_coeffs;}
+    GSPLAT_HOST_DEVICE std::array<float, 2> get_tangential_coeffs() const {return tangential_coeffs;}
+    GSPLAT_HOST_DEVICE std::array<float, 4> get_thin_prism_coeffs() const {return thin_prism_coeffs;}
 
     // Constructor
     GSPLAT_HOST_DEVICE
@@ -189,6 +156,9 @@ struct OpencvPinholeProjection {
                          "implemented for non-perfect cameras"
             );
         }
+        auto const derived = static_cast<Derived*>(this);
+        
+        auto const focal_length = derived->get_focal_length();
 
         auto const x = camera_point[0];
         auto const y = camera_point[1];
@@ -221,6 +191,10 @@ struct OpencvPinholeProjection {
                          "implemented for non-perfect cameras"
             );
         }
+        auto const derived = static_cast<Derived*>(this);
+
+        auto const focal_length = derived->get_focal_length();
+
         auto const x = camera_point[0];
         auto const y = camera_point[1];
         auto const rz = 1.f / camera_point[2];
@@ -252,6 +226,11 @@ struct OpencvPinholeProjection {
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point(const glm::fvec3 &camera_point
     ) const -> MaybeValidPoint2D {
+        auto const derived = static_cast<Derived*>(this);
+
+        auto const focal_length = derived->get_focal_length();
+        auto const principal_point = derived->get_principal_point();
+
         auto const x = camera_point[0] / camera_point[2];
         auto const y = camera_point[1] / camera_point[2];
 
@@ -262,9 +241,9 @@ struct OpencvPinholeProjection {
             u = x;
             v = y;
         } else {
-            auto const &[k1, k2, k3, k4, k5, k6] = radial_coeffs;
-            auto const &[p1, p2] = tangential_coeffs;
-            auto const &[s1, s2, s3, s4] = thin_prism_coeffs;
+            auto const &[k1, k2, k3, k4, k5, k6] = derived->get_radial_coeffs();
+            auto const &[p1, p2] = derived->get_tangential_coeffs();
+            auto const &[s1, s2, s3, s4] = derived->get_thin_prism_coeffs();
 
             auto const r2 = x * x + y * y;
             auto const a1 = 2.f * x * y;
@@ -298,6 +277,11 @@ struct OpencvPinholeProjection {
     GSPLAT_HOST_DEVICE auto image_point_to_camera_ray(
         const glm::fvec2 &xy, bool normalize = true
     ) const -> MaybeValidRay {
+        auto const derived = static_cast<Derived*>(this);
+
+        auto const focal_length = derived->get_focal_length();
+        auto const principal_point = derived->get_principal_point();
+
         auto const origin = glm::fvec3{0.f, 0.f, 0.f};
 
         auto const uv_dist = glm::fvec2{
@@ -336,13 +320,15 @@ struct OpencvPinholeProjection {
     GSPLAT_HOST_DEVICE auto _residual_jacobian(
         const glm::fvec2 &xy, const glm::fvec2 &xy_dist
     ) const -> std::pair<glm::fvec2, glm::fmat2> {
+        auto const derived = static_cast<Derived*>(this);
+
         auto const x_dist = xy_dist[0];
         auto const y_dist = xy_dist[1];
         auto const x = xy[0];
         auto const y = xy[1];
-        auto const &[k1, k2, k3, k4, k5, k6] = radial_coeffs;
-        auto const &[p1, p2] = tangential_coeffs;
-        auto const &[s1, s2, s3, s4] = thin_prism_coeffs;
+        auto const &[k1, k2, k3, k4, k5, k6] = derived->get_radial_coeffs();
+        auto const &[p1, p2] = derived->get_tangential_coeffs();
+        auto const &[s1, s2, s3, s4] = derived->get_thin_prism_coeffs();
 
         // Compute the residual: f(x, y) = distortion(x, y) - xy_dist
         auto const r2 = x * x + y * y;

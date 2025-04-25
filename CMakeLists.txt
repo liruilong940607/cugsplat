@@ -16,42 +16,48 @@ target_include_directories(gsplat INTERFACE
 # relax restrictions on glm constexpr functions so they can be called in device code.
 add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
-function(build_cuda_executables_from DIR SUBDIR_NAME)
-    file(GLOB CU_FILES  "${DIR}/*.cu")
-    file(GLOB CPP_FILES "${DIR}/*.cpp")
+function(build_cuda_executables_recursive BASE_DIR PREFIX)
+    # 1) grab all .cu/.cpp under BASE_DIR (recursively)
+    file(GLOB_RECURSE ALL_SRCS
+        "${BASE_DIR}/*.cu"
+        "${BASE_DIR}/*.cpp"
+    )
 
-    set(SRC_FILES ${CU_FILES} ${CPP_FILES})
+    foreach(SRC ${ALL_SRCS})
+        # 2) get path relative to BASE_DIR, e.g. "foo/bar/mytest.cpp"
+        file(RELATIVE_PATH REL_PATH "${BASE_DIR}" "${SRC}")
 
-    foreach(FILE_PATH ${SRC_FILES})
-        file(READ "${FILE_PATH}" FILE_CONTENTS)
-        string(FIND "${FILE_CONTENTS}" "int main" MAIN_FOUND)
-        if (MAIN_FOUND EQUAL -1)
-            message(STATUS "Skipping ${FILE_PATH} (no main function)")
-            continue()
+        # 3) split into directory part ("foo/bar") and file stem ("mytest")
+        get_filename_component(REL_DIR  "${REL_PATH}" PATH)
+        get_filename_component(NAME_WE  "${REL_PATH}" NAME_WE)
+
+        # 4) sanitize REL_DIR → replace "/" with "_"
+        if(REL_DIR)
+            string(REPLACE "/" "_" DIR_NAME "${REL_DIR}")
+            set(TARGET_NAME "${PREFIX}_${DIR_NAME}_${NAME_WE}")
+            set(OUT_DIR    "${CMAKE_BINARY_DIR}/${PREFIX}/${REL_DIR}")
+        else()
+            set(TARGET_NAME "${PREFIX}_${NAME_WE}")
+            set(OUT_DIR    "${CMAKE_BINARY_DIR}/${PREFIX}")
         endif()
 
-        get_filename_component(FILE_NAME_WE ${FILE_PATH} NAME_WE)
-
-        # Unique internal target name (e.g., benchmarks_tmp)
-        set(TARGET_NAME "${SUBDIR_NAME}_${FILE_NAME_WE}")
-
-        # Runtime binary name = just "tmp", output to subfolder
-        set(OUTPUT_DIR "${CMAKE_BINARY_DIR}/${SUBDIR_NAME}")
-
-        add_executable(${TARGET_NAME} ${FILE_PATH})
-        target_link_libraries(${TARGET_NAME} PRIVATE gsplat)
-        target_link_libraries(${TARGET_NAME} PRIVATE ${TORCH_LIBRARIES})
-
-        set_target_properties(${TARGET_NAME} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
-            OUTPUT_NAME "${FILE_NAME_WE}"  # <-- controls the final binary name (no prefix)
+        add_executable(${TARGET_NAME} "${SRC}")
+        target_link_libraries(${TARGET_NAME}
+            PRIVATE gsplat
+            PRIVATE ${TORCH_LIBRARIES}
         )
-
-        message(STATUS "Added target: ${TARGET_NAME} → ${OUTPUT_DIR}/${FILE_NAME_WE}")
+        set_target_properties(${TARGET_NAME} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}"
+            OUTPUT_NAME               "${NAME_WE}"
+        )
+        message(STATUS 
+            "  ↳ ${TARGET_NAME} → ${OUT_DIR}/${NAME_WE}"
+        )
     endforeach()
 endfunction()
 
-# Register folders
-# build_cuda_executables_from(${CMAKE_CURRENT_SOURCE_DIR}/benchmarks benchmarks)
-# build_cuda_executables_from(${CMAKE_CURRENT_SOURCE_DIR}/examples   examples)
-build_cuda_executables_from(${CMAKE_CURRENT_SOURCE_DIR}/tests      tests)
+# finally, invoke it on your tests folder with “tests” as the prefix
+build_cuda_executables_recursive(
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+    tests
+)

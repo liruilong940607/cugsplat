@@ -9,36 +9,10 @@
 #include "utils/macros.h" // for GSPLAT_HOST_DEVICE
 #include "utils/types.h"  // for Maybe
 #include "utils/cholesky3x3.h"
+#include "utils/math.h"
 
 namespace gsplat {
 
-inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
-#ifdef __CUDACC__
-    return ::rsqrtf(x); // use CUDA’s fast rsqrtf()
-#else
-    return 1.0f / std::sqrt(x); // use standard sqrt on CPU
-#endif
-}
-
-template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
-safe_normalize(const glm::vec<L, float, Q> &x) {
-    const float l2 = glm::dot(x, x);
-    return (l2 > 0.0f) ? (x * rsqrtf(l2)) : x;
-}
-
-template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
-    const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out
-) {
-    const float l2 = glm::dot(x, x);
-    if (l2 > 0.0f) {
-        const float il = rsqrtf(l2);
-        const float il3 = il * il * il;
-        return il * v_out - il3 * glm::dot(v_out, x) * x;
-    }
-    return v_out;
-}
 
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
