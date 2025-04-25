@@ -7,5 +7,5 @@ namespace gsplat {
 #else
 #define GSPLAT_HOST_DEVICE
 #endif
-    
+
 } // namespace gsplat

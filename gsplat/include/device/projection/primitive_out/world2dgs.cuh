@@ -40,7 +40,7 @@
 
 //         // Compute the projected gaussian on the image plane
 //         // KWH is 3x2 matrix; mean is 3D vector
-//         auto &[mean, KWH, valid_flag] = 
+//         auto &[mean, KWH, valid_flag] =
 //             d_gaussians_in.world_to_image(d_camera);
 //         if (!valid_flag) {
 //             return false;
@@ -51,7 +51,8 @@
 //         auto const min_y = - params.margin_factor * params.render_height;
 //         auto const max_x = (1 + params.margin_factor) * params.render_width;
 //         auto const max_y = (1 + params.margin_factor) * params.render_height;
-//         if (mean.x < min_x || mean.x > max_x || mean.y < min_y || mean.y > max_y) {
+//         if (mean.x < min_x || mean.x > max_x || mean.y < min_y || mean.y >
+//         max_y) {
 //             return false;
 //         }
 
@@ -64,15 +65,17 @@
 //             return false;
 //         }
 //         auto const f = (1.0f / distance) * temp_point;
-//         auto const center = glm::fvec2(compAdd(f * M0 * M2), compAdd(f * M1 * M2));
-//         auto const temp = glm::fvec2(compAdd(f * M0 * M0), compAdd(f * M1 * M1));
-//         auto const half_extend = center * center - temp;
-//         auto const radius = 3.33f * glm::sqrt(glm::max(fvec2(1e-4f), half_extend));
-    
+//         auto const center = glm::fvec2(compAdd(f * M0 * M2), compAdd(f * M1 *
+//         M2)); auto const temp = glm::fvec2(compAdd(f * M0 * M0), compAdd(f *
+//         M1 * M1)); auto const half_extend = center * center - temp; auto
+//         const radius = 3.33f * glm::sqrt(glm::max(fvec2(1e-4f),
+//         half_extend));
+
 //         // Check again if the gaussian is outside the image plane
-//         if (center.x - radius.x < 0 || center.x + radius.x > params.render_width ||
-//             center.y - radius.y < 0 || center.y + radius.y > params.render_height) {
-//             return false;
+//         if (center.x - radius.x < 0 || center.x + radius.x >
+//         params.render_width ||
+//             center.y - radius.y < 0 || center.y + radius.y >
+//             params.render_height) { return false;
 //         }
 
 //         this->opacity = opacity;
@@ -92,4 +95,3 @@
 // };
 
 // } // namespace gsplat
-

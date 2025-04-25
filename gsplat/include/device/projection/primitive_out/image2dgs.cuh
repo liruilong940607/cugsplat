@@ -8,11 +8,11 @@ namespace gsplat::device {
 
 struct DevicePrimitiveOutImage2DGS {
     // pointers to output buffer
-    float* opacities;
-    glm::fvec2* means;
-    glm::fvec3* conics;
-    float* depths;
-    glm::fvec2* radius;
+    float *opacities;
+    glm::fvec2 *means;
+    glm::fvec3 *conics;
+    float *depths;
+    glm::fvec2 *radius;
 
     // parameters
     uint32_t render_width;
@@ -30,10 +30,8 @@ struct DevicePrimitiveOutImage2DGS {
     glm::fvec2 radii;
 
     template <class DeviceCameraModel, class DevicePrimitiveIn>
-    inline __device__ bool preprocess(
-        DeviceCameraModel &d_camera,
-        DevicePrimitiveIn &d_gaussians_in
-    ) {
+    inline __device__ bool
+    preprocess(DeviceCameraModel &d_camera, DevicePrimitiveIn &d_gaussians_in) {
         // Check: If the gaussian is outside the camera frustum, skip it
         auto const depth = d_gaussians_in.image_depth(d_camera);
         if (depth < near_plane || depth > far_plane) {
@@ -41,18 +39,19 @@ struct DevicePrimitiveOutImage2DGS {
         }
 
         // Compute the projected gaussian on the image plane
-        auto [mean, covar, valid_flag] = 
+        auto [mean, covar, valid_flag] =
             d_gaussians_in.world_to_image(d_camera);
         if (!valid_flag) {
             return false;
         }
 
         // Check: If the gaussian is outside the image plane, skip it
-        auto const min_x = - margin_factor * render_width;
-        auto const min_y = - margin_factor * render_height;
+        auto const min_x = -margin_factor * render_width;
+        auto const min_y = -margin_factor * render_height;
         auto const max_x = (1 + margin_factor) * render_width;
         auto const max_y = (1 + margin_factor) * render_height;
-        if (mean.x < min_x || mean.x > max_x || mean.y < min_y || mean.y > max_y) {
+        if (mean.x < min_x || mean.x > max_x || mean.y < min_y ||
+            mean.y > max_y) {
             return false;
         }
 
@@ -71,7 +70,7 @@ struct DevicePrimitiveOutImage2DGS {
             auto const det_blur = glm::determinant(covar);
             opacity *= sqrtf(det_orig / det_blur);
         }
-        
+
         // Compute the bounding box of this gaussian on the image plane
         auto const radii = solve_tight_radius(covar, opacity, 1.0f / 255.0f);
 
@@ -108,4 +107,3 @@ struct DevicePrimitiveOutImage2DGS {
 };
 
 } // namespace gsplat::device
-

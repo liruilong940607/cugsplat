@@ -1,18 +1,17 @@
 #pragma once
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <glm/glm.hpp>
 #include <tuple>
 
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
-#include "utils/types.h"  // for Maybe
 #include "utils/cholesky3x3.h"
+#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
 #include "utils/math.h"
+#include "utils/types.h" // for Maybe
 
 namespace gsplat {
-
 
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
@@ -59,24 +58,25 @@ quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
 }
 
 // Convert {quat, scale} to RS.
-inline GSPLAT_HOST_DEVICE auto
-quat_scale_to_scaled_rotmat(
+inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
     glm::fvec4 const &quat, glm::fvec3 const &scale
 ) -> glm::fmat3 {
     auto const R = quat_to_rotmat(quat);
-    auto const M = glm::fmat3(R[0] * scale[0], R[1] * scale[0], R[2] * scale[0]);
+    auto const M =
+        glm::fmat3(R[0] * scale[0], R[1] * scale[0], R[2] * scale[0]);
     return M;
 }
 
-inline GSPLAT_HOST_DEVICE auto
-quat_scale_to_scaled_rotmat_vjp(
+inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat_vjp(
     // inputs
-    glm::fvec4 const &quat, glm::fvec3 const &scale,
+    glm::fvec4 const &quat,
+    glm::fvec3 const &scale,
     // output gradients
     glm::fmat3 const &v_M
 ) -> std::pair<glm::fvec4, glm::fvec3> {
-    auto const R = quat_to_rotmat(quat);    
-    auto const v_R = glm::fmat3(v_M[0] * scale[0], v_M[1] * scale[0], v_M[2] * scale[0]);
+    auto const R = quat_to_rotmat(quat);
+    auto const v_R =
+        glm::fmat3(v_M[0] * scale[0], v_M[1] * scale[0], v_M[2] * scale[0]);
     auto const v_quat = quat_to_rotmat_vjp(quat, v_R);
     auto const v_scale = glm::fvec3{
         glm::dot(v_M[0], R[0]), glm::dot(v_M[1], R[1]), glm::dot(v_M[2], R[2])
@@ -85,26 +85,27 @@ quat_scale_to_scaled_rotmat_vjp(
 }
 
 // Convert {quat, scale} to a covariance matrix: RSSᵀRᵀ
-inline GSPLAT_HOST_DEVICE auto
-quat_scale_to_covar(
+inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar(
     glm::fvec4 const &quat, glm::fvec3 const &scale
 ) -> glm::fmat3 {
     auto const M = quat_scale_to_scaled_rotmat(quat, scale);
     return M * glm::transpose(M);
 }
 
-inline GSPLAT_HOST_DEVICE auto
-quat_scale_to_covar_vjp(
+inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar_vjp(
     // inputs
-    glm::fvec4 const &quat, glm::fvec3 const &scale, 
+    glm::fvec4 const &quat,
+    glm::fvec3 const &scale,
     // output gradients
     glm::fmat3 const &v_covar
 ) -> std::pair<glm::fvec4, glm::fvec3> {
     auto const R = quat_to_rotmat(quat);
-    auto const M = glm::fmat3(R[0] * scale[0], R[1] * scale[0], R[2] * scale[0]);
-    
+    auto const M =
+        glm::fmat3(R[0] * scale[0], R[1] * scale[0], R[2] * scale[0]);
+
     auto const v_M = (v_covar + glm::transpose(v_covar)) * M;
-    auto const v_R = glm::fmat3(v_M[0] * scale[0], v_M[1] * scale[0], v_M[2] * scale[0]);
+    auto const v_R =
+        glm::fmat3(v_M[0] * scale[0], v_M[1] * scale[0], v_M[2] * scale[0]);
 
     auto const v_quat = quat_to_rotmat_vjp(quat, v_R);
     auto const v_scale = glm::fvec3{
@@ -112,7 +113,6 @@ quat_scale_to_covar_vjp(
     };
     return {v_quat, v_scale};
 }
-
 
 // Calculate the maximum response of a 3D Gaussian along a ray.
 //
@@ -384,14 +384,14 @@ inline GSPLAT_HOST_DEVICE auto solve_tight_radius(
     if (covar[0][1] == 0.0f) {
         // pick the axis that corresponds to the larger eigenvalue
         if (covar[0][0] >= covar[1][1]) {
-            v1 = glm::fvec2(1,0);
+            v1 = glm::fvec2(1, 0);
         } else {
-            v1 = glm::fvec2(0,1);
+            v1 = glm::fvec2(0, 1);
         }
     } else {
         v1 = glm::normalize(glm::fvec2(lambda1 - covar[1][1], covar[0][1]));
     }
-    v2 = glm::fvec2(-v1.y, v1.x);  // perpendicular
+    v2 = glm::fvec2(-v1.y, v1.x); // perpendicular
 
     // Scale eigenvectors with eigenvalues
     v1 *= sqrtf(Q * lambda1);
@@ -401,7 +401,5 @@ inline GSPLAT_HOST_DEVICE auto solve_tight_radius(
     auto const radius = glm::sqrt(v1 * v1 + v2 * v2);
     return radius;
 }
-
-
 
 } // namespace gsplat

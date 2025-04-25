@@ -40,7 +40,7 @@
 //         }
 
 //         // Compute the projected gaussian on the image plane
-//         auto &[mean, covar, valid_flag] = 
+//         auto &[mean, covar, valid_flag] =
 //             d_gaussians_in.world_to_image(d_camera);
 //         if (!valid_flag) {
 //             return false;
@@ -51,7 +51,8 @@
 //         auto const min_y = - params.margin_factor * params.render_height;
 //         auto const max_x = (1 + params.margin_factor) * params.render_width;
 //         auto const max_y = (1 + params.margin_factor) * params.render_height;
-//         if (mean.x < min_x || mean.x > max_x || mean.y < min_y || mean.y > max_y) {
+//         if (mean.x < min_x || mean.x > max_x || mean.y < min_y || mean.y >
+//         max_y) {
 //             return false;
 //         }
 
@@ -74,9 +75,10 @@
 //         auto const radius = compute_radius(opacity, covar);
 
 //         // Check again if the gaussian is outside the image plane
-//         if (mean.x - radius.x < 0 || mean.x + radius.x > params.render_width ||
-//             mean.y - radius.y < 0 || mean.y + radius.y > params.render_height) {
-//             return false;
+//         if (mean.x - radius.x < 0 || mean.x + radius.x > params.render_width
+//         ||
+//             mean.y - radius.y < 0 || mean.y + radius.y >
+//             params.render_height) { return false;
 //         }
 
 //         this->opacity = opacity;
@@ -103,8 +105,4 @@
 //     }
 // };
 
-
-
-
 // } // namespace gsplat
-

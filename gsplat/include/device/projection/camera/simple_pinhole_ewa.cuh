@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
 #include <glm/glm.hpp>
+#include <stdint.h>
 
 #include "utils/types.h"
 
@@ -15,10 +15,10 @@ struct DeviceSimplePinholeCameraEWA {
     __device__ int get_n() const { return this->n; }
 
     // pointers to input buffer
-    glm::fvec2* focal_lengths;
-    glm::fvec2* principal_points;
-    glm::fmat3* world_to_cameras_R;
-    glm::fvec3* world_to_cameras_t;
+    glm::fvec2 *focal_lengths;
+    glm::fvec2 *principal_points;
+    glm::fmat3 *world_to_cameras_R;
+    glm::fvec3 *world_to_cameras_t;
 
     // cached values to avoid repeated memory accesses
     Maybe<glm::fvec2> focal_length;
@@ -29,35 +29,36 @@ struct DeviceSimplePinholeCameraEWA {
     // ctx
     Maybe<glm::fvec3> camera_point;
 
-    inline __device__ glm::fvec2 get_focal_lengths() { 
+    inline __device__ glm::fvec2 get_focal_lengths() {
         if (!this->focal_length.has_value()) {
             this->focal_length.set(this->focal_lengths[index]);
         }
         return this->focal_length.get();
     }
 
-    inline __device__ glm::fvec2 get_principal_point() { 
+    inline __device__ glm::fvec2 get_principal_point() {
         if (!this->principal_point.has_value()) {
             this->principal_point.set(this->principal_points[index]);
         }
         return this->principal_point.get();
     }
 
-    inline __device__ glm::fmat3 get_world_to_camera_R() { 
+    inline __device__ glm::fmat3 get_world_to_camera_R() {
         if (!this->world_to_camera_R.has_value()) {
             this->world_to_camera_R.set(this->world_to_cameras_R[index]);
         }
         return this->world_to_camera_R.get();
     }
 
-    inline __device__ glm::fvec3 get_world_to_camera_t() { 
+    inline __device__ glm::fvec3 get_world_to_camera_t() {
         if (!this->world_to_camera_t.has_value()) {
             this->world_to_camera_t.set(this->world_to_cameras_t[index]);
         }
         return this->world_to_camera_t.get();
     }
 
-    inline __device__ glm::fvec3 point_world_to_camera(const glm::fvec3& world_point) {
+    inline __device__ glm::fvec3
+    point_world_to_camera(const glm::fvec3 &world_point) {
         if (!this->camera_point.has_value()) {
             auto const R = this->get_world_to_camera_R();
             auto const t = this->get_world_to_camera_t();
@@ -67,24 +68,28 @@ struct DeviceSimplePinholeCameraEWA {
         return this->camera_point.get();
     }
 
-    inline __device__ glm::fvec2 point_world_to_image(const glm::fvec3& world_point) {
+    inline __device__ glm::fvec2
+    point_world_to_image(const glm::fvec3 &world_point) {
         auto const camera_point = this->point_world_to_camera(world_point);
         auto const focal_length = this->get_focal_lengths();
         auto const principal_point = this->get_principal_point();
         return glm::fvec2(
-            camera_point.x / camera_point.z * focal_length.x + principal_point.x,
+            camera_point.x / camera_point.z * focal_length.x +
+                principal_point.x,
             camera_point.y / camera_point.z * focal_length.y + principal_point.y
         );
     }
 
-    inline __device__ glm::fmat3x2 jacobian_world_to_image(const glm::fvec3& world_point) {
+    inline __device__ glm::fmat3x2
+    jacobian_world_to_image(const glm::fvec3 &world_point) {
         auto const camera_point = this->point_world_to_camera(world_point);
         auto const camera_J = this->jacobian_camera_to_image(camera_point);
         auto const world_to_camera_R = this->get_world_to_camera_R();
         return camera_J * world_to_camera_R;
     }
 
-    inline __device__ glm::fmat3x2 jacobian_camera_to_image(const glm::fvec3& camera_point) {
+    inline __device__ glm::fmat3x2
+    jacobian_camera_to_image(const glm::fvec3 &camera_point) {
         auto const focal_length = this->get_focal_lengths();
         auto const x = camera_point.x;
         auto const y = camera_point.y;
@@ -111,4 +116,3 @@ struct DeviceSimplePinholeCameraEWA {
 };
 
 } // namespace gsplat::device
-

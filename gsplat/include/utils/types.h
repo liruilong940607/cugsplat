@@ -9,8 +9,7 @@
 
 namespace gsplat {
 
-template <typename T>
-struct Maybe {
+template <typename T> struct Maybe {
     bool _has_value = false;
     T _value;
 
@@ -22,7 +21,7 @@ struct Maybe {
         return this->_has_value;
     }
 
-    GSPLAT_HOST_DEVICE inline void set(const T& v) {
+    GSPLAT_HOST_DEVICE inline void set(const T &v) {
         this->_value = v;
         this->_has_value = true;
     }

@@ -55,7 +55,7 @@ inline GSPLAT_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
     }
     return true;
 }
-    
+
 template <glm::length_t L, glm::qualifier Q = glm::defaultp>
 inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
 safe_normalize(const glm::vec<L, float, Q> &x) {
@@ -75,7 +75,5 @@ inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
     }
     return v_out;
 }
-
-
 
 } // namespace gsplat

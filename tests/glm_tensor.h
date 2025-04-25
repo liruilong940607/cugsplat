@@ -1,8 +1,8 @@
 #pragma once
+#include <cassert>
 #include <glm/glm.hpp>
 #include <torch/torch.h>
 #include <type_traits>
-#include <cassert>
 
 // Type trait to detect whether a type is a GLM matrix
 template <typename T> struct is_glm_vec : std::false_type {};
@@ -15,9 +15,9 @@ struct is_glm_mat<glm::mat<C, R, T, Q>> : std::true_type {};
 
 // ---- glm_to_tensor: Matrix version ----
 template <typename MatT, std::enable_if_t<is_glm_mat<MatT>::value, int> = 0>
-torch::Tensor glm_to_tensor(const MatT& mat) {
-    constexpr int Cols = MatT::length();                 // Columns
-    constexpr int Rows = MatT::col_type::length();       // Rows
+torch::Tensor glm_to_tensor(const MatT &mat) {
+    constexpr int Cols = MatT::length();           // Columns
+    constexpr int Rows = MatT::col_type::length(); // Rows
     float data[Rows * Cols];
 
     for (int c = 0; c < Cols; ++c)
@@ -29,10 +29,12 @@ torch::Tensor glm_to_tensor(const MatT& mat) {
 
 // ---- tensor_to_glm: Matrix version ----
 template <typename MatT, std::enable_if_t<is_glm_mat<MatT>::value, int> = 0>
-MatT tensor_to_glm(const torch::Tensor& tensor) {
+MatT tensor_to_glm(const torch::Tensor &tensor) {
     constexpr int Cols = MatT::length();
     constexpr int Rows = MatT::col_type::length();
-    assert(tensor.dim() == 2 && tensor.size(0) == Rows && tensor.size(1) == Cols);
+    assert(
+        tensor.dim() == 2 && tensor.size(0) == Rows && tensor.size(1) == Cols
+    );
 
     MatT mat;
     auto acc = tensor.accessor<float, 2>();
@@ -45,7 +47,7 @@ MatT tensor_to_glm(const torch::Tensor& tensor) {
 
 // ---- glm_to_tensor: Vector version ----
 template <typename VecT, std::enable_if_t<is_glm_vec<VecT>::value, int> = 0>
-torch::Tensor glm_to_tensor(const VecT& vec) {
+torch::Tensor glm_to_tensor(const VecT &vec) {
     constexpr int D = VecT::length();
     float data[D];
     for (int i = 0; i < D; ++i)
@@ -55,7 +57,7 @@ torch::Tensor glm_to_tensor(const VecT& vec) {
 
 // ---- tensor_to_glm: Vector version ----
 template <typename VecT, std::enable_if_t<is_glm_vec<VecT>::value, int> = 0>
-VecT tensor_to_glm(const torch::Tensor& tensor) {
+VecT tensor_to_glm(const torch::Tensor &tensor) {
     constexpr int D = VecT::length();
     assert(tensor.dim() == 1 && tensor.size(0) == D);
 

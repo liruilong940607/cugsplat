@@ -1,7 +1,7 @@
 #include <cassert>
-#include <iostream>
-#include <glm/glm.hpp>
 #include <glm/ext/matrix_relational.hpp>
+#include <glm/glm.hpp>
+#include <iostream>
 
 #include <torch/torch.h>
 
@@ -62,9 +62,15 @@ void test_forward_substitution_vjp() {
 
 void test_cholesky_Winv_y() {
     glm::fmat3 A;
-    A[0][0] = 4.0f; A[0][1] = 2.0f; A[0][2] = 2.0f;
-    A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
-    A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
+    A[0][0] = 4.0f;
+    A[0][1] = 2.0f;
+    A[0][2] = 2.0f;
+    A[1][0] = 2.0f;
+    A[1][1] = 5.0f;
+    A[1][2] = 1.0f;
+    A[2][0] = 2.0f;
+    A[2][1] = 1.0f;
+    A[2][2] = 3.0f;
 
     auto [L, ok] = gsplat::cholesky(A);
     assert(ok && "cholesky decomposition failed");
@@ -75,9 +81,15 @@ void test_cholesky_Winv_y() {
 
 void test_cholesky_Winv() {
     glm::fmat3 A;
-    A[0][0] = 4.0f; A[0][1] = 2.0f; A[0][2] = 2.0f;
-    A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
-    A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
+    A[0][0] = 4.0f;
+    A[0][1] = 2.0f;
+    A[0][2] = 2.0f;
+    A[1][0] = 2.0f;
+    A[1][1] = 5.0f;
+    A[1][2] = 1.0f;
+    A[2][0] = 2.0f;
+    A[2][1] = 1.0f;
+    A[2][2] = 3.0f;
 
     auto [L, ok] = gsplat::cholesky(A);
     assert(ok && "cholesky decomposition failed");
@@ -87,9 +99,15 @@ void test_cholesky_Winv() {
 
 void test_cholesky_Linv() {
     glm::fmat3 A;
-    A[0][0] = 4.0f; A[0][1] = 2.0f; A[0][2] = 2.0f;
-    A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
-    A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
+    A[0][0] = 4.0f;
+    A[0][1] = 2.0f;
+    A[0][2] = 2.0f;
+    A[1][0] = 2.0f;
+    A[1][1] = 5.0f;
+    A[1][2] = 1.0f;
+    A[2][0] = 2.0f;
+    A[2][1] = 1.0f;
+    A[2][2] = 3.0f;
 
     auto [L, ok] = gsplat::cholesky(A);
     assert(ok && "cholesky decomposition failed");
@@ -99,14 +117,23 @@ void test_cholesky_Linv() {
 
 void test_cholesky_Linv_vjp() {
     glm::fmat3 A;
-    A[0][0] = 4.0f; A[0][1] = 2.0f; A[0][2] = 2.0f;
-    A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
-    A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
+    A[0][0] = 4.0f;
+    A[0][1] = 2.0f;
+    A[0][2] = 2.0f;
+    A[1][0] = 2.0f;
+    A[1][1] = 5.0f;
+    A[1][2] = 1.0f;
+    A[2][0] = 2.0f;
+    A[2][1] = 1.0f;
+    A[2][2] = 3.0f;
 
     glm::fmat3 v_Linv(0.0f); // gradient of L^-1, lower triangular
     v_Linv[0][0] = 1.0f;
-    v_Linv[0][1] = 0.3f; v_Linv[1][1] = -0.2f;
-    v_Linv[0][2] = 0.5f; v_Linv[1][2] = 0.7f; v_Linv[2][2] = 2.0f;
+    v_Linv[0][1] = 0.3f;
+    v_Linv[1][1] = -0.2f;
+    v_Linv[0][2] = 0.5f;
+    v_Linv[1][2] = 0.7f;
+    v_Linv[2][2] = 2.0f;
 
     auto [L, ok] = gsplat::cholesky(A);
     assert(ok && "cholesky decomposition failed");
@@ -130,14 +157,23 @@ void test_cholesky_Linv_vjp() {
 
 void test_cholesky_vjp() {
     glm::fmat3 A;
-    A[0][0] = 4.0f; A[0][1] = 2.0f; A[0][2] = 2.0f;
-    A[1][0] = 2.0f; A[1][1] = 5.0f; A[1][2] = 1.0f;
-    A[2][0] = 2.0f; A[2][1] = 1.0f; A[2][2] = 3.0f;
+    A[0][0] = 4.0f;
+    A[0][1] = 2.0f;
+    A[0][2] = 2.0f;
+    A[1][0] = 2.0f;
+    A[1][1] = 5.0f;
+    A[1][2] = 1.0f;
+    A[2][0] = 2.0f;
+    A[2][1] = 1.0f;
+    A[2][2] = 3.0f;
 
     glm::fmat3 v_L(0.0f); // gradient of L, lower triangular
     v_L[0][0] = 1.0f;
-    v_L[0][1] = 0.3f; v_L[1][1] = -0.2f;
-    v_L[0][2] = 0.5f; v_L[1][2] = 0.7f; v_L[2][2] = 2.0f;
+    v_L[0][1] = 0.3f;
+    v_L[1][1] = -0.2f;
+    v_L[0][2] = 0.5f;
+    v_L[1][2] = 0.7f;
+    v_L[2][2] = 2.0f;
 
     auto [L, ok] = gsplat::cholesky(A);
     assert(ok && "cholesky decomposition failed");
