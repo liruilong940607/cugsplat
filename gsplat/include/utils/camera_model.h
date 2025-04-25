@@ -15,18 +15,18 @@ namespace gsplat {
 
 inline GSPLAT_HOST_DEVICE auto interpolate_shutter_pose(
     float relative_frame_time,
-    ShutterPose const &pose_start,
-    ShutterPose const &pose_end
-) -> ShutterPose {
+    SE3Quat const &pose_start,
+    SE3Quat const &pose_end
+) -> SE3Quat {
     // Interpolate a pose linearly for a relative frame time
     auto const t_rs = (1.f - relative_frame_time) * pose_start.t +
                       relative_frame_time * pose_end.t;
     auto const q_rs = glm::slerp(pose_start.q, pose_end.q, relative_frame_time);
-    return ShutterPose{t_rs, q_rs};
+    return SE3Quat{t_rs, q_rs};
 }
 
 inline GSPLAT_HOST_DEVICE auto camera_ray_to_world_ray(
-    const MaybeValidRay &camera_ray, const ShutterPose &pose
+    const MaybeValidRay &camera_ray, const SE3Quat &pose
 ) -> MaybeValidRay {
     if (!camera_ray.valid_flag) {
         return {{0.f, 0.f, 0.f}, {0.f, 0.f, 1.f}, false};
@@ -36,7 +36,7 @@ inline GSPLAT_HOST_DEVICE auto camera_ray_to_world_ray(
 }
 
 inline GSPLAT_HOST_DEVICE auto world_to_camera(
-    glm::fvec3 const &world_vec, const ShutterPose &pose
+    glm::fvec3 const &world_vec, const SE3Quat &pose
 ) -> glm::fvec3 {
     return glm::rotate(pose.q, world_vec) + pose.t;
 }
@@ -103,8 +103,8 @@ template <class CameraProjection> struct CameraModel {
 
     inline GSPLAT_HOST_DEVICE auto image_point_to_world_ray(
         glm::fvec2 const &image_point,
-        ShutterPose const &pose_start,
-        ShutterPose const &pose_end
+        SE3Quat const &pose_start,
+        SE3Quat const &pose_end
     ) const -> MaybeValidRay {
         // Unproject ray and transform to world using shutter pose
 
@@ -123,10 +123,10 @@ template <class CameraProjection> struct CameraModel {
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
     inline GSPLAT_HOST_DEVICE auto world_point_to_image_point(
         const glm::fvec3 &world_point,
-        const ShutterPose &pose_start,
-        const ShutterPose &pose_end,
+        const SE3Quat &pose_start,
+        const SE3Quat &pose_end,
         float margin_factor
-    ) const -> std::pair<MaybeValidPoint2D, ShutterPose> {
+    ) const -> std::pair<MaybeValidPoint2D, SE3Quat> {
         // Perform rolling-shutter-based world point to image point projection /
         // optimization
 
@@ -170,7 +170,7 @@ template <class CameraProjection> struct CameraModel {
 
         // Compute the new timestamp and project again
         auto image_points_rs_prev = init_image_point;
-        ShutterPose pose_rs;
+        SE3Quat pose_rs;
 #pragma unroll
         for (auto j = 0; j < N_ROLLING_SHUTTER_ITERATIONS; ++j) {
             pose_rs = interpolate_shutter_pose(

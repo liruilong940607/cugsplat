@@ -69,12 +69,20 @@ struct MaybeValidGaussian2D {
     bool valid_flag;
 };
 
-struct ShutterPose {
+struct SE3Mat {
+    glm::fvec3 t;
+    glm::fmat3 R;
+
+    GSPLAT_HOST_DEVICE SE3Mat() {}
+    GSPLAT_HOST_DEVICE SE3Mat(glm::fvec3 t, glm::fmat3 R) : t(t), R(R) {}
+};
+
+struct SE3Quat {
     glm::fvec3 t;
     glm::fquat q;
 
-    GSPLAT_HOST_DEVICE ShutterPose() {}
-    GSPLAT_HOST_DEVICE ShutterPose(glm::fvec3 t, glm::fquat q) : t(t), q(q) {}
+    GSPLAT_HOST_DEVICE SE3Quat() {}
+    GSPLAT_HOST_DEVICE SE3Quat(glm::fvec3 t, glm::fquat q) : t(t), q(q) {}
 };
 
 enum class ShutterType {
