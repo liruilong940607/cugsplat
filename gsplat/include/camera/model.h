@@ -218,7 +218,7 @@ struct CameraModel {
         const glm::fvec3 &world_point
     ) -> std::tuple<glm::fvec2, float, bool> {
         auto const &[camera_point, image_point, valid_flag, pose] =
-            _world_to_camera_and_image_shutter(world_point);
+            _world_point_to_image_point(world_point);
         if (!valid_flag) {
             return {glm::fvec2{}, float{}, false};
         }
@@ -229,7 +229,7 @@ struct CameraModel {
         const glm::fvec3 &world_point, const glm::fmat3 &world_covar
     ) -> std::tuple<glm::fvec2, glm::fmat2, float, bool> {
         auto const &[camera_point, image_point, point_valid_flag, pose] =
-            _world_to_camera_and_image_shutter(world_point);
+            _world_point_to_image_point(world_point);
         if (!point_valid_flag) {
             return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
@@ -256,7 +256,7 @@ struct CameraModel {
     }
 
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
-    inline GSPLAT_HOST_DEVICE auto _world_to_camera_and_image_shutter(
+    inline GSPLAT_HOST_DEVICE auto _world_point_to_image_point(
         const glm::fvec3 &world_point
     ) -> std::tuple<glm::fvec3, glm::fvec2, bool, CameraPose> {
         // Perform rolling-shutter-based world point to image point projection /

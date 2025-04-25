@@ -34,7 +34,7 @@ struct DevicePrimitiveOutImage2DGS {
         // Compute projected center.
         auto const world_point = d_gaussians_in.get_mean();
         auto const &[camera_point, image_point, point_valid_flag, pose] =
-            d_camera._world_to_camera_and_image_shutter(world_point);
+            d_camera._world_point_to_image_point(world_point);
         if (!point_valid_flag) {
             return false;
         }
