@@ -36,28 +36,28 @@ namespace gsplat::device {
  *             __device__ int get_n() const { return 1; }
  *         };
  *
- * @tparam DevicePrimitiveIn
+ * @tparam DevicePrimitive
  *         A device-side structure for accessing input primitive data.
  *         Must implement:
  *           __device__ void set_index(int);
  *           __device__ int get_n() const;
  *
  *         // Example:
- *         struct DummyPrimitiveIn {
+ *         struct DummyPrimitive {
  *             __device__ void set_index(int) {}
  *             __device__ int get_n() const { return 1; }
  *         };
  *
- * @tparam DevicePrimitiveOut
+ * @tparam Operator
  *         A device-side structure for storing and exporting output primitives.
  *         Must implement:
- *           __device__ bool preprocess(DeviceCameraModel&, DevicePrimitiveIn&);
+ *           __device__ bool preprocess(DeviceCameraModel&, DevicePrimitive&);
  *           __device__ void write_to_buffer();
  *
  *         // Example:
- *         struct DummyPrimitiveOut {
- *             template <typename Cam, typename In, typename Param>
- *             __device__ bool preprocess(Cam&, In&) { return false; }
+ *         struct DummyOperator {
+ *             template <typename Cam, typename Prim>
+ *             __device__ bool preprocess(Cam&, Prim&) { return false; }
  *             __device__ void write_to_buffer(uint32_t) {}
  *         };
  *
@@ -74,34 +74,34 @@ namespace gsplat::device {
  */
 template <
     class DeviceCameraModel,
-    class DevicePrimitiveIn,
-    class DevicePrimitiveOut,
+    class DevicePrimitive,
+    class DeviceOutputOperator,
     bool PACKED,
     int THREADS_PER_BLOCK>
 __global__ void PreprocessKernel(
     DeviceCameraModel d_camera,
-    DevicePrimitiveIn d_primitives_in,
+    DevicePrimitive d_primitives,
     // outputs
-    DevicePrimitiveOut d_primitives_out,
+    DeviceOutputOperator d_output_operator,
     int32_t *block_cnts,
     int32_t *block_offsets
 ) {
     auto const cidx = blockIdx.x * blockDim.x + threadIdx.x; // camera index
     auto const pidx = blockIdx.y * blockDim.y + threadIdx.y; // primitive index
     auto const num_cameras = d_camera.get_n();
-    auto const num_primitives = d_primitives_in.get_n();
+    auto const num_primitives = d_primitives.get_n();
     if (cidx >= num_cameras || pidx >= num_primitives) {
         return;
     }
 
     // Shift pointers
     d_camera.set_index(cidx);
-    d_primitives_in.set_index(pidx);
+    d_primitives.set_index(pidx);
 
-    // Preprocess the primitive. Results are saved in `d_primitives_out`
+    // Preprocess the primitive. Results are saved in `d_output_operator`
     // locally.
     auto const valid_flag =
-        d_primitives_out.preprocess(d_camera, d_primitives_in);
+        d_output_operator.preprocess(d_camera, d_primitives);
 
     if constexpr (PACKED) {
         auto const block_idx = blockIdx.y * gridDim.x + blockIdx.x;
@@ -131,13 +131,13 @@ __global__ void PreprocessKernel(
             if (valid_flag) {
                 // Write the primitive to the output buffer:
                 // `thread_data` is the index of where to write the primitive
-                d_primitives_out.write_to_buffer(thread_data);
+                d_output_operator.write_to_buffer(thread_data);
             }
         }
     } else {
         if (valid_flag) {
             // Write the primitive to the output buffer
-            d_primitives_out.write_to_buffer(cidx * num_primitives + pidx);
+            d_output_operator.write_to_buffer(cidx * num_primitives + pidx);
         }
     }
 }
