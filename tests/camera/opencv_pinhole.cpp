@@ -62,4 +62,41 @@ int main() {
         image_point_.y,
         point_valid_flag_
     );
+
+    auto const &[J, valid_flag] =
+        projector.camera_point_to_image_point_jacobian(camera_point);
+    printf("Jacobian: \n");
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%f ", J[j][i]);
+        }
+        printf("\n");
+    }
+
+    // finite difference to verify the Jacobian
+    auto const delta = 1e-5f;
+    auto const &[image_point_plus_x, _] =
+        projector.camera_point_to_image_point(camera_point + glm::fvec3(delta, 0.f, 0.f));
+    auto const &[image_point_plus_y, __] =
+        projector.camera_point_to_image_point(camera_point + glm::fvec3(0.f, delta, 0.f));
+    auto const &[image_point_plus_z, ___] =
+        projector.camera_point_to_image_point(camera_point + glm::fvec3(0.f, 0.f, delta));
+    auto const &[image_point_minus_x, ____] =
+        projector.camera_point_to_image_point(camera_point - glm::fvec3(delta, 0.f, 0.f));
+    auto const &[image_point_minus_y, _____] =
+        projector.camera_point_to_image_point(camera_point - glm::fvec3(0.f, delta, 0.f));
+    auto const &[image_point_minus_z, ______] =
+        projector.camera_point_to_image_point(camera_point - glm::fvec3(0.f, 0.f, delta));
+    auto const J_x = (image_point_plus_x - image_point_minus_x) / (2.f * delta);
+    auto const J_y = (image_point_plus_y - image_point_minus_y) / (2.f * delta);
+    auto const J_z = (image_point_plus_z - image_point_minus_z) / (2.f * delta);
+    auto const J_ = glm::fmat3x2{J_x, J_y, J_z};
+    printf("Jacobian (finite difference): \n");
+    for (int i = 0; i < 2; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            printf("%f ", J_[j][i]);
+        }
+        printf("\n");
+    }
+
 }
