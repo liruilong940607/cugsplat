@@ -228,70 +228,31 @@ struct CameraModel {
     inline GSPLAT_HOST_DEVICE auto world_gaussian_to_image_gaussian(
         const glm::fvec3 &world_point, const glm::fmat3 &world_covar
     ) -> std::tuple<glm::fvec2, glm::fmat2, float, bool> {
-        auto const &[camera_point, image_point, valid_flag, pose] =
+        auto const &[camera_point, image_point, point_valid_flag, pose] =
             _world_to_camera_and_image_shutter(world_point);
-        if (!valid_flag) {
+        if (!point_valid_flag) {
             return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
-        auto const camera_covar = world_covar_to_camera_covar(world_covar, pose);
-        auto const &[J, J_valid_flag] = 
-            projector.camera_point_to_image_point_jacobian(camera_point);
-        if (!J_valid_flag) {
+        auto const &[image_covar, covar_valid_flag] = 
+            _world_covar_to_image_covar(camera_point, world_covar, pose);
+        if (!covar_valid_flag) {
             return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
-        auto const image_covar = J * camera_covar * glm::transpose(J);
         return {image_point, image_covar, camera_point.z, true};
     }
     
-private:
-
-    // Function to compute the relative frame time for a given image point based
-    // on the shutter type
-    inline GSPLAT_HOST_DEVICE auto
-    shutter_relative_frame_time(const glm::fvec2 image_point) -> float {
-        auto t = 0.f;
-        switch (shutter_type) {
-        case ShutterType::ROLLING_TOP_TO_BOTTOM:
-            t = std::floor(image_point[1]) / (resolution[1] - 1);
-            break;
-        case ShutterType::ROLLING_LEFT_TO_RIGHT:
-            t = std::floor(image_point[0]) / (resolution[0] - 1);
-            break;
-        case ShutterType::ROLLING_BOTTOM_TO_TOP:
-            t = (resolution[1] - std::ceil(image_point[1])) /
-                (resolution[1] - 1);
-            break;
-        case ShutterType::ROLLING_RIGHT_TO_LEFT:
-            t = (resolution[0] - std::ceil(image_point[0])) /
-                (resolution[0] - 1);
-            break;
-        }
-        return t;
-    }
-
-    inline GSPLAT_HOST_DEVICE auto _world_to_camera_and_image_and_checks(
-        const glm::fvec3 &world_point, const CameraPose &pose
-    ) -> std::tuple<glm::fvec3, glm::fvec2, bool> {
-        auto const camera_point = 
-            world_point_to_camera_point(world_point, pose);
-        if (camera_point.z < near_plane || camera_point.z > far_plane) {
-            return {glm::fvec3{}, glm::fvec2{}, false};
-        }
-
-        auto const &[image_point, valid_flag] =
-            projector.camera_point_to_image_point(camera_point);
+    inline GSPLAT_HOST_DEVICE auto _world_covar_to_image_covar(
+        const glm::fvec3 &camera_point, const glm::fmat3 &world_covar, 
+        const CameraPose &pose
+    ) -> std::tuple<glm::fmat2, bool> {
+        auto const camera_covar = world_covar_to_camera_covar(world_covar, pose);
+        auto const &[J, valid_flag] = 
+            projector.camera_point_to_image_point_jacobian(camera_point);
         if (!valid_flag) {
-            return {glm::fvec3{}, glm::fvec2{}, false};
+            return {glm::fmat2{}, false};
         }
-
-        auto const in_fov = image_point_in_image_bounds_margin(
-            image_point, resolution, margin_factor
-        );
-        if (!in_fov) {
-            return {glm::fvec3{}, glm::fvec2{}, false};
-        }
-
-        return {camera_point, image_point, true};
+        auto const image_covar = J * camera_covar * glm::transpose(J);
+        return {image_covar, true};
     }
 
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
@@ -351,6 +312,57 @@ private:
         }
 
         return {camera_point_rs, image_point_rs, true, pose_rs};
+    }
+
+private:
+
+    // Function to compute the relative frame time for a given image point based
+    // on the shutter type
+    inline GSPLAT_HOST_DEVICE auto
+    shutter_relative_frame_time(const glm::fvec2 image_point) -> float {
+        auto t = 0.f;
+        switch (shutter_type) {
+        case ShutterType::ROLLING_TOP_TO_BOTTOM:
+            t = std::floor(image_point[1]) / (resolution[1] - 1);
+            break;
+        case ShutterType::ROLLING_LEFT_TO_RIGHT:
+            t = std::floor(image_point[0]) / (resolution[0] - 1);
+            break;
+        case ShutterType::ROLLING_BOTTOM_TO_TOP:
+            t = (resolution[1] - std::ceil(image_point[1])) /
+                (resolution[1] - 1);
+            break;
+        case ShutterType::ROLLING_RIGHT_TO_LEFT:
+            t = (resolution[0] - std::ceil(image_point[0])) /
+                (resolution[0] - 1);
+            break;
+        }
+        return t;
+    }
+
+    inline GSPLAT_HOST_DEVICE auto _world_to_camera_and_image_and_checks(
+        const glm::fvec3 &world_point, const CameraPose &pose
+    ) -> std::tuple<glm::fvec3, glm::fvec2, bool> {
+        auto const camera_point = 
+            world_point_to_camera_point(world_point, pose);
+        if (camera_point.z < near_plane || camera_point.z > far_plane) {
+            return {glm::fvec3{}, glm::fvec2{}, false};
+        }
+
+        auto const &[image_point, valid_flag] =
+            projector.camera_point_to_image_point(camera_point);
+        if (!valid_flag) {
+            return {glm::fvec3{}, glm::fvec2{}, false};
+        }
+
+        auto const in_fov = image_point_in_image_bounds_margin(
+            image_point, resolution, margin_factor
+        );
+        if (!in_fov) {
+            return {glm::fvec3{}, glm::fvec2{}, false};
+        }
+
+        return {camera_point, image_point, true};
     }
 };
 

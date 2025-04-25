@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "utils/types.h"
+#include "camera/model.h"
 
 namespace gsplat::device {
 
@@ -15,11 +16,6 @@ struct DevicePrimitiveOutImage2DGS {
     glm::fvec2 *radius;
 
     // parameters
-    uint32_t render_width;
-    uint32_t render_height;
-    float near_plane;
-    float far_plane;
-    float margin_factor;
     float filter_size;
 
     // ctx: internal state to be written to output buffer
@@ -29,34 +25,30 @@ struct DevicePrimitiveOutImage2DGS {
     float depth;
     glm::fvec2 radii;
 
-    template <class DeviceCameraModel, class DevicePrimitiveIn>
+    template <class CameraProjection, class CameraPose, class DevicePrimitiveIn> 
     inline __device__ bool
-    preprocess(DeviceCameraModel &d_camera, DevicePrimitiveIn &d_gaussians_in) {
-        // Check: If the gaussian is outside the camera frustum, skip it
-        auto const depth = d_gaussians_in.image_depth(d_camera);
-        if (depth < near_plane || depth > far_plane) {
+    preprocess(
+        CameraModel<CameraProjection, CameraPose> &d_camera, 
+        DevicePrimitiveIn &d_gaussians_in) {
+        
+        // Compute projected center.
+        auto const world_point = d_gaussians_in.get_mean();
+        auto const &[camera_point, image_point, point_valid_flag, pose] =
+            d_camera._world_to_camera_and_image_shutter(world_point);
+        if (!point_valid_flag) {
             return false;
         }
 
-        // Compute the projected gaussian on the image plane
-        auto [mean, covar, valid_flag] =
-            d_gaussians_in.world_to_image(d_camera);
-        if (!valid_flag) {
-            return false;
-        }
-
-        // Check: If the gaussian is outside the image plane, skip it
-        auto const min_x = -margin_factor * render_width;
-        auto const min_y = -margin_factor * render_height;
-        auto const max_x = (1 + margin_factor) * render_width;
-        auto const max_y = (1 + margin_factor) * render_height;
-        if (mean.x < min_x || mean.x > max_x || mean.y < min_y ||
-            mean.y > max_y) {
+        // Compute projected covariance.
+        auto const world_covar = d_gaussians_in.get_covar();
+        auto const &[image_covar, covar_valid_flag] = 
+            d_camera._world_covar_to_image_covar(camera_point, world_covar, pose);
+        if (!covar_valid_flag) {
             return false;
         }
 
         // Check: If the covariance matrix is not positive definite, skip it
-        auto const det_orig = glm::determinant(covar);
+        auto const det_orig = glm::determinant(image_covar);
         if (det_orig < 0) {
             return false;
         }
@@ -66,15 +58,16 @@ struct DevicePrimitiveOutImage2DGS {
 
         // Apply anti-aliasing filter
         if (filter_size > 0) {
-            covar += glm::fmat2(filter_size);
-            auto const det_blur = glm::determinant(covar);
+            image_covar += glm::fmat2(filter_size);
+            auto const det_blur = glm::determinant(image_covar);
             opacity *= sqrtf(det_orig / det_blur);
         }
 
         // Compute the bounding box of this gaussian on the image plane
-        auto const radii = solve_tight_radius(covar, opacity, 1.0f / 255.0f);
+        auto const radii = solve_tight_radius(image_covar, opacity, 1.0f / 255.0f);
 
         // Check again if the gaussian is outside the image plane
+        auto const &[render_width, render_height] = d_camera.resolution;
         if (mean.x + radii.x < 0 || mean.x - radii.x > render_width ||
             mean.y + radii.y < 0 || mean.y - radii.y > render_height) {
             return false;
@@ -82,9 +75,9 @@ struct DevicePrimitiveOutImage2DGS {
 
         this->opacity = opacity;
         this->mean = mean;
-        auto const preci = glm::inverse(covar);
+        auto const preci = glm::inverse(image_covar);
         this->conic = {preci[0][0], preci[1][1], preci[0][1]};
-        this->depth = depth;
+        this->depth = camera_point.z;
         this->radii = radii;
         return true;
     }
