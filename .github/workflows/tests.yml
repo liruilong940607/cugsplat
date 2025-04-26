@@ -18,7 +18,7 @@ jobs:
       run: mkdir -p build
 
     - name: Configure CMake
-      run: cmake -B build -S .
+      run: cmake -B build -S . -DBUILD_CPP_ONLY=ON
 
     - name: Build
       run: cmake --build build --config Release --parallel

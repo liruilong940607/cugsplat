@@ -3,6 +3,9 @@ project(gsplat LANGUAGES CUDA CXX)
 
 set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
 
+# Option to skip CUDA files and only build C++ files
+option(BUILD_CPP_ONLY "Skip CUDA files and only build C++ files" OFF)
+
 # find_package(Torch REQUIRED)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
@@ -18,10 +21,16 @@ add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
 function(build_cuda_executables_recursive BASE_DIR PREFIX)
     # 1) grab all .cu/.cpp under BASE_DIR (recursively)
-    file(GLOB_RECURSE ALL_SRCS
-        "${BASE_DIR}/*.cu"
-        "${BASE_DIR}/*.cpp"
-    )
+    if(BUILD_CPP_ONLY)
+        file(GLOB_RECURSE ALL_SRCS
+            "${BASE_DIR}/*.cpp"
+        )
+    else()
+        file(GLOB_RECURSE ALL_SRCS
+            "${BASE_DIR}/*.cu"
+            "${BASE_DIR}/*.cpp"
+        )
+    endif()
 
     foreach(SRC ${ALL_SRCS})
         # 2) get path relative to BASE_DIR, e.g. "foo/bar/mytest.cpp"
@@ -56,7 +65,7 @@ function(build_cuda_executables_recursive BASE_DIR PREFIX)
     endforeach()
 endfunction()
 
-# finally, invoke it on your tests folder with “tests” as the prefix
+# finally, invoke it on your tests folder with "tests" as the prefix
 build_cuda_executables_recursive(
     "${CMAKE_CURRENT_SOURCE_DIR}/tests"
     tests
