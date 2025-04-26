@@ -4,8 +4,8 @@
 #include "camera/model.h"
 #include "camera/opencv_pinhole.h"
 #include "primitive/gaussian.h"
-#include "projection/image2dgs.h"
 #include "projection/kernel.cuh"
+#include "projection/operators/3dgs.h"
 #include "utils/types.h"
 
 using namespace gsplat;
@@ -31,7 +31,7 @@ int main() {
     auto gaussian = BatchPrimitive3DGS(1, &opacity, &mean, &quat, &scale);
 
     // create operator
-    OutputOperatorImage2DGS op;
+    ProjectionOperator3DGS op;
     op.preprocess(camera, gaussian);
     std::cout << "Opacity: " << op.opacity << std::endl;
     std::cout << "Mean: " << op.mean.x << ", " << op.mean.y << std::endl;

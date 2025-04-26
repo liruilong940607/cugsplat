@@ -48,7 +48,7 @@ namespace gsplat::device {
  *             __device__ int get_n() const { return 1; }
  *         };
  *
- * @tparam Operator
+ * @tparam PreprocessOperator
  *         A device-side structure for storing and exporting output primitives.
  *         Must implement:
  *           __device__ bool preprocess(DeviceCameraModel&, DevicePrimitive&);
@@ -75,14 +75,14 @@ namespace gsplat::device {
 template <
     class DeviceCameraModel,
     class DevicePrimitive,
-    class DeviceOutputOperator,
+    class PreprocessOperator,
     bool PACKED,
     int THREADS_PER_BLOCK>
 __global__ void PreprocessKernel(
     DeviceCameraModel d_camera,
     DevicePrimitive d_primitives,
     // outputs
-    DeviceOutputOperator d_output_operator,
+    PreprocessOperator op,
     int32_t *block_cnts,
     int32_t *block_offsets
 ) {
@@ -98,10 +98,9 @@ __global__ void PreprocessKernel(
     d_camera.set_index(cidx);
     d_primitives.set_index(pidx);
 
-    // Preprocess the primitive. Results are saved in `d_output_operator`
+    // Preprocess the primitive. Results are saved in `op`
     // locally.
-    auto const valid_flag =
-        d_output_operator.preprocess(d_camera, d_primitives);
+    auto const valid_flag = op.preprocess(d_camera, d_primitives);
 
     if constexpr (PACKED) {
         auto const block_idx = blockIdx.y * gridDim.x + blockIdx.x;
@@ -131,13 +130,13 @@ __global__ void PreprocessKernel(
             if (valid_flag) {
                 // Write the primitive to the output buffer:
                 // `thread_data` is the index of where to write the primitive
-                d_output_operator.write_to_buffer(thread_data);
+                op.write_to_buffer(thread_data);
             }
         }
     } else {
         if (valid_flag) {
             // Write the primitive to the output buffer
-            d_output_operator.write_to_buffer(cidx * num_primitives + pidx);
+            op.write_to_buffer(cidx * num_primitives + pidx);
         }
     }
 }
