@@ -1,0 +1,40 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up CMake
+      uses: actions/setup-cmake@v1
+
+    - name: Create build directory
+      run: mkdir -p build
+
+    - name: Configure CMake
+      run: cmake -B build -S .
+
+    - name: Build
+      run: cmake --build build --config Release --parallel
+
+    - name: Run tests
+      run: |
+        # Run all test executables and collect their exit codes
+        exit_code=0
+        for test in ./build/tests/*; do
+          if [ -x "$test" ]; then
+            echo "Running $test"
+            $test
+            test_exit=$?
+            if [ $test_exit -ne 0 ]; then
+              exit_code=$test_exit
+            fi
+          fi
+        done
+        exit $exit_code 

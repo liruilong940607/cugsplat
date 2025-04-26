@@ -9,8 +9,8 @@
 
 using namespace gsplat;
 
-void test_quat_to_rotmat_vjp() {
-    printf("\n=== Testing quat_to_rotmat_vjp ===\n");
+int test_quat_to_rotmat_vjp() {
+    int fails = 0;
 
     // Test case 1: Identity quaternion
     {
@@ -30,6 +30,7 @@ void test_quat_to_rotmat_vjp() {
             });
 
         if (!is_close(v_quat, v_quat_num)) {
+            printf("\n=== Testing quat_to_rotmat_vjp ===\n");
             printf("\n[FAIL] Test 1: Identity quaternion\n");
             printf(
                 "  Analytical gradient: %s\n", glm::to_string(v_quat).c_str()
@@ -38,6 +39,7 @@ void test_quat_to_rotmat_vjp() {
                 "  Numerical gradient: %s\n", glm::to_string(v_quat_num).c_str()
             );
             printf("  Error: %f\n", glm::length(v_quat - v_quat_num));
+            fails += 1;
         }
     }
 
@@ -67,12 +69,15 @@ void test_quat_to_rotmat_vjp() {
                 "  Numerical gradient: %s\n", glm::to_string(v_quat_num).c_str()
             );
             printf("  Error: %f\n", glm::length(v_quat - v_quat_num));
+            fails += 1;
         }
     }
+
+    return fails;
 }
 
-void test_quat_scale_to_scaled_rotmat_vjp() {
-    printf("\n=== Testing quat_scale_to_scaled_rotmat_vjp ===\n");
+int test_quat_scale_to_scaled_rotmat_vjp() {
+    int fails = 0;
 
     // Test case 1: Identity quaternion and scale
     {
@@ -103,6 +108,7 @@ void test_quat_scale_to_scaled_rotmat_vjp() {
             });
 
         if (!is_close(v_quat, v_quat_num) || !is_close(v_scale, v_scale_num)) {
+            printf("\n=== Testing quat_scale_to_scaled_rotmat_vjp ===\n");
             printf("\n[FAIL] Test 1: Identity quaternion and scale\n");
             printf(
                 "  Analytical quat gradient: %s\n",
@@ -122,6 +128,7 @@ void test_quat_scale_to_scaled_rotmat_vjp() {
                 glm::to_string(v_scale_num).c_str()
             );
             printf("  Scale error: %f\n", glm::length(v_scale - v_scale_num));
+            fails += 1;
         }
     }
 
@@ -173,12 +180,15 @@ void test_quat_scale_to_scaled_rotmat_vjp() {
                 glm::to_string(v_scale_num).c_str()
             );
             printf("  Scale error: %f\n", glm::length(v_scale - v_scale_num));
+            fails += 1;
         }
     }
+
+    return fails;
 }
 
-void test_quat_scale_to_covar_vjp() {
-    printf("\n=== Testing quat_scale_to_covar_vjp ===\n");
+int test_quat_scale_to_covar_vjp() {
+    int fails = 0;
 
     // Test case 1: Identity quaternion and scale
     {
@@ -209,6 +219,7 @@ void test_quat_scale_to_covar_vjp() {
             });
 
         if (!is_close(v_quat, v_quat_num) || !is_close(v_scale, v_scale_num)) {
+            printf("\n=== Testing quat_scale_to_covar_vjp ===\n");
             printf("\n[FAIL] Test 1: Identity quaternion and scale\n");
             printf(
                 "  Analytical quat gradient: %s\n",
@@ -228,6 +239,7 @@ void test_quat_scale_to_covar_vjp() {
                 glm::to_string(v_scale_num).c_str()
             );
             printf("  Scale error: %f\n", glm::length(v_scale - v_scale_num));
+            fails += 1;
         }
     }
 
@@ -279,13 +291,25 @@ void test_quat_scale_to_covar_vjp() {
                 glm::to_string(v_scale_num).c_str()
             );
             printf("  Scale error: %f\n", glm::length(v_scale - v_scale_num));
+            fails += 1;
         }
     }
+
+    return fails;
 }
 
 int main() {
-    test_quat_to_rotmat_vjp();
-    test_quat_scale_to_scaled_rotmat_vjp();
-    test_quat_scale_to_covar_vjp();
-    return 0;
+    int fails = 0;
+
+    fails += test_quat_to_rotmat_vjp();
+    fails += test_quat_scale_to_scaled_rotmat_vjp();
+    fails += test_quat_scale_to_covar_vjp();
+
+    if (fails > 0) {
+        printf("[utils.cpp] %d tests failed!\n", fails);
+    } else {
+        printf("[utils.cpp] All tests passed!\n");
+    }
+
+    return 1;
 }
