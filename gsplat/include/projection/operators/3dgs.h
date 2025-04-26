@@ -9,7 +9,7 @@
 
 namespace gsplat {
 
-struct ProjectionOperator3DGS {
+struct PreprocessOperator3DGS {
     // pointers to output buffer
     float *opacity_ptr;
     glm::fvec2 *mean_ptr;
@@ -29,7 +29,7 @@ struct ProjectionOperator3DGS {
     glm::fvec2 radius;
 
     template <class CameraProjection, class CameraPose, class Gaussian>
-    inline GSPLAT_HOST_DEVICE bool preprocess(
+    inline GSPLAT_HOST_DEVICE bool forward(
         CameraModel<CameraProjection, CameraPose> &camera, Gaussian &gaussian
     ) {
         // Compute projected center.

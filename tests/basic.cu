@@ -31,8 +31,8 @@ int main() {
     auto gaussian = BatchPrimitive3DGS(1, &opacity, &mean, &quat, &scale);
 
     // create operator
-    ProjectionOperator3DGS op;
-    op.preprocess(camera, gaussian);
+    PreprocessOperator3DGS op;
+    op.forward(camera, gaussian);
     std::cout << "Opacity: " << op.opacity << std::endl;
     std::cout << "Mean: " << op.mean.x << ", " << op.mean.y << std::endl;
     std::cout << "Conic: " << op.conic.x << ", " << op.conic.y << ", "
@@ -91,7 +91,7 @@ int main() {
     // dim3 blockDim(256, 1, 1);
     // dim3 gridDim(1, 1, 1);
 
-    // gsplat::device::PreprocessKernel<
+    // gsplat::device::PreprocessFwdKernel<
     //     gsplat::device::DeviceSimplePinholeCameraEWA,
     //     gsplat::device::DevicePrimitiveInWorld3DGS,
     //     gsplat::device::DevicePrimitiveOutImage2DGS,

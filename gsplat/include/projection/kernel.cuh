@@ -6,7 +6,7 @@
 namespace gsplat::device {
 
 /**
- * @brief PreprocessKernel performs preprocessing of input primitives from a
+ * @brief PreprocessFwdKernel performs preprocessing of input primitives from a
  * specific camera view.
  *
  * This kernel is designed to be launched with a 2D thread grid over [camera x
@@ -51,13 +51,13 @@ namespace gsplat::device {
  * @tparam PreprocessOperator
  *         A device-side structure for storing and exporting output primitives.
  *         Must implement:
- *           __device__ bool preprocess(DeviceCameraModel&, DevicePrimitive&);
+ *           __device__ bool forward(DeviceCameraModel&, DevicePrimitive&);
  *           __device__ void write_to_buffer();
  *
  *         // Example:
  *         struct DummyOperator {
  *             template <typename Cam, typename Prim>
- *             __device__ bool preprocess(Cam&, Prim&) { return false; }
+ *             __device__ bool forward(Cam&, Prim&) { return false; }
  *             __device__ void write_to_buffer(uint32_t) {}
  *         };
  *
@@ -78,7 +78,7 @@ template <
     class PreprocessOperator,
     bool PACKED,
     int THREADS_PER_BLOCK>
-__global__ void PreprocessKernel(
+__global__ void PreprocessFwdKernel(
     DeviceCameraModel d_camera,
     DevicePrimitive d_primitives,
     // outputs
@@ -100,7 +100,7 @@ __global__ void PreprocessKernel(
 
     // Preprocess the primitive. Results are saved in `op`
     // locally.
-    auto const valid_flag = op.preprocess(d_camera, d_primitives);
+    auto const valid_flag = op.forward(d_camera, d_primitives);
 
     if constexpr (PACKED) {
         auto const block_idx = blockIdx.y * gridDim.x + blockIdx.x;
