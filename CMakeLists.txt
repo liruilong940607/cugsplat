@@ -1,10 +1,18 @@
 cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-project(gsplat LANGUAGES CUDA CXX)
-
-set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
 
 # Option to skip CUDA files and only build C++ files
 option(BUILD_CPP_ONLY "Skip CUDA files and only build C++ files" OFF)
+
+# Only include CUDA if not in CPP-only mode
+if(NOT BUILD_CPP_ONLY)
+    project(gsplat LANGUAGES CUDA CXX)
+    set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
+    # relax restrictions on glm constexpr functions so they can be called in device code.
+    add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+else()
+    project(gsplat LANGUAGES CXX)
+endif()
+
 
 # find_package(Torch REQUIRED)
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
@@ -15,9 +23,6 @@ target_include_directories(gsplat INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/gsplat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
-
-# relax restrictions on glm constexpr functions so they can be called in device code.
-add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
 function(build_cuda_executables_recursive BASE_DIR PREFIX)
     # 1) grab all .cu/.cpp under BASE_DIR (recursively)
