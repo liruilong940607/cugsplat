@@ -28,14 +28,12 @@ jobs:
       run: |
         # Run all test executables and collect their exit codes
         exit_code=0
-        for test in ./build/tests/*; do
-          if [ -x "$test" ]; then
-            echo "Running $test"
-            $test
-            test_exit=$?
-            if [ $test_exit -ne 0 ]; then
-              exit_code=$test_exit
-            fi
+        find ./build/tests -type f -executable | while read -r test; do
+          echo "Running $test"
+          "$test"
+          test_exit=$?
+          if [ $test_exit -ne 0 ]; then
+            exit_code=$test_exit
           fi
         done
         exit $exit_code 
