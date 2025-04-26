@@ -87,14 +87,14 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
         auto const r = numerically_stable_norm2(xy[0], xy[1]);
         auto const theta = std::atan(r);
 
-        const bool valid_flag = (theta > min_theta) && (theta < max_theta);
+        const bool valid_flag = (theta >= min_theta) && (theta <= max_theta);
         if (!valid_flag)
             return {glm::fvec2{}, false};
 
         auto const theta_d =
             is_perfect ? theta : compute_distortion(theta, theta * theta);
         auto const scale_factor = theta_d / r;
-        auto const uv = scale_factor * xy;
+        auto const uv = r < min_2d_norm ? xy : scale_factor * xy;
 
         auto const focal_length = derived->get_focal_length();
         auto const principal_point = derived->get_principal_point();
@@ -204,7 +204,7 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
         auto const &result = solver_newton<1, 20>(
             [this, &theta_d](const float &theta) -> std::pair<float, float> {
                 auto const valid_flag =
-                    (theta > min_theta) && (theta < max_theta);
+                    (theta >= min_theta) && (theta <= max_theta);
                 if (!valid_flag)
                     return {float{}, float{}};
                 auto const gradient = this->gradiant_distortion(theta);
