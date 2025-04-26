@@ -5,10 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:
-    inputs:
-      description: "Run C++ tests"
-      required: false
+  workflow_dispatch: 
 
 jobs:
   test:
