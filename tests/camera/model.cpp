@@ -9,7 +9,7 @@
 using namespace gsplat;
 
 template <class CameraProjection, class CameraPose>
-void test_round_trip_consistency(
+bool test_round_trip_consistency(
     CameraModel<CameraProjection, CameraPose> &camera_model,
     const glm::fvec2 &image_point,
     const char *test_name
@@ -20,7 +20,7 @@ void test_round_trip_consistency(
 
     if (!ray_valid) {
         printf("\n%s: Invalid ray\n", test_name);
-        return;
+        return false;
     }
 
     // Choose a point at arbitrary deph
@@ -64,15 +64,16 @@ void test_round_trip_consistency(
                 glm::length(image_point - image_point_roundtrip)
             );
         }
+        return false;
     }
+    return true;
 }
 
-void test_pinhole_camera() {
-    printf("\n=== Testing Pinhole Camera ===\n");
+int test_pinhole_camera() {
+    int fails = 0;
 
     // Test case 1: Basic pinhole camera with no distortion
     {
-        printf("\nTest 1: Basic pinhole camera\n");
         auto const focal_length = glm::fvec2(800.0f, 600.0f);
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
@@ -85,18 +86,23 @@ void test_pinhole_camera() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model, image_point, "Basic pinhole camera - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Basic pinhole camera - corner point"
+            )) {
+            fails += 1;
+        }
     }
 
     // Test case 2: Pinhole camera with distortion
     {
-        printf("\nTest 2: Pinhole camera with distortion\n");
         auto const focal_length = glm::fvec2(800.0f, 600.0f);
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<float, 6> radial_coeffs = {
@@ -120,22 +126,31 @@ void test_pinhole_camera() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test with distortion"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point,
+                "Test 2: Pinhole camera with distortion - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test with distortion"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Test 2: Pinhole camera with distortion - corner point"
+            )) {
+            fails += 1;
+        }
     }
+
+    return fails;
 }
 
-void test_fisheye_camera() {
-    printf("\n=== Testing Fisheye Camera ===\n");
+int test_fisheye_camera() {
+    int fails = 0;
 
     // Test case 1: Basic fisheye camera
     {
-        printf("\nTest 1: Basic fisheye camera\n");
         auto const focal_length = glm::fvec2(800.0f, 600.0f);
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
@@ -148,18 +163,23 @@ void test_fisheye_camera() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model, image_point, "Basic fisheye camera - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Basic fisheye camera - corner point"
+            )) {
+            fails += 1;
+        }
     }
 
     // Test case 2: Fisheye camera with distortion
     {
-        printf("\nTest 2: Fisheye camera with distortion\n");
         auto const focal_length = glm::fvec2(800.0f, 600.0f);
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<float, 4> k = {0.1f, 0.01f, -0.01f, 0.01f};
@@ -174,22 +194,31 @@ void test_fisheye_camera() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test with distortion"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point,
+                "Test 2: Fisheye camera with distortion - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test with distortion"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Test 2: Fisheye camera with distortion - corner point"
+            )) {
+            fails += 1;
+        }
     }
+
+    return fails;
 }
 
-void test_orthogonal_camera() {
-    printf("\n=== Testing Orthogonal Camera ===\n");
+int test_orthogonal_camera() {
+    int fails = 0;
 
     // Test case 1: Basic orthogonal camera
     {
-        printf("\nTest 1: Basic orthogonal camera\n");
         auto const focal_length = glm::fvec2(800.0f, 600.0f);
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
@@ -202,18 +231,28 @@ void test_orthogonal_camera() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point,
+                "Basic orthogonal camera - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Basic orthogonal camera - corner point"
+            )) {
+            fails += 1;
+        }
     }
+
+    return fails;
 }
 
-void test_camera_transformations() {
-    printf("\n=== Testing Camera Transformations ===\n");
+int test_camera_transformations() {
+    int fails = 0;
 
     auto const focal_length = glm::fvec2(800.0f, 600.0f);
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
@@ -225,7 +264,6 @@ void test_camera_transformations() {
 
     // Test case 1: Camera rotation and translation
     {
-        printf("\nTest 1: Camera rotation\n");
         auto const rotation =
             glm::angleAxis(glm::radians(45.0f), glm::fvec3(0.0f, 1.0f, 0.0f));
         auto const translation = glm::fvec3(0.0f, 0.0f, 0.0f);
@@ -233,18 +271,28 @@ void test_camera_transformations() {
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point,
+                "Camera rotation and translation - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Camera rotation and translation - corner point"
+            )) {
+            fails += 1;
+        }
     }
+
+    return fails;
 }
 
-void test_rolling_shutter() {
-    printf("\n=== Testing Rolling Shutter ===\n");
+int test_rolling_shutter() {
+    int fails = 0;
 
     auto const focal_length = glm::fvec2(800.0f, 600.0f);
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
@@ -256,7 +304,6 @@ void test_rolling_shutter() {
 
     // Test case 1: Top-to-bottom rolling shutter
     {
-        printf("\nTest 1: Top-to-bottom rolling shutter\n");
         auto const pose_start =
             SE3Quat{glm::fvec3(0.f), glm::identity<glm::fquat>()};
         auto const pose_end = SE3Quat{
@@ -273,21 +320,40 @@ void test_rolling_shutter() {
         );
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
-        test_round_trip_consistency(
-            camera_model, image_point, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point,
+                "Top-to-bottom rolling shutter - center point"
+            )) {
+            fails += 1;
+        }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
-        test_round_trip_consistency(
-            camera_model, image_point2, "Round-trip test"
-        );
+        if (!test_round_trip_consistency(
+                camera_model,
+                image_point2,
+                "Top-to-bottom rolling shutter - corner point"
+            )) {
+            fails += 1;
+        }
     }
+
+    return fails;
 }
 
 int main() {
-    test_pinhole_camera();
-    test_fisheye_camera();
-    test_orthogonal_camera();
-    test_camera_transformations();
-    test_rolling_shutter();
-    return 0;
+    int fails = 0;
+
+    fails += test_pinhole_camera();
+    fails += test_fisheye_camera();
+    fails += test_orthogonal_camera();
+    fails += test_camera_transformations();
+    fails += test_rolling_shutter();
+
+    if (fails > 0) {
+        printf("[model.cpp] %d tests failed!\n", fails);
+    } else {
+        printf("[model.cpp] All tests passed!\n");
+    }
+
+    return fails;
 }
