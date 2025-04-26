@@ -1,5 +1,5 @@
-#include "camera/opencv_pinhole.h"
 #include "camera/model.h"
+#include "camera/opencv_pinhole.h"
 #include <stdio.h>
 
 using namespace gsplat;
@@ -61,5 +61,4 @@ int main() {
         image_point_.y,
         valid_flag__
     );
-
 }

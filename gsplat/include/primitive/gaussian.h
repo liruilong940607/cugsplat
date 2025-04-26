@@ -35,10 +35,8 @@ namespace gsplat {
         FIELD_LIST(GSPLAT_DECL_DEVICE_CACHE)                                   \
         FIELD_LIST(GSPLAT_DECL_DEVICE_GETTER)                                  \
         /* (d) constructor: assign all pointer fields */                       \
-        GSPLAT_HOST_DEVICE NAME(                                               \
-            uint32_t n                                                         \
-            FIELD_LIST(GSPLAT_DEVICE_CTOR_PARAM)                               \
-        ) {                                                                    \
+        GSPLAT_HOST_DEVICE NAME(uint32_t n FIELD_LIST(GSPLAT_DEVICE_CTOR_PARAM \
+        )) {                                                                   \
             this->n = n;                                                       \
             FIELD_LIST(GSPLAT_DEVICE_CTOR_INIT)                                \
         }                                                                      \

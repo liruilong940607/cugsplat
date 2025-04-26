@@ -1,12 +1,12 @@
 #include <cuda_runtime.h>
 #include <iostream>
 
-#include "utils/types.h"
-#include "camera/opencv_pinhole.h"
 #include "camera/model.h"
+#include "camera/opencv_pinhole.h"
+#include "primitive/gaussian.h"
 #include "projection/image2dgs.h"
 #include "projection/kernel.cuh"
-#include "primitive/gaussian.h"
+#include "utils/types.h"
 
 using namespace gsplat;
 
@@ -19,7 +19,8 @@ int main() {
     std::array<uint32_t, 2> resolution = {800, 600};
 
     auto const pose = SE3Mat{world_to_camera_t, world_to_camera_R};
-    auto projector = BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
+    auto projector =
+        BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
     auto camera = CameraModel(resolution, projector, pose);
 
     // create input gaussian
@@ -34,10 +35,10 @@ int main() {
     op.preprocess(camera, gaussian);
     std::cout << "Opacity: " << op.opacity << std::endl;
     std::cout << "Mean: " << op.mean.x << ", " << op.mean.y << std::endl;
-    std::cout << "Conic: " << op.conic.x << ", " << op.conic.y << ", " << op.conic.z << std::endl;
+    std::cout << "Conic: " << op.conic.x << ", " << op.conic.y << ", "
+              << op.conic.z << std::endl;
     std::cout << "Depth: " << op.depth << std::endl;
     std::cout << "Radius: " << op.radius.x << ", " << op.radius.y << std::endl;
-
 
     // gsplat::device::DeviceSimplePinholeCameraEWA d_camera;
     // d_camera.n = 1;

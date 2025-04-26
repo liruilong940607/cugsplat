@@ -3,9 +3,9 @@
 #include <glm/glm.hpp>
 #include <stdint.h>
 
-#include "utils/types.h"
-#include "utils/gaussian.h"
 #include "camera/model.h"
+#include "utils/gaussian.h"
+#include "utils/types.h"
 
 namespace gsplat {
 
@@ -26,11 +26,12 @@ struct OutputOperatorImage2DGS {
     glm::fvec2 mean;
     glm::fvec3 conic;
     float depth;
-    glm::fvec2 radius;    
+    glm::fvec2 radius;
 
-    template <class CameraProjection, class CameraPose, class Gaussian> 
-    inline GSPLAT_HOST_DEVICE bool
-    preprocess(CameraModel<CameraProjection, CameraPose> &camera, Gaussian &gaussian) {
+    template <class CameraProjection, class CameraPose, class Gaussian>
+    inline GSPLAT_HOST_DEVICE bool preprocess(
+        CameraModel<CameraProjection, CameraPose> &camera, Gaussian &gaussian
+    ) {
         // Compute projected center.
         auto const world_point = gaussian.get_mean();
         auto const &[camera_point, image_point, point_valid_flag, pose] =
@@ -43,7 +44,7 @@ struct OutputOperatorImage2DGS {
         auto const quat = gaussian.get_quat();
         auto const scale = gaussian.get_scale();
         auto const world_covar = quat_scale_to_covar(quat, scale);
-        auto [image_covar, covar_valid_flag] = 
+        auto [image_covar, covar_valid_flag] =
             camera._world_covar_to_image_covar(camera_point, world_covar, pose);
         if (!covar_valid_flag) {
             return false;
@@ -67,12 +68,15 @@ struct OutputOperatorImage2DGS {
         }
 
         // Compute the bounding box of this gaussian on the image plane
-        auto const radius = solve_tight_radius(image_covar, opacity, alpha_threshold);
+        auto const radius =
+            solve_tight_radius(image_covar, opacity, alpha_threshold);
 
         // Check again if the gaussian is outside the image plane
         auto const &[render_width, render_height] = camera.resolution;
-        if (image_point.x + radius.x < 0 || image_point.x - radius.x > render_width ||
-            image_point.y + radius.y < 0 || image_point.y - radius.y > render_height) {
+        if (image_point.x + radius.x < 0 ||
+            image_point.x - radius.x > render_width ||
+            image_point.y + radius.y < 0 ||
+            image_point.y - radius.y > render_height) {
             return false;
         }
 

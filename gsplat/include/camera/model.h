@@ -10,7 +10,7 @@
 
 #include "utils/macros.h" // for GSPLAT_HOST_DEVICE
 #include "utils/math.h"
-#include "utils/types.h"  // for Maybe
+#include "utils/types.h" // for Maybe
 
 namespace gsplat {
 
@@ -24,9 +24,9 @@ inline GSPLAT_HOST_DEVICE auto image_point_in_image_bounds_margin(
     const float MARGIN_Y = resolution[1] * margin_factor;
     bool valid = true;
     valid &= (-MARGIN_X) <= image_point[0] &&
-                image_point[0] < (resolution[0] + MARGIN_X);
+             image_point[0] < (resolution[0] + MARGIN_X);
     valid &= (-MARGIN_Y) <= image_point[1] &&
-                image_point[1] < (resolution[1] + MARGIN_Y);
+             image_point[1] < (resolution[1] + MARGIN_Y);
     return valid;
 }
 
@@ -40,18 +40,23 @@ inline GSPLAT_HOST_DEVICE auto interpolate_shutter_pose(
     if constexpr (std::is_same_v<CameraPose, SE3Quat>) {
         auto const t_rs = (1.f - relative_frame_time) * pose_start.t +
                           relative_frame_time * pose_end.t;
-        auto const q_rs = glm::slerp(pose_start.q, pose_end.q, relative_frame_time);
+        auto const q_rs =
+            glm::slerp(pose_start.q, pose_end.q, relative_frame_time);
         return SE3Quat{t_rs, q_rs};
     } else if constexpr (std::is_same_v<CameraPose, SE3Mat>) {
         auto const t_rs = (1.f - relative_frame_time) * pose_start.t +
                           relative_frame_time * pose_end.t;
         auto const q_rs = glm::slerp(
-            glm::quat_cast(pose_start.R), glm::quat_cast(pose_end.R), relative_frame_time);
+            glm::quat_cast(pose_start.R),
+            glm::quat_cast(pose_end.R),
+            relative_frame_time
+        );
         auto const R_rs = glm::mat3_cast(q_rs);
         return SE3Mat{t_rs, R_rs};
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
             "interpolate_shutter_pose<CameraPose>: unsupported CameraPose type"
         );
     }
@@ -70,7 +75,8 @@ inline GSPLAT_HOST_DEVICE auto camera_ray_to_world_ray(
         return {R_inv * (ray_o - pose.t), R_inv * ray_d};
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
             "camera_ray_to_world_ray<CameraPose>: unsupported CameraPose type"
         );
     }
@@ -88,7 +94,8 @@ inline GSPLAT_HOST_DEVICE auto world_ray_to_camera_ray(
         return {pose.R * ray_o + pose.t, pose.R * ray_d};
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
             "world_ray_to_camera_ray<CameraPose>: unsupported CameraPose type"
         );
     }
@@ -105,7 +112,8 @@ inline GSPLAT_HOST_DEVICE auto world_point_to_camera_point(
         return pose.R * world_point + pose.t;
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
             "world_to_camera<CameraPose>: unsupported CameraPose type"
         );
     }
@@ -122,7 +130,8 @@ inline GSPLAT_HOST_DEVICE auto camera_point_to_world_point(
         return pose.R * (camera_point - pose.t);
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
             "camera_to_world<CameraPose>: unsupported CameraPose type"
         );
     }
@@ -140,14 +149,15 @@ inline GSPLAT_HOST_DEVICE auto world_covar_to_camera_covar(
         return pose.R * world_covar * glm::transpose(pose.R);
     } else {
         static_assert(
-            std::is_same_v<CameraPose, SE3Quat> || std::is_same_v<CameraPose, SE3Mat>,
-            "world_covar_to_camera_covar<CameraPose>: unsupported CameraPose type"
+            std::is_same_v<CameraPose, SE3Quat> ||
+                std::is_same_v<CameraPose, SE3Mat>,
+            "world_covar_to_camera_covar<CameraPose>: unsupported CameraPose "
+            "type"
         );
     }
 }
 
-template <class CameraProjection, class CameraPose> 
-struct CameraModel {
+template <class CameraProjection, class CameraPose> struct CameraModel {
 
     std::array<uint32_t, 2> resolution;
     // intrinsic
@@ -160,7 +170,7 @@ struct CameraModel {
     const float margin_factor = 0.15f;
     const float near_plane = std::numeric_limits<float>::min();
     const float far_plane = std::numeric_limits<float>::max();
-    
+
     ShutterType shutter_type = ShutterType::GLOBAL;
 
     GSPLAT_HOST_DEVICE CameraModel(
@@ -171,12 +181,9 @@ struct CameraModel {
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution),
-          projector(projector),
-          pose_start(pose_start),
-          margin_factor(margin_factor),
-            near_plane(near_plane),
-            far_plane(far_plane) {}
+        : resolution(resolution), projector(projector), pose_start(pose_start),
+          margin_factor(margin_factor), near_plane(near_plane),
+          far_plane(far_plane) {}
 
     GSPLAT_HOST_DEVICE CameraModel(
         const std::array<uint32_t, 2> &resolution,
@@ -188,17 +195,13 @@ struct CameraModel {
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution),
-          projector(projector),
-          pose_start(pose_start),
-          pose_end(pose_end),
-          shutter_type(shutter_type),
-            margin_factor(margin_factor),
-              near_plane(near_plane),
-              far_plane(far_plane) {}
+        : resolution(resolution), projector(projector), pose_start(pose_start),
+          pose_end(pose_end), shutter_type(shutter_type),
+          margin_factor(margin_factor), near_plane(near_plane),
+          far_plane(far_plane) {}
 
-    inline GSPLAT_HOST_DEVICE auto image_point_to_world_ray(
-        glm::fvec2 const &image_point
+    inline GSPLAT_HOST_DEVICE auto
+    image_point_to_world_ray(glm::fvec2 const &image_point
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
         auto const &[camera_ray_o, camera_ray_d, valid_flag] =
             projector.image_point_to_camera_ray(image_point);
@@ -210,14 +213,15 @@ struct CameraModel {
                               : interpolate_shutter_pose(
                                     shutter_relative_frame_time(image_point),
                                     pose_start,
-                                    pose_end);
-        auto const &[world_ray_o, world_ray_d] = 
+                                    pose_end
+                                );
+        auto const &[world_ray_o, world_ray_d] =
             camera_ray_to_world_ray(camera_ray_o, camera_ray_d, pose);
         return {world_ray_o, world_ray_d, true};
     }
 
-    inline GSPLAT_HOST_DEVICE auto world_point_to_image_point(
-        const glm::fvec3 &world_point
+    inline GSPLAT_HOST_DEVICE auto
+    world_point_to_image_point(const glm::fvec3 &world_point
     ) -> std::tuple<glm::fvec2, float, bool> {
         auto const &[camera_point, image_point, valid_flag, pose] =
             _world_point_to_image_point(world_point);
@@ -235,20 +239,22 @@ struct CameraModel {
         if (!point_valid_flag) {
             return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
-        auto const &[image_covar, covar_valid_flag] = 
+        auto const &[image_covar, covar_valid_flag] =
             _world_covar_to_image_covar(camera_point, world_covar, pose);
         if (!covar_valid_flag) {
             return {glm::fvec2{}, glm::fmat2{}, float{}, false};
         }
         return {image_point, image_covar, camera_point.z, true};
     }
-    
+
     inline GSPLAT_HOST_DEVICE auto _world_covar_to_image_covar(
-        const glm::fvec3 &camera_point, const glm::fmat3 &world_covar, 
+        const glm::fvec3 &camera_point,
+        const glm::fmat3 &world_covar,
         const CameraPose &pose
     ) -> std::tuple<glm::fmat2, bool> {
-        auto const camera_covar = world_covar_to_camera_covar(world_covar, pose);
-        auto const &[J, valid_flag] = 
+        auto const camera_covar =
+            world_covar_to_camera_covar(world_covar, pose);
+        auto const &[J, valid_flag] =
             projector.camera_point_to_image_point_jacobian(camera_point);
         if (!valid_flag) {
             return {glm::fmat2{}, false};
@@ -258,18 +264,20 @@ struct CameraModel {
     }
 
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
-    inline GSPLAT_HOST_DEVICE auto _world_point_to_image_point(
-        const glm::fvec3 &world_point
+    inline GSPLAT_HOST_DEVICE auto
+    _world_point_to_image_point(const glm::fvec3 &world_point
     ) -> std::tuple<glm::fvec3, glm::fvec2, bool, CameraPose> {
         // Perform rolling-shutter-based world point to image point projection /
         // optimization
 
         // Always perform transformation using start pose
-        auto const &[camera_point_start, image_point_start, valid_start] = 
+        auto const &[camera_point_start, image_point_start, valid_start] =
             _world_to_camera_and_image_and_checks(world_point, pose_start);
         if (shutter_type == ShutterType::GLOBAL) {
             // Exit early if we have a global shutter sensor
-            return {camera_point_start, image_point_start, valid_start, pose_start};
+            return {
+                camera_point_start, image_point_start, valid_start, pose_start
+            };
         }
 
         // This selection prefers points at the start-of-frame pose over
@@ -281,7 +289,7 @@ struct CameraModel {
             // Do initial transformations using both start and end poses to
             // determine all candidate points and take union of valid
             // projections as iteration starting points
-            auto const &[camera_point_end, image_point_end, valid_end] = 
+            auto const &[camera_point_end, image_point_end, valid_end] =
                 _world_to_camera_and_image_and_checks(world_point, pose_end);
             if (valid_end) {
                 init_image_point = image_point_end;
@@ -303,7 +311,7 @@ struct CameraModel {
                 pose_start,
                 pose_end
             );
-            auto const &[camera_point_rs_, image_point_rs_, valid_rs] = 
+            auto const &[camera_point_rs_, image_point_rs_, valid_rs] =
                 _world_to_camera_and_image_and_checks(world_point, pose_rs);
             image_point_rs = image_point_rs_;
             camera_point_rs = camera_point_rs_;
@@ -316,8 +324,7 @@ struct CameraModel {
         return {camera_point_rs, image_point_rs, true, pose_rs};
     }
 
-private:
-
+  private:
     // Function to compute the relative frame time for a given image point based
     // on the shutter type
     inline GSPLAT_HOST_DEVICE auto
@@ -345,7 +352,7 @@ private:
     inline GSPLAT_HOST_DEVICE auto _world_to_camera_and_image_and_checks(
         const glm::fvec3 &world_point, const CameraPose &pose
     ) -> std::tuple<glm::fvec3, glm::fvec2, bool> {
-        auto const camera_point = 
+        auto const camera_point =
             world_point_to_camera_point(world_point, pose);
         if (camera_point.z < near_plane || camera_point.z > far_plane) {
             return {glm::fvec3{}, glm::fvec2{}, false};
@@ -367,7 +374,5 @@ private:
         return {camera_point, image_point, true};
     }
 };
-
-
 
 } // namespace gsplat

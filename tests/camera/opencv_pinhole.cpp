@@ -75,18 +75,29 @@ int main() {
 
     // finite difference to verify the Jacobian
     auto const delta = 1e-5f;
-    auto const &[image_point_plus_x, _] =
-        projector.camera_point_to_image_point(camera_point + glm::fvec3(delta, 0.f, 0.f));
+    auto const &[image_point_plus_x, _] = projector.camera_point_to_image_point(
+        camera_point + glm::fvec3(delta, 0.f, 0.f)
+    );
     auto const &[image_point_plus_y, __] =
-        projector.camera_point_to_image_point(camera_point + glm::fvec3(0.f, delta, 0.f));
+        projector.camera_point_to_image_point(
+            camera_point + glm::fvec3(0.f, delta, 0.f)
+        );
     auto const &[image_point_plus_z, ___] =
-        projector.camera_point_to_image_point(camera_point + glm::fvec3(0.f, 0.f, delta));
+        projector.camera_point_to_image_point(
+            camera_point + glm::fvec3(0.f, 0.f, delta)
+        );
     auto const &[image_point_minus_x, ____] =
-        projector.camera_point_to_image_point(camera_point - glm::fvec3(delta, 0.f, 0.f));
+        projector.camera_point_to_image_point(
+            camera_point - glm::fvec3(delta, 0.f, 0.f)
+        );
     auto const &[image_point_minus_y, _____] =
-        projector.camera_point_to_image_point(camera_point - glm::fvec3(0.f, delta, 0.f));
+        projector.camera_point_to_image_point(
+            camera_point - glm::fvec3(0.f, delta, 0.f)
+        );
     auto const &[image_point_minus_z, ______] =
-        projector.camera_point_to_image_point(camera_point - glm::fvec3(0.f, 0.f, delta));
+        projector.camera_point_to_image_point(
+            camera_point - glm::fvec3(0.f, 0.f, delta)
+        );
     auto const J_x = (image_point_plus_x - image_point_minus_x) / (2.f * delta);
     auto const J_y = (image_point_plus_y - image_point_minus_y) / (2.f * delta);
     auto const J_z = (image_point_plus_z - image_point_minus_z) / (2.f * delta);
@@ -98,5 +109,4 @@ int main() {
         }
         printf("\n");
     }
-
 }
