@@ -4,9 +4,9 @@
 #include <stdint.h>
 
 #include "camera/model.h"
-#include "utils/gaussian.h"
-#include "gaussian/utils.h"
 #include "core/types.h"
+#include "gaussian/utils.h"
+#include "utils/gaussian.h"
 
 namespace gsplat {
 

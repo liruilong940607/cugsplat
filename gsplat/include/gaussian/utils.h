@@ -6,10 +6,10 @@
 #include <glm/glm.hpp>
 #include <tuple>
 
-#include "utils/cholesky3x3.h"
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
 #include "core/types.h" // for Maybe
+#include "utils/cholesky3x3.h"
 
 namespace gsplat {
 

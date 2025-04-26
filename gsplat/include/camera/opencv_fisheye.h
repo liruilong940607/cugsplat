@@ -8,8 +8,8 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
+#include "core/types.h"   // for Maybe
 #include "utils/solver.h" // for solver_newton
-#include "core/types.h"  // for Maybe
 
 namespace gsplat {
 

@@ -3,10 +3,10 @@
 
 #include "camera/model.h"
 #include "camera/opencv_pinhole.h"
+#include "core/types.h"
 #include "gaussian/primitive.h"
 #include "projection/kernel.cuh"
 #include "projection/operators/3dgs.h"
-#include "core/types.h"
 
 using namespace gsplat;
 
