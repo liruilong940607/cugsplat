@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 # Option to skip CUDA files and only build C++ files
 option(BUILD_CPP_ONLY "Skip CUDA files and only build C++ files" OFF)
 
+# Option to control whether to build tests
+option(BUILD_TESTS "Build test executables" ON)
+
 # Only include CUDA if not in CPP-only mode
 if(NOT BUILD_CPP_ONLY)
     project(gsplat LANGUAGES CUDA CXX)
@@ -70,8 +73,10 @@ function(build_cuda_executables_recursive BASE_DIR PREFIX)
     endforeach()
 endfunction()
 
-# finally, invoke it on your tests folder with "tests" as the prefix
-build_cuda_executables_recursive(
-    "${CMAKE_CURRENT_SOURCE_DIR}/tests"
-    tests
-)
+# Build tests if enabled
+if(BUILD_TESTS)
+    build_cuda_executables_recursive(
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+        tests
+    )
+endif()
