@@ -120,7 +120,7 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
             return {origin, dir, true};
         }
 
-        auto const theta_d = sqrt(glm::dot(uv, uv));
+        auto const theta_d = sqrtf(glm::dot(uv, uv));
 
         auto theta = float{};
         if (is_perfect) {

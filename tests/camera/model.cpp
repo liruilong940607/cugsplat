@@ -7,6 +7,58 @@
 
 using namespace gsplat;
 
+template <class CameraProjection, class CameraPose>
+void test_round_trip_consistency(CameraModel<CameraProjection, CameraPose>& camera_model, 
+                               const glm::fvec2& image_point, const char* test_name) {
+    // Image point to world ray
+    auto const &[world_ray_o, world_ray_d, ray_valid] = 
+        camera_model.image_point_to_world_ray(image_point);
+    
+    if (!ray_valid) {
+        printf("\n%s: Invalid ray\n", test_name);
+        return;
+    }
+    
+    // Normalize ray direction to have z=1
+    auto const world_ray_d_z_depth = glm::fvec3(
+        world_ray_d[0] / world_ray_d[2],
+        world_ray_d[1] / world_ray_d[2],
+        1.0f
+    );
+    
+    // Choose a point at specific z-depth
+    const float z = 5.0f;  // desired z-depth
+    auto const world_point = world_ray_o + z * world_ray_d_z_depth;
+    
+    // World point back to image point
+    auto const &[image_point_roundtrip, actual_depth, point_valid] = 
+        camera_model.world_point_to_image_point(world_point);
+    
+    // Check consistency
+    const float image_tol = 1e-4f;
+    const float depth_tol = 1e-5f;
+    bool image_consistent = glm::all(glm::equal(image_point, image_point_roundtrip, image_tol));
+    bool depth_consistent = std::abs(z - actual_depth) < depth_tol;
+    bool consistent = point_valid && image_consistent && depth_consistent;
+    
+    if (!consistent) {
+        printf("\n%s:\n", test_name);
+        printf("  Initial Image Point: %s\n", glm::to_string(image_point).c_str());
+        printf("  World Ray Origin: %s\n", glm::to_string(world_ray_o).c_str());
+        printf("  World Ray Direction: %s\n", glm::to_string(world_ray_d).c_str());
+        printf("  World Point (at z=%.2f): %s\n", z, glm::to_string(world_point).c_str());
+        printf("  Round-trip Image Point: %s\n", glm::to_string(image_point_roundtrip).c_str());
+        printf("  Actual Depth (z): %.2f\n", actual_depth);
+        printf("  Point Valid: %d\n", point_valid);
+        if (!image_consistent) {
+            printf("  Image Point Error: %.6f\n", glm::length(image_point - image_point_roundtrip));
+        }
+        if (!depth_consistent) {
+            printf("  Depth Error: %.6f\n", std::abs(z - actual_depth));
+        }
+    }
+}
+
 void test_pinhole_camera() {
     printf("\n=== Testing Pinhole Camera ===\n");
     
@@ -23,22 +75,8 @@ void test_pinhole_camera() {
         auto const pose_start = SE3Quat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        // Test point in front of camera
-        auto const world_point = glm::fvec3(0.2f, 0.4f, 3.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point in front of camera:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
-
-        // Test point behind camera
-        auto const world_point_behind = glm::fvec3(0.2f, 0.4f, -3.0f);
-        auto const &[image_point_behind, depth_behind, valid_behind] = 
-            camera_model.world_point_to_image_point(world_point_behind);
-        printf("\nPoint behind camera:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point_behind).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point_behind).c_str(), depth_behind, valid_behind);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test for point in front of camera");
     }
 
     // Test case 2: Pinhole camera with distortion
@@ -60,13 +98,8 @@ void test_pinhole_camera() {
         auto const pose_start = SE3Quat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        // Test point with distortion
-        auto const world_point = glm::fvec3(0.2f, 0.4f, 3.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point with distortion:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test with distortion");
     }
 }
 
@@ -86,22 +119,8 @@ void test_fisheye_camera() {
         auto const pose_start = SE3Quat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        // Test point in front of camera
-        auto const world_point = glm::fvec3(0.2f, 0.4f, 3.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point in front of camera:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
-
-        // Test point at large angle
-        auto const world_point_large_angle = glm::fvec3(1.0f, 1.0f, 1.0f);
-        auto const &[image_point_large, depth_large, valid_large] = 
-            camera_model.world_point_to_image_point(world_point_large_angle);
-        printf("\nPoint at large angle:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point_large_angle).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point_large).c_str(), depth_large, valid_large);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test for point in front of camera");
     }
 }
 
@@ -121,22 +140,8 @@ void test_orthogonal_camera() {
         auto const pose_start = SE3Quat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        // Test point in front of camera
-        auto const world_point = glm::fvec3(0.2f, 0.4f, 3.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point in front of camera:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
-
-        // Test point at different depth
-        auto const world_point_deep = glm::fvec3(0.2f, 0.4f, 10.0f);
-        auto const &[image_point_deep, depth_deep, valid_deep] = 
-            camera_model.world_point_to_image_point(world_point_deep);
-        printf("\nPoint at different depth:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point_deep).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point_deep).c_str(), depth_deep, valid_deep);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test for point in front of camera");
     }
 }
 
@@ -157,12 +162,8 @@ void test_camera_transformations() {
         auto const pose_start = SE3Quat{glm::fvec3(0.f), rotation};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        auto const world_point = glm::fvec3(1.0f, 0.0f, 1.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point with camera rotation:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test with camera rotation");
     }
 
     // Test case 2: Camera translation
@@ -172,12 +173,8 @@ void test_camera_transformations() {
         auto const pose_start = SE3Quat{translation, glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
 
-        auto const world_point = glm::fvec3(1.0f, 0.0f, 1.0f);
-        auto const &[image_point, depth, valid_flag] = camera_model.world_point_to_image_point(world_point);
-        printf("Point with camera translation:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point).c_str(), depth, valid_flag);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test with camera translation");
     }
 }
 
@@ -203,23 +200,8 @@ void test_rolling_shutter() {
             ShutterType::ROLLING_TOP_TO_BOTTOM
         );
 
-        // Test point at top of image
-        auto const world_point_top = glm::fvec3(0.2f, 0.4f, 3.0f);
-        auto const &[image_point_top, depth_top, valid_top] = 
-            camera_model.world_point_to_image_point(world_point_top);
-        printf("Point at top of image:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point_top).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point_top).c_str(), depth_top, valid_top);
-
-        // Test point at bottom of image
-        auto const world_point_bottom = glm::fvec3(0.2f, -0.4f, 3.0f);
-        auto const &[image_point_bottom, depth_bottom, valid_bottom] = 
-            camera_model.world_point_to_image_point(world_point_bottom);
-        printf("\nPoint at bottom of image:\n");
-        printf("  World Point: %s\n", glm::to_string(world_point_bottom).c_str());
-        printf("  Image Point: %s, Depth: %f, Valid: %d\n", 
-               glm::to_string(image_point_bottom).c_str(), depth_bottom, valid_bottom);
+        auto const image_point = glm::fvec2(400.0f, 300.0f);
+        test_round_trip_consistency(camera_model, image_point, "Round-trip test for point in front of camera");
     }
 }
 
