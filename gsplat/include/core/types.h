@@ -41,34 +41,6 @@ make_array(const T *ptr, size_t offset = 0) {
     return arr;
 }
 
-struct MaybeValidRay {
-    glm::fvec3 o;
-    glm::fvec3 d;
-    bool valid_flag;
-};
-
-struct MaybeValidPoint3D {
-    glm::fvec3 p;
-    bool valid_flag;
-};
-
-struct MaybeValidPoint2D {
-    glm::fvec2 p;
-    bool valid_flag;
-};
-
-struct MaybeValidGaussian3D {
-    glm::fvec3 mean;
-    glm::fmat3 covar;
-    bool valid_flag;
-};
-
-struct MaybeValidGaussian2D {
-    glm::fvec2 mean;
-    glm::fmat2 covar;
-    bool valid_flag;
-};
-
 struct SE3Mat {
     glm::fvec3 t;
     glm::fmat3 R;
