@@ -311,5 +311,5 @@ int main() {
         printf("[utils.cpp] All tests passed!\n");
     }
 
-    return 1;
+    return fails;
 }
