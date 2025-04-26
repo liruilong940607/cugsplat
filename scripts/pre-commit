@@ -6,10 +6,10 @@ ROOT_DIR=$(git rev-parse --show-toplevel)
 # Run the formatter script
 bash "$ROOT_DIR/formatter.sh"
 
-# Get the list of changed files
+# Get the list of changed files and only add those that exist
 changed_files=$(git diff --name-only --cached)
-
-# If there are any changes after formatting, add them to the commit
-if [ ! -z "$changed_files" ]; then
-    git add $changed_files
-fi 
+for file in $changed_files; do
+    if [ -f "$file" ]; then
+        git add "$file"
+    fi
+done 
