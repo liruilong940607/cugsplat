@@ -2,6 +2,7 @@
 #include "camera/opencv_fisheye.h"
 #include "camera/opencv_pinhole.h"
 #include "camera/orthogonal.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
