@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Run the formatter script
+./formatter.sh
+
+# Get the list of changed files
+changed_files=$(git diff --name-only --cached)
+
+# If there are any changes after formatting, add them to the commit
+if [ ! -z "$changed_files" ]; then
+    git add $changed_files
+fi 
