@@ -12,9 +12,6 @@ inline GSPLAT_HOST_DEVICE auto point_world_to_camera(
     return R * point_world + t;
 }
 
-
-
-
 inline GSPLAT_HOST_DEVICE auto point_world_to_camera_vjp(
     // inputs
     const glm::fvec3 &point_world,
