@@ -42,6 +42,7 @@ template <class Derived> struct OrthogonalProjectionImpl {
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point_jacobian(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fmat3x2, bool> {
+        auto const derived = static_cast<Derived *>(this);
         auto const focal_length = derived->get_focal_length();
         auto const J =
             glm::fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};

@@ -169,7 +169,7 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
         } else {
             // solve the root of f'(x) = 0 numerically
             auto const &[root, converged] = solver_newton<1, 20>(
-                [this](float &x) {
+                [this](float &x, float &k1, float &k2, float &k3, float &k4) {
                     auto const x2 = x * x;
                     auto const residual = eval_poly_horner<5>(
                         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, x2
@@ -223,6 +223,8 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
 
     // Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
     GSPLAT_HOST_DEVICE auto gradiant_distortion(const float &theta2) -> float {
+        auto const derived = static_cast<Derived *>(this);
+        auto const &[k1, k2, k3, k4] = derived->get_radial_coeffs();
         return eval_poly_horner<5>(
             {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, theta2
         );
