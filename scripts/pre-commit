@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# Get the root directory of the git repository
+ROOT_DIR=$(git rev-parse --show-toplevel)
+
 # Run the formatter script
-./formatter.sh
+"$ROOT_DIR/formatter.sh"
 
 # Get the list of changed files
 changed_files=$(git diff --name-only --cached)
