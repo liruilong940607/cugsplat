@@ -8,9 +8,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp> // glm rotate
 
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
-#include "utils/math.h"
-#include "utils/types.h" // for Maybe
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/math.h"
+#include "utils/solver.h" // for solver_newton
+#include "core/types.h" // for Maybe
 
 namespace gsplat {
 

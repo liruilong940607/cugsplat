@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <tuple.h>
 
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
 
 // Transforms a 3D position from world space to camera space.
 // [R | t] is the world-to-camera transformation.

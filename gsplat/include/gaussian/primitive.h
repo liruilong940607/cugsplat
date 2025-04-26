@@ -1,8 +1,8 @@
 #pragma once
 #include <cstdint>
 
-#include "utils/macros.h"
-#include "utils/types.h"
+#include "core/macros.h"
+#include "core/types.h"
 
 namespace gsplat {
 

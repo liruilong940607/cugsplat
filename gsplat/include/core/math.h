@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "utils/macros.h"
+#include "core/macros.h"
 
 namespace gsplat {
 inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
 #ifdef __CUDACC__
-    return ::rsqrtf(x); // use CUDA’s fast rsqrtf()
+    return ::rsqrtf(x); // use CUDA's fast rsqrtf()
 #else
     return 1.0f / std::sqrt(x); // use standard sqrt on CPU
 #endif

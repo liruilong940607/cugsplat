@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace gsplat {
 

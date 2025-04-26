@@ -7,9 +7,9 @@
 #include <tuple>
 
 #include "utils/cholesky3x3.h"
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
-#include "utils/math.h"
-#include "utils/types.h" // for Maybe
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/math.h"
+#include "core/types.h" // for Maybe
 
 namespace gsplat {
 

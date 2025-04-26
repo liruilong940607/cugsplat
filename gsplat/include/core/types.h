@@ -5,7 +5,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
-#include "utils/macros.h"
+#include "core/macros.h"
 
 namespace gsplat {
 

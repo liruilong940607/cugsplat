@@ -6,10 +6,10 @@
 #include <limits>
 #include <tuple>
 
-#include "utils/macros.h" // for GSPLAT_HOST_DEVICE
-#include "utils/math.h"
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/math.h"
 #include "utils/solver.h" // for solver_newton
-#include "utils/types.h"  // for Maybe
+#include "core/types.h"  // for Maybe
 
 namespace gsplat {
 
