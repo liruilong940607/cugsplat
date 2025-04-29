@@ -54,6 +54,10 @@ template <class Derived> struct OrthogonalProjectionImpl {
 };
 
 struct OrthogonalProjection : OrthogonalProjectionImpl<OrthogonalProjection> {
+
+    GSPLAT_HOST_DEVICE
+    OrthogonalProjection() {}
+
     GSPLAT_HOST_DEVICE
     OrthogonalProjection(glm::fvec2 focal_length, glm::fvec2 principal_point) {
         this->focal_length.set(focal_length);
@@ -73,6 +77,8 @@ struct BatchedOrthogonalProjection
     // pointer to device memory
     const glm::fvec2 *focal_length_ptr;
     const glm::fvec2 *principal_point_ptr;
+
+    GSPLAT_HOST_DEVICE BatchedOrthogonalProjection() {}
 
     GSPLAT_HOST_DEVICE BatchedOrthogonalProjection(
         uint32_t n,

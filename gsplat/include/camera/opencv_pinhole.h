@@ -242,6 +242,9 @@ struct OpencvPinholeProjection
     : OpencvPinholeProjectionImpl<OpencvPinholeProjection> {
 
     GSPLAT_HOST_DEVICE
+    OpencvPinholeProjection() {}
+
+    GSPLAT_HOST_DEVICE
     OpencvPinholeProjection(
         glm::fvec2 focal_length, glm::fvec2 principal_point
     ) {
@@ -283,6 +286,8 @@ struct BatchedOpencvPinholeProjection
     const std::array<float, 6> *radial_coeffs_ptr;
     const std::array<float, 2> *tangential_coeffs_ptr;
     const std::array<float, 4> *thin_prism_coeffs_ptr;
+
+    GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection() {}
 
     GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
         uint32_t n,

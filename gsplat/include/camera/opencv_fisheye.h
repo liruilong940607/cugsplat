@@ -239,6 +239,9 @@ struct OpencvFisheyeProjection
     : OpencvFisheyeProjectionImpl<OpencvFisheyeProjection> {
 
     GSPLAT_HOST_DEVICE
+    OpencvFisheyeProjection() {}
+
+    GSPLAT_HOST_DEVICE
     OpencvFisheyeProjection(
         glm::fvec2 focal_length, glm::fvec2 principal_point
     ) {
@@ -272,6 +275,8 @@ struct BatchedOpencvFisheyeProjection
     const glm::fvec2 *focal_length_ptr;
     const glm::fvec2 *principal_point_ptr;
     const std::array<float, 4> *radial_coeffs_ptr;
+
+    GSPLAT_HOST_DEVICE BatchedOpencvFisheyeProjection() {}
 
     GSPLAT_HOST_DEVICE BatchedOpencvFisheyeProjection(
         uint32_t n,

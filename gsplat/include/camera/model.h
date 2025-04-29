@@ -158,63 +158,37 @@ inline GSPLAT_HOST_DEVICE auto world_covar_to_camera_covar(
     }
 }
 
-template <class CameraProjection, class CameraPose> struct CameraModel {
-
-    std::array<uint32_t, 2> resolution;
-    // intrinsic
-    CameraProjection projector;
+template <class Derived, class CameraProjection, class CameraPose>
+struct CameraModelImpl {
     // extrinsic
-    CameraPose pose_start;
-    CameraPose pose_end; // for rolling shutter only
+    Maybe<CameraPose> pose_start;
+    Maybe<CameraPose> pose_end; // for rolling shutter only
+    // intrinsic
+    ShutterType shutter_type = ShutterType::GLOBAL;
+    CameraProjection projector;
+    std::array<uint32_t, 2> resolution;
 
     // for early return if the point is outside of the view frustum
-    const float margin_factor = 0.15f;
-    const float near_plane = std::numeric_limits<float>::min();
-    const float far_plane = std::numeric_limits<float>::max();
-
-    ShutterType shutter_type = ShutterType::GLOBAL;
-
-    GSPLAT_HOST_DEVICE CameraModel(
-        const std::array<uint32_t, 2> &resolution,
-        const CameraProjection &projector,
-        const CameraPose &pose_start,
-        const float margin_factor = 0.15f,
-        const float near_plane = std::numeric_limits<float>::min(),
-        const float far_plane = std::numeric_limits<float>::max()
-    )
-        : resolution(resolution), projector(projector), pose_start(pose_start),
-          margin_factor(margin_factor), near_plane(near_plane),
-          far_plane(far_plane) {}
-
-    GSPLAT_HOST_DEVICE CameraModel(
-        const std::array<uint32_t, 2> &resolution,
-        const CameraProjection &projector,
-        const CameraPose &pose_start,
-        const CameraPose &pose_end,
-        ShutterType shutter_type,
-        const float margin_factor = 0.15f,
-        const float near_plane = std::numeric_limits<float>::min(),
-        const float far_plane = std::numeric_limits<float>::max()
-    )
-        : resolution(resolution), projector(projector), pose_start(pose_start),
-          pose_end(pose_end), shutter_type(shutter_type),
-          margin_factor(margin_factor), near_plane(near_plane),
-          far_plane(far_plane) {}
+    float margin_factor = 0.15f;
+    float near_plane = std::numeric_limits<float>::min();
+    float far_plane = std::numeric_limits<float>::max();
 
     inline GSPLAT_HOST_DEVICE auto
     image_point_to_world_ray(glm::fvec2 const &image_point
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
+        auto const derived = static_cast<Derived *>(this);
+
         auto const &[camera_ray_o, camera_ray_d, valid_flag] =
             projector.image_point_to_camera_ray(image_point);
         if (!valid_flag) {
             return {glm::fvec3{}, glm::fvec3{}, false};
         }
         auto const pose = shutter_type == ShutterType::GLOBAL
-                              ? pose_start
+                              ? derived->get_pose_start()
                               : interpolate_shutter_pose(
                                     shutter_relative_frame_time(image_point),
-                                    pose_start,
-                                    pose_end
+                                    derived->get_pose_start(),
+                                    derived->get_pose_end()
                                 );
         auto const &[world_ray_o, world_ray_d] =
             camera_ray_to_world_ray(camera_ray_o, camera_ray_d, pose);
@@ -270,8 +244,9 @@ template <class CameraProjection, class CameraPose> struct CameraModel {
     ) -> std::tuple<glm::fvec3, glm::fvec2, bool, CameraPose> {
         // Perform rolling-shutter-based world point to image point projection /
         // optimization
-
+        auto const derived = static_cast<Derived *>(this);
         // Always perform transformation using start pose
+        auto const pose_start = derived->get_pose_start();
         auto const &[camera_point_start, image_point_start, valid_start] =
             _world_to_camera_and_image_and_checks(world_point, pose_start);
         if (shutter_type == ShutterType::GLOBAL) {
@@ -283,6 +258,7 @@ template <class CameraProjection, class CameraPose> struct CameraModel {
 
         // This selection prefers points at the start-of-frame pose over
         // end-of-frame points
+        auto const pose_end = derived->get_pose_end();
         glm::fvec2 init_image_point;
         if (valid_start) {
             init_image_point = image_point_start;
@@ -373,6 +349,147 @@ template <class CameraProjection, class CameraPose> struct CameraModel {
         }
 
         return {camera_point, image_point, true};
+    }
+};
+
+template <class CameraProjection, class CameraPose>
+struct CameraModel : public CameraModelImpl<
+                         CameraModel<CameraProjection, CameraPose>,
+                         CameraProjection,
+                         CameraPose> {
+
+    GSPLAT_HOST_DEVICE CameraModel() {}
+
+    GSPLAT_HOST_DEVICE CameraModel(
+        const std::array<uint32_t, 2> &resolution,
+        const CameraProjection &projector,
+        const CameraPose &pose_start,
+        const float margin_factor = 0.15f,
+        const float near_plane = std::numeric_limits<float>::min(),
+        const float far_plane = std::numeric_limits<float>::max()
+    ) {
+        this->resolution = resolution;
+        this->projector = projector;
+        this->near_plane = near_plane;
+        this->far_plane = far_plane;
+        this->margin_factor = margin_factor;
+        this->pose_start.set(pose_start);
+    }
+
+    GSPLAT_HOST_DEVICE CameraModel(
+        const std::array<uint32_t, 2> &resolution,
+        const CameraProjection &projector,
+        const CameraPose &pose_start,
+        const CameraPose &pose_end,
+        ShutterType shutter_type,
+        const float margin_factor = 0.15f,
+        const float near_plane = std::numeric_limits<float>::min(),
+        const float far_plane = std::numeric_limits<float>::max()
+    ) {
+        this->resolution = resolution;
+        this->projector = projector;
+        this->shutter_type = shutter_type;
+        this->margin_factor = margin_factor;
+        this->near_plane = near_plane;
+        this->far_plane = far_plane;
+        this->pose_start.set(pose_start);
+        this->pose_end.set(pose_end);
+    }
+
+    GSPLAT_HOST_DEVICE CameraPose get_pose_start() const {
+        return this->pose_start.get();
+    }
+
+    GSPLAT_HOST_DEVICE CameraPose get_pose_end() const {
+        return this->pose_end.get();
+    }
+};
+
+template <class CameraProjection, class CameraPose>
+struct BatchedCameraModel
+    : public CameraModelImpl<
+          BatchedCameraModel<CameraProjection, CameraPose>,
+          CameraProjection,
+          CameraPose> {
+    uint32_t n{0}, idx{0};
+    GSPLAT_HOST_DEVICE void set_index(uint32_t i) { idx = i; }
+    GSPLAT_HOST_DEVICE int get_n() const { return n; }
+
+    // pointer to device memory
+    const glm::fmat3 *pose_start_R_ptr;
+    const glm::fvec3 *pose_start_t_ptr;
+    const glm::fmat3 *pose_end_R_ptr;
+    const glm::fvec3 *pose_end_t_ptr;
+
+    GSPLAT_HOST_DEVICE BatchedCameraModel() {}
+
+    GSPLAT_HOST_DEVICE BatchedCameraModel(
+        const std::array<uint32_t, 2> &resolution,
+        const CameraProjection &projector,
+        const glm::fmat3 *pose_start_R_ptr,
+        const glm::fvec3 *pose_start_t_ptr,
+        const float margin_factor = 0.15f,
+        const float near_plane = std::numeric_limits<float>::min(),
+        const float far_plane = std::numeric_limits<float>::max()
+    ) {
+        this->resolution = resolution;
+        this->projector = projector;
+        this->near_plane = near_plane;
+        this->far_plane = far_plane;
+        this->margin_factor = margin_factor;
+        this->pose_start_R_ptr = pose_start_R_ptr;
+        this->pose_start_t_ptr = pose_start_t_ptr;
+    }
+
+    GSPLAT_HOST_DEVICE BatchedCameraModel(
+        const std::array<uint32_t, 2> &resolution,
+        const CameraProjection &projector,
+        const glm::fmat3 *pose_start_R_ptr,
+        const glm::fvec3 *pose_start_t_ptr,
+        const glm::fmat3 *pose_end_R_ptr,
+        const glm::fvec3 *pose_end_t_ptr,
+        ShutterType shutter_type,
+        const float margin_factor = 0.15f,
+        const float near_plane = std::numeric_limits<float>::min(),
+        const float far_plane = std::numeric_limits<float>::max()
+    ) {
+        this->resolution = resolution;
+        this->projector = projector;
+        this->shutter_type = shutter_type;
+        this->margin_factor = margin_factor;
+        this->near_plane = near_plane;
+        this->far_plane = far_plane;
+        this->pose_start_R_ptr = pose_start_R_ptr;
+    }
+
+    GSPLAT_HOST_DEVICE CameraPose get_pose_start() {
+        if (!this->pose_start.has_value()) {
+            CameraPose pose;
+            if constexpr (std::is_same_v<CameraPose, SE3Mat>) {
+                pose.R = pose_start_R_ptr[idx];
+                pose.t = pose_start_t_ptr[idx];
+            } else if constexpr (std::is_same_v<CameraPose, SE3Quat>) {
+                pose.q = glm::quat_cast(pose_start_R_ptr[idx]);
+                pose.t = pose_start_t_ptr[idx];
+            }
+            this->pose_start.set(pose);
+        }
+        return this->pose_start.get();
+    }
+
+    GSPLAT_HOST_DEVICE CameraPose get_pose_end() {
+        if (!this->pose_end.has_value()) {
+            CameraPose pose;
+            if constexpr (std::is_same_v<CameraPose, SE3Mat>) {
+                pose.R = pose_end_R_ptr[idx];
+                pose.t = pose_end_t_ptr[idx];
+            } else if constexpr (std::is_same_v<CameraPose, SE3Quat>) {
+                pose.q = glm::quat_cast(pose_end_R_ptr[idx]);
+                pose.t = pose_end_t_ptr[idx];
+            }
+            this->pose_end.set(pose);
+        }
+        return this->pose_end.get();
     }
 };
 
