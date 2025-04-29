@@ -14,6 +14,9 @@
 namespace gsplat {
 
 template <class Derived> struct OrthogonalProjectionImpl {
+    Maybe<glm::fvec2> focal_length;
+    Maybe<glm::fvec2> principal_point;
+
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
@@ -51,17 +54,14 @@ template <class Derived> struct OrthogonalProjectionImpl {
 };
 
 struct OrthogonalProjection : OrthogonalProjectionImpl<OrthogonalProjection> {
-    glm::fvec2 focal_length;
-    glm::fvec2 principal_point;
-
     GSPLAT_HOST_DEVICE
-    OrthogonalProjection(glm::fvec2 focal_length, glm::fvec2 principal_point)
-        : focal_length(focal_length), principal_point(principal_point) {}
-
-    GSPLAT_HOST_DEVICE auto get_focal_length() const { return focal_length; }
-    GSPLAT_HOST_DEVICE auto get_principal_point() const {
-        return principal_point;
+    OrthogonalProjection(glm::fvec2 focal_length, glm::fvec2 principal_point) {
+        this->focal_length.set(focal_length);
+        this->principal_point.set(principal_point);
     }
+
+    GET_FIELD(focal_length)
+    GET_FIELD(principal_point)
 };
 
 struct BatchedOrthogonalProjection
@@ -74,10 +74,6 @@ struct BatchedOrthogonalProjection
     const glm::fvec2 *focal_length_ptr;
     const glm::fvec2 *principal_point_ptr;
 
-    // cache
-    Maybe<glm::fvec2> focal_length;
-    Maybe<glm::fvec2> principal_point;
-
     GSPLAT_HOST_DEVICE BatchedOrthogonalProjection(
         uint32_t n,
         const glm::fvec2 *focal_length_ptr,
@@ -86,18 +82,8 @@ struct BatchedOrthogonalProjection
         : n(n), focal_length_ptr(focal_length_ptr),
           principal_point_ptr(principal_point_ptr) {}
 
-    GSPLAT_HOST_DEVICE auto get_focal_length() {
-        if (!focal_length.has_value()) {
-            focal_length.set(focal_length_ptr[idx]);
-        }
-        return focal_length.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_principal_point() {
-        if (!principal_point.has_value()) {
-            principal_point.set(principal_point_ptr[idx]);
-        }
-        return principal_point.get();
-    }
+    GET_FIELD_FROM_PTR(focal_length)
+    GET_FIELD_FROM_PTR(principal_point)
 };
 
 } // namespace gsplat

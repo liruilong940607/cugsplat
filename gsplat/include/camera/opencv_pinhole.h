@@ -14,6 +14,12 @@
 namespace gsplat {
 
 template <class Derived> struct OpencvPinholeProjectionImpl {
+    Maybe<glm::fvec2> focal_length;
+    Maybe<glm::fvec2> principal_point;
+    Maybe<std::array<float, 6>> radial_coeffs;
+    Maybe<std::array<float, 2>> tangential_coeffs;
+    Maybe<std::array<float, 4>> thin_prism_coeffs;
+
     bool is_perfect = false;
     float min_radial_dist = 0.8f;
     float max_radial_dist = std::numeric_limits<float>::max();
@@ -234,15 +240,13 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
 
 struct OpencvPinholeProjection
     : OpencvPinholeProjectionImpl<OpencvPinholeProjection> {
-    glm::fvec2 focal_length;
-    glm::fvec2 principal_point;
-    std::array<float, 6> radial_coeffs;
-    std::array<float, 2> tangential_coeffs;
-    std::array<float, 4> thin_prism_coeffs;
 
     GSPLAT_HOST_DEVICE
-    OpencvPinholeProjection(glm::fvec2 focal_length, glm::fvec2 principal_point)
-        : focal_length(focal_length), principal_point(principal_point) {
+    OpencvPinholeProjection(
+        glm::fvec2 focal_length, glm::fvec2 principal_point
+    ) {
+        this->focal_length.set(focal_length);
+        this->principal_point.set(principal_point);
         this->is_perfect = true;
     }
 
@@ -252,22 +256,19 @@ struct OpencvPinholeProjection
         std::array<float, 6> radial_coeffs = {},
         std::array<float, 2> tangential_coeffs = {},
         std::array<float, 4> thin_prism_coeffs = {}
-    )
-        : focal_length(focal_length), principal_point(principal_point),
-          radial_coeffs(radial_coeffs), tangential_coeffs(tangential_coeffs),
-          thin_prism_coeffs(thin_prism_coeffs) {}
+    ) {
+        this->focal_length.set(focal_length);
+        this->principal_point.set(principal_point);
+        this->radial_coeffs.set(radial_coeffs);
+        this->tangential_coeffs.set(tangential_coeffs);
+        this->thin_prism_coeffs.set(thin_prism_coeffs);
+    }
 
-    GSPLAT_HOST_DEVICE auto get_focal_length() const { return focal_length; }
-    GSPLAT_HOST_DEVICE auto get_principal_point() const {
-        return principal_point;
-    }
-    GSPLAT_HOST_DEVICE auto get_radial_coeffs() const { return radial_coeffs; }
-    GSPLAT_HOST_DEVICE auto get_tangential_coeffs() const {
-        return tangential_coeffs;
-    }
-    GSPLAT_HOST_DEVICE auto get_thin_prism_coeffs() const {
-        return thin_prism_coeffs;
-    }
+    GET_FIELD(focal_length)
+    GET_FIELD(principal_point)
+    GET_FIELD(radial_coeffs)
+    GET_FIELD(tangential_coeffs)
+    GET_FIELD(thin_prism_coeffs)
 };
 
 struct BatchedOpencvPinholeProjection
@@ -282,13 +283,6 @@ struct BatchedOpencvPinholeProjection
     const std::array<float, 6> *radial_coeffs_ptr;
     const std::array<float, 2> *tangential_coeffs_ptr;
     const std::array<float, 4> *thin_prism_coeffs_ptr;
-
-    // cache
-    Maybe<glm::fvec2> focal_length;
-    Maybe<glm::fvec2> principal_point;
-    Maybe<std::array<float, 6>> radial_coeffs;
-    Maybe<std::array<float, 2>> tangential_coeffs;
-    Maybe<std::array<float, 4>> thin_prism_coeffs;
 
     GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
         uint32_t n,
@@ -314,36 +308,11 @@ struct BatchedOpencvPinholeProjection
           tangential_coeffs_ptr(tangential_coeffs_ptr),
           thin_prism_coeffs_ptr(thin_prism_coeffs_ptr) {}
 
-    GSPLAT_HOST_DEVICE auto get_focal_length() {
-        if (!focal_length.has_value()) {
-            focal_length.set(focal_length_ptr[idx]);
-        }
-        return focal_length.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_principal_point() {
-        if (!principal_point.has_value()) {
-            principal_point.set(principal_point_ptr[idx]);
-        }
-        return principal_point.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_radial_coeffs() {
-        if (!radial_coeffs.has_value()) {
-            radial_coeffs.set(radial_coeffs_ptr[idx]);
-        }
-        return radial_coeffs.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_tangential_coeffs() {
-        if (!tangential_coeffs.has_value()) {
-            tangential_coeffs.set(tangential_coeffs_ptr[idx]);
-        }
-        return tangential_coeffs.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_thin_prism_coeffs() {
-        if (!thin_prism_coeffs.has_value()) {
-            thin_prism_coeffs.set(thin_prism_coeffs_ptr[idx]);
-        }
-        return thin_prism_coeffs.get();
-    }
+    GET_FIELD_FROM_PTR(focal_length)
+    GET_FIELD_FROM_PTR(principal_point)
+    GET_FIELD_FROM_PTR(radial_coeffs)
+    GET_FIELD_FROM_PTR(tangential_coeffs)
+    GET_FIELD_FROM_PTR(thin_prism_coeffs)
 };
 
 } // namespace gsplat

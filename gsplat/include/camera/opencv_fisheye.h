@@ -73,6 +73,10 @@ _poly3_minimal_postivie_root(float a, float b, float c) {
 }
 
 template <class Derived> struct OpencvFisheyeProjectionImpl {
+    Maybe<glm::fvec2> focal_length;
+    Maybe<glm::fvec2> principal_point;
+    Maybe<std::array<float, 4>> radial_coeffs;
+
     bool is_perfect = false;
     float min_theta = 0.f;
     float max_theta = std::numeric_limits<float>::max();
@@ -233,13 +237,13 @@ template <class Derived> struct OpencvFisheyeProjectionImpl {
 
 struct OpencvFisheyeProjection
     : OpencvFisheyeProjectionImpl<OpencvFisheyeProjection> {
-    glm::fvec2 focal_length;
-    glm::fvec2 principal_point;
-    std::array<float, 4> radial_coeffs;
 
     GSPLAT_HOST_DEVICE
-    OpencvFisheyeProjection(glm::fvec2 focal_length, glm::fvec2 principal_point)
-        : focal_length(focal_length), principal_point(principal_point) {
+    OpencvFisheyeProjection(
+        glm::fvec2 focal_length, glm::fvec2 principal_point
+    ) {
+        this->focal_length.set(focal_length);
+        this->principal_point.set(principal_point);
         this->is_perfect = true;
     }
 
@@ -247,15 +251,15 @@ struct OpencvFisheyeProjection
         glm::fvec2 focal_length,
         glm::fvec2 principal_point,
         std::array<float, 4> radial_coeffs = {}
-    )
-        : focal_length(focal_length), principal_point(principal_point),
-          radial_coeffs(radial_coeffs) {}
-
-    GSPLAT_HOST_DEVICE auto get_focal_length() const { return focal_length; }
-    GSPLAT_HOST_DEVICE auto get_principal_point() const {
-        return principal_point;
+    ) {
+        this->focal_length.set(focal_length);
+        this->principal_point.set(principal_point);
+        this->radial_coeffs.set(radial_coeffs);
     }
-    GSPLAT_HOST_DEVICE auto get_radial_coeffs() const { return radial_coeffs; }
+
+    GET_FIELD(focal_length)
+    GET_FIELD(principal_point)
+    GET_FIELD(radial_coeffs)
 };
 
 struct BatchedOpencvFisheyeProjection
@@ -268,11 +272,6 @@ struct BatchedOpencvFisheyeProjection
     const glm::fvec2 *focal_length_ptr;
     const glm::fvec2 *principal_point_ptr;
     const std::array<float, 4> *radial_coeffs_ptr;
-
-    // cache
-    Maybe<glm::fvec2> focal_length;
-    Maybe<glm::fvec2> principal_point;
-    Maybe<std::array<float, 4>> radial_coeffs;
 
     GSPLAT_HOST_DEVICE BatchedOpencvFisheyeProjection(
         uint32_t n,
@@ -294,24 +293,9 @@ struct BatchedOpencvFisheyeProjection
           principal_point_ptr(principal_point_ptr),
           radial_coeffs_ptr(radial_coeffs_ptr) {}
 
-    GSPLAT_HOST_DEVICE auto get_focal_length() {
-        if (!focal_length.has_value()) {
-            focal_length.set(focal_length_ptr[idx]);
-        }
-        return focal_length.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_principal_point() {
-        if (!principal_point.has_value()) {
-            principal_point.set(principal_point_ptr[idx]);
-        }
-        return principal_point.get();
-    }
-    GSPLAT_HOST_DEVICE auto get_radial_coeffs() {
-        if (!radial_coeffs.has_value()) {
-            radial_coeffs.set(radial_coeffs_ptr[idx]);
-        }
-        return radial_coeffs.get();
-    }
+    GET_FIELD_FROM_PTR(focal_length)
+    GET_FIELD_FROM_PTR(principal_point)
+    GET_FIELD_FROM_PTR(radial_coeffs)
 };
 
 } // namespace gsplat
