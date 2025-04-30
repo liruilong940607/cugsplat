@@ -26,6 +26,16 @@ __global__ void test_tensor_mat3(Tensor<glm::fmat3> tensor) {
     tensor.export_grad<32>();
 }
 
+// Test kernel for Tensor with std::array<float, 6>
+__global__ void test_tensor_float6(Tensor<std::array<float, 6>> tensor) {
+    // Each thread sets its own gradient
+    std::array<float, 6> grad = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
+    tensor.set_grad(grad);
+
+    // Export gradient with warp reduction
+    tensor.export_grad<32>();
+}
+
 int main() {
     // Test with glm::fvec3
     {
@@ -81,6 +91,45 @@ int main() {
             }
             std::cout << "\n";
         }
+
+        cudaFree(d_grad);
+    }
+
+    // Test with float[6]
+    {
+        const int num_warps = 4;
+        const int threads_per_warp = 32;
+        const int total_threads = num_warps * threads_per_warp;
+
+        std::array<float, 6> *d_grad;
+        cudaMalloc(&d_grad, sizeof(std::array<float, 6>));
+        cudaMemset(d_grad, 0, sizeof(std::array<float, 6>));
+
+        Tensor<std::array<float, 6>> tensor(nullptr, d_grad);
+        test_tensor_float6<<<1, total_threads>>>(tensor);
+        cudaDeviceSynchronize();
+
+        std::array<float, 6> h_grad;
+        cudaMemcpy(
+            &h_grad,
+            d_grad,
+            sizeof(std::array<float, 6>),
+            cudaMemcpyDeviceToHost
+        );
+
+        std::cout << "\nstd::array<float, 6> test:\n";
+        std::cout << "Expected: (" << total_threads * 1.0f << ", "
+                  << total_threads * 2.0f << ", " << total_threads * 3.0f
+                  << ", " << total_threads * 4.0f << ", "
+                  << total_threads * 5.0f << ", " << total_threads * 6.0f
+                  << ")\n";
+        std::cout << "Got: (";
+        for (int i = 0; i < 6; ++i) {
+            std::cout << h_grad[i];
+            if (i < 5)
+                std::cout << ", ";
+        }
+        std::cout << ")\n";
 
         cudaFree(d_grad);
     }
