@@ -40,14 +40,14 @@ template <typename T> struct Tensor {
     Maybe<T> grad_val = Maybe<T>(); // Cached gradient in local memory
 
     // Default constructor
-    __device__ Tensor() {}
+    __host__ __device__ Tensor() {}
 
     // Constructor with data pointer and gradient pointer
-    __device__ Tensor(T *data_ptr, T *grad_ptr)
+    __host__ __device__ Tensor(T *data_ptr, T *grad_ptr)
         : data_ptr(data_ptr), grad_ptr(grad_ptr) {}
 
     // Get data with caching
-    __device__ T get_data() {
+    __host__ __device__ T get_data() {
         if (!data_val.has_value() && data_ptr) {
             data_val.set(data_ptr[0]);
         }
@@ -55,7 +55,7 @@ template <typename T> struct Tensor {
     }
 
     // Get grad with caching
-    __device__ T get_grad() {
+    __host__ __device__ T get_grad() {
         if (!grad_val.has_value() && grad_ptr) {
             grad_val.set(grad_ptr[0]);
         }
@@ -63,10 +63,10 @@ template <typename T> struct Tensor {
     }
 
     // Set data
-    __device__ void set_data(T value) { data_val.set(value); }
+    __host__ __device__ void set_data(T value) { data_val.set(value); }
 
     // Set grad
-    __device__ void set_grad(T value) { grad_val.set(value); }
+    __host__ __device__ void set_grad(T value) { grad_val.set(value); }
 
     // Warp reduction for gradient
     template <size_t WARP_SIZE> __device__ void export_grad() {

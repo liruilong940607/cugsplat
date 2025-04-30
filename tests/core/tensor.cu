@@ -7,9 +7,7 @@
 using namespace gsplat;
 
 // Test kernel for Tensor with glm::fvec3
-__global__ void test_tensor_vec3(glm::fvec3 *grad_ptr) {
-    Tensor<glm::fvec3> tensor(nullptr, grad_ptr);
-
+__global__ void test_tensor_vec3(Tensor<glm::fvec3> tensor) {
     // Each thread sets its own gradient
     glm::fvec3 grad(1.0f, 2.0f, 3.0f);
     tensor.set_grad(grad);
@@ -19,9 +17,7 @@ __global__ void test_tensor_vec3(glm::fvec3 *grad_ptr) {
 }
 
 // Test kernel for Tensor with glm::fmat3
-__global__ void test_tensor_mat3(glm::fmat3 *grad_ptr) {
-    Tensor<glm::fmat3> tensor(nullptr, grad_ptr);
-
+__global__ void test_tensor_mat3(Tensor<glm::fmat3> tensor) {
     // Each thread sets its own gradient
     glm::fmat3 grad(1.0f);
     tensor.set_grad(grad);
@@ -41,7 +37,8 @@ int main() {
         cudaMalloc(&d_grad, sizeof(glm::fvec3));
         cudaMemset(d_grad, 0, sizeof(glm::fvec3));
 
-        test_tensor_vec3<<<1, total_threads>>>(d_grad);
+        Tensor<glm::fvec3> tensor(nullptr, d_grad);
+        test_tensor_vec3<<<1, total_threads>>>(tensor);
         cudaDeviceSynchronize();
 
         glm::fvec3 h_grad;
@@ -67,7 +64,8 @@ int main() {
         cudaMalloc(&d_grad, sizeof(glm::fmat3));
         cudaMemset(d_grad, 0, sizeof(glm::fmat3));
 
-        test_tensor_mat3<<<1, total_threads>>>(d_grad);
+        Tensor<glm::fmat3> tensor(nullptr, d_grad);
+        test_tensor_mat3<<<1, total_threads>>>(tensor);
         cudaDeviceSynchronize();
 
         glm::fmat3 h_grad;
