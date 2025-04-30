@@ -23,6 +23,15 @@ __device__ static constexpr size_t get_float_components() {
     }
 }
 
+// Helper function for warp reduction
+template <int OFFSET> __device__ static float warp_reduce(float val) {
+    if constexpr (OFFSET > 0) {
+        val += __shfl_down_sync(0xFFFFFFFF, val, OFFSET);
+        return warp_reduce<OFFSET / 2>(val);
+    }
+    return val;
+}
+
 template <typename T> struct Tensor {
     // Data members
     T *data_ptr = nullptr;          // Pointer to global memory for data
@@ -71,11 +80,9 @@ template <typename T> struct Tensor {
         constexpr size_t num_components = get_float_components<T>();
 #pragma unroll
         for (int i = 0; i < num_components; ++i) {
-            // Warp reduction
-            float val = val_components[i];
-            for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
-                val += __shfl_down_sync(0xFFFFFFFF, val, offset);
-            }
+            // Warp reduction with compile-time constant iterations
+            float val = warp_reduce<WARP_SIZE / 2>(val_components[i]);
+
             // Atomic addition: only the first lane in the warp
             if ((threadIdx.x & (WARP_SIZE - 1)) == 0) {
                 atomicAdd(ptr_components + i, val);
