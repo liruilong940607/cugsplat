@@ -30,13 +30,11 @@ namespace cg = cooperative_groups;
  *         A lightweight device-side structure that represents a camera model.
  *         Must implement:
  *           __device__ void shift_ptr(int);
- *           __device__ int get_n() const;
  *
  * @tparam DevicePrimitiveIn
  *         A device-side structure for accessing input primitive data.
  *         Must implement:
  *           __device__ void shift_ptr(int);
- *           __device__ int get_n() const;
  *
  * @tparam DevicePrimitiveOut
  *         A device-side structure for storing output primitive data.
@@ -61,7 +59,9 @@ namespace cg = cooperative_groups;
  *         Total number of threads per CUDA block. Required when PACKED = true.
  *         Must match the number of threads in the kernel launch.
  *
+ * @param num_cameras Total number of cameras
  * @param d_camera Device-side camera model instance
+ * @param num_primitives_in Total number of input primitives
  * @param d_primitives_in Device-side input primitive data
  * @param d_primitives_out Device-side output primitive data
  * @param op Preprocessing operator instance
