@@ -84,7 +84,7 @@ int test_pinhole_camera() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -124,7 +124,7 @@ int test_pinhole_camera() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -162,7 +162,7 @@ int test_fisheye_camera() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -193,7 +193,7 @@ int test_fisheye_camera() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -230,7 +230,7 @@ int test_orthogonal_camera() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -270,7 +270,7 @@ int test_camera_transformations() {
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
         auto camera_model =
-            CameraModel(resolution, projector, pose_r_start, pose_t_start);
+            CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
@@ -312,10 +312,10 @@ int test_rolling_shutter() {
         auto camera_model = CameraModel<OpencvPinholeProjection, glm::fmat3>(
             resolution,
             projector,
-            pose_r_start,
-            pose_t_start,
-            pose_r_end,
-            pose_t_end,
+            &pose_r_start,
+            &pose_t_start,
+            &pose_r_end,
+            &pose_t_end,
             ShutterType::ROLLING_TOP_TO_BOTTOM
         );
 

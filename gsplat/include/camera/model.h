@@ -177,10 +177,10 @@ inline GSPLAT_HOST_DEVICE auto world_covar_to_camera_covar(
 
 template <class CameraProjection, class RotationType> struct CameraModel {
     // extrinsic
-    RotationType pose_r_start;
-    glm::fvec3 pose_t_start;
-    RotationType pose_r_end;
-    glm::fvec3 pose_t_end; // for rolling shutter only
+    MaybeCached<RotationType> pose_r_start;
+    MaybeCached<glm::fvec3> pose_t_start;
+    MaybeCached<RotationType> pose_r_end;
+    MaybeCached<glm::fvec3> pose_t_end; // for rolling shutter only
     // intrinsic
     ShutterType shutter_type = ShutterType::GLOBAL;
     CameraProjection projector;
@@ -198,41 +198,35 @@ template <class CameraProjection, class RotationType> struct CameraModel {
     inline GSPLAT_HOST_DEVICE CameraModel(
         std::array<uint32_t, 2> &resolution,
         CameraProjection &projector,
-        const RotationType &pose_r_start,
-        const glm::fvec3 &pose_t_start,
+        const RotationType *pose_r_start,
+        const glm::fvec3 *pose_t_start,
         const float margin_factor = 0.15f,
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution), margin_factor(margin_factor),
-          near_plane(near_plane), far_plane(far_plane) {
-        this->projector = projector;
-        this->pose_r_start = pose_r_start;
-        this->pose_t_start = pose_t_start;
-    }
+        : resolution(resolution), projector(projector),
+          pose_r_start(pose_r_start), pose_t_start(pose_t_start),
+          margin_factor(margin_factor), near_plane(near_plane),
+          far_plane(far_plane) {}
 
     // Constructor for Rolling Shutter
     inline GSPLAT_HOST_DEVICE CameraModel(
         std::array<uint32_t, 2> &resolution,
         CameraProjection &projector,
-        const RotationType &pose_r_start,
-        const glm::fvec3 &pose_t_start,
-        const RotationType &pose_r_end,
-        const glm::fvec3 &pose_t_end,
+        const RotationType *pose_r_start,
+        const glm::fvec3 *pose_t_start,
+        const RotationType *pose_r_end,
+        const glm::fvec3 *pose_t_end,
         const ShutterType &shutter_type,
         const float margin_factor = 0.15f,
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution), margin_factor(margin_factor),
-          near_plane(near_plane), far_plane(far_plane) {
-        this->projector = projector;
-        this->pose_r_start = pose_r_start;
-        this->pose_t_start = pose_t_start;
-        this->pose_r_end = pose_r_end;
-        this->pose_t_end = pose_t_end;
-        this->shutter_type = shutter_type;
-    }
+        : resolution(resolution), projector(projector),
+          pose_r_start(pose_r_start), pose_t_start(pose_t_start),
+          pose_r_end(pose_r_end), pose_t_end(pose_t_end),
+          shutter_type(shutter_type), margin_factor(margin_factor),
+          near_plane(near_plane), far_plane(far_plane) {}
 
     inline GSPLAT_HOST_DEVICE auto
     image_point_to_world_ray(glm::fvec2 const &image_point
@@ -244,13 +238,13 @@ template <class CameraProjection, class RotationType> struct CameraModel {
         }
         auto const &[pose_r, pose_t] =
             shutter_type == ShutterType::GLOBAL
-                ? std::make_pair(pose_r_start, pose_t_start)
+                ? std::make_pair(pose_r_start.get(), pose_t_start.get())
                 : interpolate_shutter_pose(
                       shutter_relative_frame_time(image_point),
-                      pose_r_start,
-                      pose_t_start,
-                      pose_r_end,
-                      pose_t_end
+                      pose_r_start.get(),
+                      pose_t_start.get(),
+                      pose_r_end.get(),
+                      pose_t_end.get()
                   );
         auto const &[world_ray_o, world_ray_d] =
             camera_ray_to_world_ray(camera_ray_o, camera_ray_d, pose_r, pose_t);
@@ -315,7 +309,7 @@ template <class CameraProjection, class RotationType> struct CameraModel {
         // Always perform transformation using start pose
         auto const &[camera_point_start, image_point_start, valid_start] =
             _world_to_camera_and_image_and_checks(
-                world_point, pose_r_start, pose_t_start
+                world_point, pose_r_start.get(), pose_t_start.get()
             );
         if (shutter_type == ShutterType::GLOBAL) {
             // Exit early if we have a global shutter sensor
@@ -323,8 +317,8 @@ template <class CameraProjection, class RotationType> struct CameraModel {
                 camera_point_start,
                 image_point_start,
                 valid_start,
-                pose_r_start,
-                pose_t_start
+                pose_r_start.get(),
+                pose_t_start.get()
             };
         }
 
@@ -339,7 +333,7 @@ template <class CameraProjection, class RotationType> struct CameraModel {
             // projections as iteration starting points
             auto const &[camera_point_end, image_point_end, valid_end] =
                 _world_to_camera_and_image_and_checks(
-                    world_point, pose_r_end, pose_t_end
+                    world_point, pose_r_end.get(), pose_t_end.get()
                 );
             if (valid_end) {
                 init_image_point = image_point_end;
@@ -350,8 +344,8 @@ template <class CameraProjection, class RotationType> struct CameraModel {
                     camera_point_end,
                     image_point_end,
                     false,
-                    pose_r_end,
-                    pose_t_end
+                    pose_r_end.get(),
+                    pose_t_end.get()
                 };
             }
         }
@@ -365,10 +359,10 @@ template <class CameraProjection, class RotationType> struct CameraModel {
         for (auto j = 0; j < N_ROLLING_SHUTTER_ITERATIONS; ++j) {
             auto const &[pose_r_rs, pose_t_rs] = interpolate_shutter_pose(
                 shutter_relative_frame_time(image_point_rs),
-                pose_r_start,
-                pose_t_start,
-                pose_r_end,
-                pose_t_end
+                pose_r_start.get(),
+                pose_t_start.get(),
+                pose_r_end.get(),
+                pose_t_end.get()
             );
             auto const &[camera_point_rs_, image_point_rs_, valid_rs] =
                 _world_to_camera_and_image_and_checks(

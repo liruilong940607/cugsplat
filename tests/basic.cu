@@ -20,7 +20,7 @@ int main() {
     auto const pose_t_start = glm::fvec3(0.f);
     auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
     auto camera =
-        CameraModel(resolution, projector, pose_r_start, pose_t_start);
+        CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
     // create input gaussian
     auto const opacity = float(0.8f);
