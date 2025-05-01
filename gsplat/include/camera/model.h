@@ -191,6 +191,13 @@ template <class CameraProjection, class RotationType> struct CameraModel {
     const float near_plane = std::numeric_limits<float>::min();
     const float far_plane = std::numeric_limits<float>::max();
 
+    GSPLAT_HOST_DEVICE inline void shift_ptr(size_t index) {
+        pose_r_start.shift_ptr(index);
+        pose_t_start.shift_ptr(index);
+        pose_r_end.shift_ptr(index);
+        pose_t_end.shift_ptr(index);
+    }
+
     // Default constructor
     inline GSPLAT_HOST_DEVICE CameraModel() {}
 

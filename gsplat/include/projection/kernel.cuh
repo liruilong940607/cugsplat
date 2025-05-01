@@ -29,19 +29,19 @@ namespace cg = cooperative_groups;
  * @tparam DeviceCameraModel
  *         A lightweight device-side structure that represents a camera model.
  *         Must implement:
- *           __device__ void set_index(int);
+ *           __device__ void shift_ptr(int);
  *           __device__ int get_n() const;
  *
  * @tparam DevicePrimitiveIn
  *         A device-side structure for accessing input primitive data.
  *         Must implement:
- *           __device__ void set_index(int);
+ *           __device__ void shift_ptr(int);
  *           __device__ int get_n() const;
  *
  * @tparam DevicePrimitiveOut
  *         A device-side structure for storing output primitive data.
  *         Must implement:
- *           __device__ void set_index(int);
+ *           __device__ void shift_ptr(int);
  *           __device__ void set_value(const auto&);
  *
  * @tparam Operator
@@ -101,8 +101,8 @@ __global__ void PreprocessFwdKernel(
     }
 
     // Shift pointers
-    d_camera.set_index(cidx);
-    d_primitives_in.set_index(pidx);
+    d_camera.shift_ptr(cidx);
+    d_primitives_in.shift_ptr(pidx);
 
     // Preprocess the primitive
     auto const &[primitive_out, valid_flag] =
@@ -136,7 +136,7 @@ __global__ void PreprocessFwdKernel(
             if (valid_flag) {
                 // Write the primitive to the output buffer
                 auto const oidx = thread_data;
-                d_primitives_out.set_index(oidx);
+                d_primitives_out.shift_ptr(oidx);
                 d_primitives_out.set_value(primitive_out);
                 camera_ids[thread_data] = cidx;
                 primitive_ids[thread_data] = pidx;
@@ -146,7 +146,7 @@ __global__ void PreprocessFwdKernel(
         if (valid_flag) {
             // Write the primitive to the output buffer
             auto const oidx = cidx * num_primitives_in + pidx;
-            d_primitives_out.set_index(oidx);
+            d_primitives_out.shift_ptr(oidx);
             d_primitives_out.set_value(primitive_out);
         }
     }
@@ -196,10 +196,10 @@ __global__ void PreprocessBwdKernel(
     }
 
     // Shift pointers
-    d_camera.set_index(cidx);
-    d_primitives_in.set_index(pidx);
-    d_primitives_out.set_index(oidx);
-    d_primitives_out_grad.set_index(oidx);
+    d_camera.shift_ptr(cidx);
+    d_primitives_in.shift_ptr(pidx);
+    d_primitives_out.shift_ptr(oidx);
+    d_primitives_out_grad.shift_ptr(oidx);
 
     // Preprocess the primitive.
     auto const &[primitive_in_grad, camera_grad, valid_flag] = op.backward(
@@ -212,13 +212,13 @@ __global__ void PreprocessBwdKernel(
         if (d_primitives_in.requires_grad) {
             auto warp_group_g = cg::labeled_partition(warp, pidx);
             primitive_in_grad.warp_sum(warp);
-            d_primitives_in_grad.set_index(pidx);
+            d_primitives_in_grad.shift_ptr(pidx);
             d_primitives_in_grad.atomic_add(primitive_in_grad);
         }
         if (d_camera.requires_grad) {
             auto warp_group_c = cg::labeled_partition(warp, cidx);
             camera_grad.warp_sum(warp);
-            d_camera_grad.set_index(cidx);
+            d_camera_grad.shift_ptr(cidx);
             d_camera_grad.atomic_add(camera_grad);
         }
     }

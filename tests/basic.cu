@@ -19,7 +19,7 @@ int main() {
     auto const pose_r_start = glm::fmat3(1.f);
     auto const pose_t_start = glm::fvec3(0.f);
     auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
-    auto camera =
+    auto d_camera =
         CameraModel(resolution, projector, &pose_r_start, &pose_t_start);
 
     // create input gaussian
@@ -27,17 +27,21 @@ int main() {
     auto const mean = glm::fvec3(0.0f, 0.0f, 1.0f);
     auto const quat = glm::fvec4(1.0f, 0.0f, 0.0f, 0.0f);
     auto const scale = glm::fvec3(1.0f, 1.0f, 1.0f);
-    auto gaussian = BatchPrimitive3DGS(1, &opacity, &mean, &quat, &scale);
+    auto const d_gaussian =
+        DevicePrimitiveIn3DGS{1, &mean, &quat, &scale, &opacity};
 
     // create operator
     PreprocessOperator3DGS op;
-    op.forward(camera, gaussian);
-    std::cout << "Opacity: " << op.opacity << std::endl;
-    std::cout << "Mean: " << op.mean.x << ", " << op.mean.y << std::endl;
-    std::cout << "Conic: " << op.conic.x << ", " << op.conic.y << ", "
-              << op.conic.z << std::endl;
-    std::cout << "Depth: " << op.depth << std::endl;
-    std::cout << "Radius: " << op.radius.x << ", " << op.radius.y << std::endl;
+    auto const &[primitive_out, valid_flag] = op.forward(d_camera, d_gaussian);
+    std::cout << "Opacity: " << primitive_out.opacity << std::endl;
+    std::cout << "Mean: " << primitive_out.mean.x << ", "
+              << primitive_out.mean.y << std::endl;
+    std::cout << "Conic: " << primitive_out.conic.x << ", "
+              << primitive_out.conic.y << ", " << primitive_out.conic.z
+              << std::endl;
+    std::cout << "Depth: " << primitive_out.depth << std::endl;
+    std::cout << "Radius: " << primitive_out.radius.x << ", "
+              << primitive_out.radius.y << std::endl;
 
     // gsplat::device::DeviceSimplePinholeCameraEWA d_camera;
     // d_camera.n = 1;
