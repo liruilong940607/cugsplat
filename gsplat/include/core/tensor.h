@@ -46,6 +46,16 @@ template <typename T> struct Tensor {
     __host__ __device__ Tensor(T *data_ptr, T *grad_ptr)
         : data_ptr(data_ptr), grad_ptr(grad_ptr) {}
 
+    // Shift pointer by an offset
+    __host__ __device__ void shift_ptr(size_t offset) {
+        if (data_ptr) {
+            data_ptr += offset;
+        }
+        if (grad_ptr) {
+            grad_ptr += offset;
+        }
+    }
+
     // Get data with caching
     __host__ __device__ T get_data() {
         if (!data_val.has_value() && data_ptr) {
