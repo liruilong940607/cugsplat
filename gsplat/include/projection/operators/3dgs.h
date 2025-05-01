@@ -10,14 +10,10 @@
 namespace gsplat {
 
 struct DevicePrimitiveIn3DGS {
-    size_t n;
-
     const glm::fvec3 *mean_ptr;
     const glm::fvec4 *quat_ptr;
     const glm::fvec3 *scale_ptr;
     const float *opacity_ptr;
-
-    GSPLAT_HOST_DEVICE inline size_t get_n() const { return n; }
 
     GSPLAT_HOST_DEVICE inline void shift_ptr(size_t index) {
         mean_ptr += index;
@@ -50,7 +46,8 @@ struct DevicePrimitiveOut3DGS {
         radius_ptr += index;
     }
 
-    GSPLAT_HOST_DEVICE inline void set_value(PrimitiveOut3DGS &primitive) {
+    GSPLAT_HOST_DEVICE inline void set_value(const PrimitiveOut3DGS &primitive
+    ) {
         *opacity_ptr = primitive.opacity;
         *mean_ptr = primitive.mean;
         *conic_ptr = primitive.conic;

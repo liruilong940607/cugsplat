@@ -75,14 +75,16 @@ namespace cg = cooperative_groups;
  * of output primitives
  */
 template <
+    bool PACKED,
+    int THREADS_PER_BLOCK,
     class DeviceCameraModel,
     class DevicePrimitiveIn,
     class DevicePrimitiveOut,
-    class Operator,
-    bool PACKED,
-    int THREADS_PER_BLOCK>
+    class Operator>
 __global__ void PreprocessFwdKernel(
+    size_t num_cameras,
     DeviceCameraModel d_camera,
+    size_t num_primitives_in,
     DevicePrimitiveIn d_primitives_in,
     DevicePrimitiveOut d_primitives_out,
     Operator op,
@@ -94,8 +96,6 @@ __global__ void PreprocessFwdKernel(
 ) {
     auto const cidx = blockIdx.x * blockDim.x + threadIdx.x; // camera index
     auto const pidx = blockIdx.y * blockDim.y + threadIdx.y; // primitive index
-    auto const num_cameras = d_camera.get_n();
-    auto const num_primitives_in = d_primitives_in.get_n();
     if (cidx >= num_cameras || pidx >= num_primitives_in) {
         return;
     }
