@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include "core/macros.h"
-#include "core/types.h"
+#include "core/tensor.h" // for Maybe
 
 namespace gsplat {
 

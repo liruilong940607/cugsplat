@@ -34,8 +34,9 @@ struct PreprocessOperator3DGS {
     ) {
         // Compute projected center.
         auto const world_point = gaussian.get_mean();
-        auto const &[camera_point, image_point, point_valid_flag, pose] =
-            camera._world_point_to_image_point(world_point);
+        auto const
+            &[camera_point, image_point, point_valid_flag, pose_r, pose_t] =
+                camera._world_point_to_image_point(world_point);
         if (!point_valid_flag) {
             return false;
         }
@@ -45,7 +46,9 @@ struct PreprocessOperator3DGS {
         auto const scale = gaussian.get_scale();
         auto const world_covar = quat_scale_to_covar(quat, scale);
         auto [image_covar, covar_valid_flag] =
-            camera._world_covar_to_image_covar(camera_point, world_covar, pose);
+            camera._world_covar_to_image_covar(
+                camera_point, world_covar, pose_r, pose_t
+            );
         if (!covar_valid_flag) {
             return false;
         }

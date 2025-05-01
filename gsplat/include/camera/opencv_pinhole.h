@@ -67,6 +67,42 @@ struct OpencvPinholeProjection {
         return {image_point, true};
     }
 
+    GSPLAT_HOST_DEVICE void camera_point_to_image_point_vjp(
+        Tensor<glm::fvec3> &camera_point, Tensor<glm::fvec2> &image_point
+    ) {
+        auto const focal_length_ = this->focal_length.get_data();
+        auto const image_point_ = image_point.get_data();
+        auto const v_image_point_ = image_point.get_grad();
+
+        if (camera_point.requires_grad()) {
+            // TODO: distorted pinhole camera is not supported
+            if (!is_perfect) {
+                return;
+            }
+
+            auto const camera_point_ = camera_point.get_data();
+
+            auto const rz = 1.0f / camera_point_.z;
+            auto const rz2 = rz * rz;
+
+            auto const v_uv = v_image_point_ * focal_length_;
+            auto const v_camera_point = glm::fvec3{
+                v_uv[0] * rz,
+                v_uv[1] * rz,
+                -(v_uv[0] * camera_point_.x + v_uv[1] * camera_point_.y) * rz2
+            };
+            camera_point.accum_grad(v_camera_point);
+        }
+        if (this->focal_length.requires_grad()) {
+            auto const principal_point_ = this->principal_point.get_data();
+            auto const uv = (image_point_ - principal_point_) / focal_length_;
+            this->focal_length.accum_grad(v_image_point_ * uv);
+        }
+        if (this->principal_point.requires_grad()) {
+            this->principal_point.accum_grad(v_image_point_);
+        }
+    }
+
     GSPLAT_HOST_DEVICE auto image_point_to_camera_ray(
         const glm::fvec2 &image_point, bool normalize = true
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
@@ -125,6 +161,17 @@ struct OpencvPinholeProjection {
         };
         auto const J = J_xy * J_xy_point;
         return {J, true};
+    }
+
+    GSPLAT_HOST_DEVICE void camera_point_to_image_point_jacobian_vjp(
+        Tensor<glm::fvec3> &camera_point, Tensor<glm::fmat3x2> &J
+    ) {
+        // TODO: distorted pinhole camera is not supported
+        if (!is_perfect) {
+            return;
+        }
+
+        // TODO: implement this
     }
 
   private:

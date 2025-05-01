@@ -14,13 +14,13 @@ int main() {
     // create camera
     auto const focal_length = glm::fvec2(800.0f, 600.0f);
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
-    auto const world_to_camera_R = glm::fmat3(1.0f);
-    auto const world_to_camera_t = glm::fvec3(0.0f);
     std::array<uint32_t, 2> resolution = {800, 600};
 
-    auto const pose = SE3Mat{world_to_camera_t, world_to_camera_R};
+    auto const pose_r_start = glm::fmat3(1.f);
+    auto const pose_t_start = glm::fvec3(0.f);
     auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
-    auto camera = CameraModel(resolution, projector, pose);
+    auto camera =
+        CameraModel(resolution, projector, pose_r_start, pose_t_start);
 
     // create input gaussian
     auto const opacity = float(0.8f);

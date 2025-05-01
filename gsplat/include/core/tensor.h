@@ -4,12 +4,28 @@
 #ifdef __CUDACC__
 #include <cuda_runtime.h>
 #endif
-#include <type_traits>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/types.h"  // for Maybe
 
 namespace gsplat {
+
+template <typename T> struct Maybe {
+    bool _has_value = false;
+    T _value;
+
+    GSPLAT_HOST_DEVICE inline T get() const {
+        return this->_has_value ? this->_value : T{};
+    }
+
+    GSPLAT_HOST_DEVICE inline bool has_value() const {
+        return this->_has_value;
+    }
+
+    GSPLAT_HOST_DEVICE inline void set(const T &v) {
+        this->_value = v;
+        this->_has_value = true;
+    }
+};
 
 // Helper function to get number of float components
 template <typename U>
@@ -39,22 +55,52 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
 
 #endif
 
+// template <typename T, bool CacheOnly = false>
+// struct Tensor {
+//     // Data members
+//     std::conditional_t<CacheOnly, std::nullptr_t, const T*> data_ptr =
+//     nullptr; std::conditional_t<CacheOnly, std::nullptr_t, T*> grad_ptr =
+//     nullptr; Maybe<T> data_val = Maybe<T>(); Maybe<T> grad_val = Maybe<T>();
+//     bool requires_grad_ = false;
+
+//     // Default constructor
+//     GSPLAT_HOST_DEVICE Tensor() {}
+
+//     // Constructor for cached-only mode
+//     template<bool C = CacheOnly, std::enable_if_t<C, int> = 0>
+//     GSPLAT_HOST_DEVICE Tensor(const T& data, const T& grad = T{})
+//         : data_val(data), grad_val(grad) {}
+
+//     // Constructor for pointer mode
+//     template<bool C = CacheOnly, std::enable_if_t<!C, int> = 0>
+//     GSPLAT_HOST_DEVICE Tensor(const T* data_ptr, T* grad_ptr = nullptr)
+//         : data_ptr(data_ptr), grad_ptr(grad_ptr) {
+//             if (this->grad_ptr) requires_grad_ = true;
+//     }
+
+//     // Rest of the methods remain similar but with conditional compilation...
+// };
+
 template <typename T> struct Tensor {
     // Data members
     const T *data_ptr = nullptr;    // Pointer to global memory for data
     T *grad_ptr = nullptr;          // Pointer to global memory for gradient
     Maybe<T> data_val = Maybe<T>(); // Cached data in local memory
     Maybe<T> grad_val = Maybe<T>(); // Cached gradient in local memory
+    bool requires_grad_ = false;    // Whether gradient is required
 
     // Default constructor
     GSPLAT_HOST_DEVICE Tensor() {}
 
-    // Constructor with data pointer and gradient pointer
+    // Constructor with data pointer and (optional) gradient pointer
     GSPLAT_HOST_DEVICE Tensor(const T *data_ptr, T *grad_ptr = nullptr)
-        : data_ptr(data_ptr), grad_ptr(grad_ptr) {}
+        : data_ptr(data_ptr), grad_ptr(grad_ptr) {
+        if (this->grad_ptr)
+            requires_grad_ = true;
+    }
 
     // Shift pointer by an offset
-    GSPLAT_HOST_DEVICE void shift_ptr(size_t offset) {
+    GSPLAT_HOST_DEVICE inline void shift_ptr(size_t offset) {
         if (data_ptr) {
             data_ptr += offset;
         }
@@ -63,8 +109,11 @@ template <typename T> struct Tensor {
         }
     }
 
+    // Check if gradient is required
+    GSPLAT_HOST_DEVICE inline bool requires_grad() { return requires_grad_; }
+
     // Get data with caching
-    GSPLAT_HOST_DEVICE T get_data() {
+    GSPLAT_HOST_DEVICE inline T get_data() {
         if (!data_val.has_value() && data_ptr) {
             data_val.set(data_ptr[0]);
         }
@@ -72,7 +121,7 @@ template <typename T> struct Tensor {
     }
 
     // Get grad with caching
-    GSPLAT_HOST_DEVICE T get_grad() {
+    GSPLAT_HOST_DEVICE inline T get_grad() {
         if (!grad_val.has_value() && grad_ptr) {
             grad_val.set(grad_ptr[0]);
         }
@@ -80,15 +129,23 @@ template <typename T> struct Tensor {
     }
 
     // Set data
-    GSPLAT_HOST_DEVICE void set_data(T value) { data_val.set(value); }
+    GSPLAT_HOST_DEVICE inline void set_data(T value) { data_val.set(value); }
 
     // Set grad
-    GSPLAT_HOST_DEVICE void set_grad(T value) { grad_val.set(value); }
+    GSPLAT_HOST_DEVICE inline void set_grad(T value) { grad_val.set(value); }
+
+    // accumulate grad
+    GSPLAT_HOST_DEVICE inline void accum_grad(T value) {
+        if (!grad_val.has_value()) {
+            grad_val.set(T{});
+        }
+        grad_val._value += value;
+    }
 
 #ifdef __CUDACC__
 
     // Warp reduction for gradient
-    template <size_t WARP_SIZE> __device__ void export_grad() {
+    template <size_t WARP_SIZE> __device__ inline void export_grad() {
         if (!grad_ptr || !grad_val.has_value())
             return;
 
