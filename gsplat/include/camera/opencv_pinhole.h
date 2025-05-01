@@ -8,27 +8,47 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
-#include "core/types.h"   // for Maybe
+#include "core/tensor.h"
 #include "utils/solver.h" // for solver_newton
 
 namespace gsplat {
 
-template <class Derived> struct OpencvPinholeProjectionImpl {
-    Maybe<glm::fvec2> focal_length;
-    Maybe<glm::fvec2> principal_point;
-    Maybe<std::array<float, 6>> radial_coeffs;
-    Maybe<std::array<float, 2>> tangential_coeffs;
-    Maybe<std::array<float, 4>> thin_prism_coeffs;
+struct OpencvPinholeProjection {
+    Tensor<glm::fvec2> focal_length;
+    Tensor<glm::fvec2> principal_point;
+    Tensor<std::array<float, 6>> radial_coeffs;
+    Tensor<std::array<float, 2>> tangential_coeffs;
+    Tensor<std::array<float, 4>> thin_prism_coeffs;
 
     bool is_perfect = false;
     float min_radial_dist = 0.8f;
     float max_radial_dist = std::numeric_limits<float>::max();
 
+    GSPLAT_HOST_DEVICE
+    OpencvPinholeProjection() {}
+
+    GSPLAT_HOST_DEVICE
+    OpencvPinholeProjection(
+        const glm::fvec2 *focal_length, const glm::fvec2 *principal_point
+    )
+        : focal_length(focal_length), principal_point(principal_point) {
+        this->is_perfect = true;
+    }
+
+    GSPLAT_HOST_DEVICE OpencvPinholeProjection(
+        const glm::fvec2 *focal_length,
+        const glm::fvec2 *principal_point,
+        const std::array<float, 6> *radial_coeffs,
+        const std::array<float, 2> *tangential_coeffs,
+        const std::array<float, 4> *thin_prism_coeffs
+    )
+        : focal_length(focal_length), principal_point(principal_point),
+          radial_coeffs(radial_coeffs), tangential_coeffs(tangential_coeffs),
+          thin_prism_coeffs(thin_prism_coeffs) {}
+
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
-        auto const derived = static_cast<Derived *>(this);
-
         auto const xy = glm::fvec2(camera_point) / camera_point.z;
 
         auto uv = glm::fvec2{};
@@ -41,8 +61,8 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
             uv = uv_;
         }
 
-        auto const focal_length = derived->get_focal_length();
-        auto const principal_point = derived->get_principal_point();
+        auto const focal_length = this->focal_length.get_data();
+        auto const principal_point = this->principal_point.get_data();
         auto const image_point = focal_length * uv + principal_point;
         return {image_point, true};
     }
@@ -50,12 +70,10 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     GSPLAT_HOST_DEVICE auto image_point_to_camera_ray(
         const glm::fvec2 &image_point, bool normalize = true
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
-        auto const derived = static_cast<Derived *>(this);
-
         auto const origin = glm::fvec3{0.f, 0.f, 0.f};
 
-        auto const focal_length = derived->get_focal_length();
-        auto const principal_point = derived->get_principal_point();
+        auto const focal_length = this->focal_length.get_data();
+        auto const principal_point = this->principal_point.get_data();
         auto const uv = (image_point - principal_point) / focal_length;
 
         auto xy = glm::fvec2{};
@@ -77,7 +95,6 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point_jacobian(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fmat3x2, bool> {
-        auto const derived = static_cast<Derived *>(this);
         auto const rz = 1.0f / camera_point.z;
         auto const xy = glm::fvec2(camera_point) * rz;
 
@@ -91,7 +108,7 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
                 return {glm::fmat3x2(0.f), false};
             J_uv_xy = J_uv_xy_;
         }
-        auto const focal_length = derived->get_focal_length();
+        auto const focal_length = this->focal_length.get_data();
         auto const J_xy = glm::fmat2{
             focal_length[0] * J_uv_xy[0][0],
             focal_length[1] * J_uv_xy[0][1],
@@ -117,8 +134,7 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     //      icD_den = 1 + k4 * r2 + k5 * r4 + k6 * r6
     GSPLAT_HOST_DEVICE auto compute_icD(const float r2
     ) -> std::pair<float, float> {
-        auto const derived = static_cast<Derived *>(this);
-        auto const &[k1, k2, k3, k4, k5, k6] = derived->get_radial_coeffs();
+        auto const &[k1, k2, k3, k4, k5, k6] = this->radial_coeffs.get_data();
         auto const icD_num = eval_poly_horner<4>({1.f, k1, k2, k3}, r2);
         auto const icD_den = eval_poly_horner<4>({1.f, k4, k5, k6}, r2);
         return {icD_num, icD_den};
@@ -130,8 +146,7 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     GSPLAT_HOST_DEVICE auto gradient_icD(
         const float r2, const float icD_den, const float icD_num
     ) -> float {
-        auto const derived = static_cast<Derived *>(this);
-        auto const &[k1, k2, k3, k4, k5, k6] = derived->get_radial_coeffs();
+        auto const &[k1, k2, k3, k4, k5, k6] = this->radial_coeffs.get_data();
         auto const d_icD_num =
             eval_poly_horner<3>({k1, 2.f * k2, 3.f * k3}, r2);
         auto const d_icD_den =
@@ -144,9 +159,8 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     // Compute the shifting in the distortion: delta.
     GSPLAT_HOST_DEVICE auto
     compute_delta(const glm::fvec2 xy, const float r2) -> glm::fvec2 {
-        auto const derived = static_cast<Derived *>(this);
-        auto const &[p1, p2] = derived->get_tangential_coeffs();
-        auto const &[s1, s2, s3, s4] = derived->get_thin_prism_coeffs();
+        auto const &[p1, p2] = this->tangential_coeffs.get_data();
+        auto const &[s1, s2, s3, s4] = this->thin_prism_coeffs.get_data();
         auto const axy = 2.f * xy[0] * xy[1];
         auto const axx = 2.f * xy[0] * xy[0];
         auto const ayy = 2.f * xy[1] * xy[1];
@@ -158,9 +172,8 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
     // Compute the Jacobian of the shifting distortion: d(delta) / d(xy)
     GSPLAT_HOST_DEVICE auto
     jacobian_delta(const glm::fvec2 xy, const float r2) -> glm::fmat2 {
-        auto const derived = static_cast<Derived *>(this);
-        auto const &[p1, p2] = derived->get_tangential_coeffs();
-        auto const &[s1, s2, s3, s4] = derived->get_thin_prism_coeffs();
+        auto const &[p1, p2] = this->tangential_coeffs.get_data();
+        auto const &[s1, s2, s3, s4] = this->thin_prism_coeffs.get_data();
         auto const p1x = 2.f * p1 * xy[0], p2x = 2.f * p2 * xy[0];
         auto const p1y = 2.f * p1 * xy[1], p2y = 2.f * p2 * xy[1];
         auto const d_sx_dr2 = 2.f * (s1 + 2.f * s2 * r2);
@@ -236,88 +249,6 @@ template <class Derived> struct OpencvPinholeProjectionImpl {
         };
         return {J, icD, r2, true};
     }
-};
-
-struct OpencvPinholeProjection
-    : OpencvPinholeProjectionImpl<OpencvPinholeProjection> {
-
-    GSPLAT_HOST_DEVICE
-    OpencvPinholeProjection() {}
-
-    GSPLAT_HOST_DEVICE
-    OpencvPinholeProjection(
-        glm::fvec2 focal_length, glm::fvec2 principal_point
-    ) {
-        this->focal_length.set(focal_length);
-        this->principal_point.set(principal_point);
-        this->is_perfect = true;
-    }
-
-    GSPLAT_HOST_DEVICE OpencvPinholeProjection(
-        glm::fvec2 focal_length,
-        glm::fvec2 principal_point,
-        std::array<float, 6> radial_coeffs = {},
-        std::array<float, 2> tangential_coeffs = {},
-        std::array<float, 4> thin_prism_coeffs = {}
-    ) {
-        this->focal_length.set(focal_length);
-        this->principal_point.set(principal_point);
-        this->radial_coeffs.set(radial_coeffs);
-        this->tangential_coeffs.set(tangential_coeffs);
-        this->thin_prism_coeffs.set(thin_prism_coeffs);
-    }
-
-    GET_FIELD(focal_length)
-    GET_FIELD(principal_point)
-    GET_FIELD(radial_coeffs)
-    GET_FIELD(tangential_coeffs)
-    GET_FIELD(thin_prism_coeffs)
-};
-
-struct BatchedOpencvPinholeProjection
-    : OpencvPinholeProjectionImpl<BatchedOpencvPinholeProjection> {
-    uint32_t n{0}, idx{0};
-    GSPLAT_HOST_DEVICE void set_index(uint32_t i) { idx = i; }
-    GSPLAT_HOST_DEVICE int get_n() const { return n; }
-
-    // pointer to device memory
-    const glm::fvec2 *focal_length_ptr;
-    const glm::fvec2 *principal_point_ptr;
-    const std::array<float, 6> *radial_coeffs_ptr;
-    const std::array<float, 2> *tangential_coeffs_ptr;
-    const std::array<float, 4> *thin_prism_coeffs_ptr;
-
-    GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection() {}
-
-    GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
-        uint32_t n,
-        const glm::fvec2 *focal_length_ptr,
-        const glm::fvec2 *principal_point_ptr
-    )
-        : n(n), focal_length_ptr(focal_length_ptr),
-          principal_point_ptr(principal_point_ptr) {
-        this->is_perfect = true;
-    }
-
-    GSPLAT_HOST_DEVICE BatchedOpencvPinholeProjection(
-        uint32_t n,
-        const glm::fvec2 *focal_length_ptr,
-        const glm::fvec2 *principal_point_ptr,
-        const std::array<float, 6> *radial_coeffs_ptr,
-        const std::array<float, 2> *tangential_coeffs_ptr,
-        const std::array<float, 4> *thin_prism_coeffs_ptr
-    )
-        : n(n), focal_length_ptr(focal_length_ptr),
-          principal_point_ptr(principal_point_ptr),
-          radial_coeffs_ptr(radial_coeffs_ptr),
-          tangential_coeffs_ptr(tangential_coeffs_ptr),
-          thin_prism_coeffs_ptr(thin_prism_coeffs_ptr) {}
-
-    GET_FIELD_FROM_PTR(focal_length)
-    GET_FIELD_FROM_PTR(principal_point)
-    GET_FIELD_FROM_PTR(radial_coeffs)
-    GET_FIELD_FROM_PTR(tangential_coeffs)
-    GET_FIELD_FROM_PTR(thin_prism_coeffs)
 };
 
 } // namespace gsplat

@@ -1,16 +1,19 @@
 #pragma once
 
 #include <cstdint>
+#ifdef __CUDACC__
 #include <cuda_runtime.h>
+#endif
 #include <type_traits>
 
-#include "core/types.h" // for Maybe
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/types.h"  // for Maybe
 
 namespace gsplat {
 
 // Helper function to get number of float components
 template <typename U>
-__device__ static constexpr size_t get_float_components() {
+GSPLAT_HOST_DEVICE static constexpr size_t get_float_components() {
     if constexpr (std::is_same_v<U, glm::fmat3>) {
         return 9; // 3x3 matrix
     } else if constexpr (std::is_same_v<U, glm::fvec3>) {
@@ -23,6 +26,8 @@ __device__ static constexpr size_t get_float_components() {
     }
 }
 
+#ifdef __CUDACC__
+
 // Helper function for warp reduction
 template <int OFFSET> __device__ static float warp_reduce(float val) {
     if constexpr (OFFSET > 0) {
@@ -32,22 +37,24 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
     return val;
 }
 
+#endif
+
 template <typename T> struct Tensor {
     // Data members
-    T *data_ptr = nullptr;          // Pointer to global memory for data
+    const T *data_ptr = nullptr;    // Pointer to global memory for data
     T *grad_ptr = nullptr;          // Pointer to global memory for gradient
     Maybe<T> data_val = Maybe<T>(); // Cached data in local memory
     Maybe<T> grad_val = Maybe<T>(); // Cached gradient in local memory
 
     // Default constructor
-    __host__ __device__ Tensor() {}
+    GSPLAT_HOST_DEVICE Tensor() {}
 
     // Constructor with data pointer and gradient pointer
-    __host__ __device__ Tensor(T *data_ptr, T *grad_ptr)
+    GSPLAT_HOST_DEVICE Tensor(const T *data_ptr, T *grad_ptr = nullptr)
         : data_ptr(data_ptr), grad_ptr(grad_ptr) {}
 
     // Shift pointer by an offset
-    __host__ __device__ void shift_ptr(size_t offset) {
+    GSPLAT_HOST_DEVICE void shift_ptr(size_t offset) {
         if (data_ptr) {
             data_ptr += offset;
         }
@@ -57,7 +64,7 @@ template <typename T> struct Tensor {
     }
 
     // Get data with caching
-    __host__ __device__ T get_data() {
+    GSPLAT_HOST_DEVICE T get_data() {
         if (!data_val.has_value() && data_ptr) {
             data_val.set(data_ptr[0]);
         }
@@ -65,7 +72,7 @@ template <typename T> struct Tensor {
     }
 
     // Get grad with caching
-    __host__ __device__ T get_grad() {
+    GSPLAT_HOST_DEVICE T get_grad() {
         if (!grad_val.has_value() && grad_ptr) {
             grad_val.set(grad_ptr[0]);
         }
@@ -73,10 +80,12 @@ template <typename T> struct Tensor {
     }
 
     // Set data
-    __host__ __device__ void set_data(T value) { data_val.set(value); }
+    GSPLAT_HOST_DEVICE void set_data(T value) { data_val.set(value); }
 
     // Set grad
-    __host__ __device__ void set_grad(T value) { grad_val.set(value); }
+    GSPLAT_HOST_DEVICE void set_grad(T value) { grad_val.set(value); }
+
+#ifdef __CUDACC__
 
     // Warp reduction for gradient
     template <size_t WARP_SIZE> __device__ void export_grad() {
@@ -99,6 +108,8 @@ template <typename T> struct Tensor {
             }
         }
     }
+
+#endif
 };
 
 } // namespace gsplat

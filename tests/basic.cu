@@ -19,8 +19,7 @@ int main() {
     std::array<uint32_t, 2> resolution = {800, 600};
 
     auto const pose = SE3Mat{world_to_camera_t, world_to_camera_R};
-    auto projector =
-        BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
+    auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
     auto camera = CameraModel(resolution, projector, pose);
 
     // create input gaussian

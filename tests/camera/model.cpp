@@ -79,8 +79,7 @@ int test_pinhole_camera() {
         std::array<uint32_t, 2> resolution = {800, 600};
 
         auto projector =
-            BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
-        projector.set_index(0);
+            OpencvPinholeProjection(&focal_length, &principal_point);
 
         auto const pose_start = SE3Mat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
@@ -112,15 +111,13 @@ int test_pinhole_camera() {
         std::array<float, 4> thin_prism_coeffs = {0.1f, -0.1f, -0.05f, -0.2f};
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector = BatchedOpencvPinholeProjection(
-            1,
+        auto projector = OpencvPinholeProjection(
             &focal_length,
             &principal_point,
             &radial_coeffs,
             &tangential_coeffs,
             &thin_prism_coeffs
         );
-        projector.set_index(0);
 
         auto const pose_start = SE3Mat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
@@ -156,8 +153,7 @@ int test_fisheye_camera() {
         std::array<uint32_t, 2> resolution = {800, 600};
 
         auto projector =
-            BatchedOpencvFisheyeProjection(1, &focal_length, &principal_point);
-        projector.set_index(0);
+            OpencvFisheyeProjection(&focal_length, &principal_point);
 
         auto const pose_start = SE3Mat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
@@ -185,10 +181,8 @@ int test_fisheye_camera() {
         std::array<float, 4> k = {0.1f, 0.01f, -0.01f, 0.01f};
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector = BatchedOpencvFisheyeProjection(
-            1, &focal_length, &principal_point, &k
-        );
-        projector.set_index(0);
+        auto projector =
+            OpencvFisheyeProjection(&focal_length, &principal_point, &k);
 
         auto const pose_start = SE3Mat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
@@ -223,9 +217,7 @@ int test_orthogonal_camera() {
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector =
-            BatchedOrthogonalProjection(1, &focal_length, &principal_point);
-        projector.set_index(0);
+        auto projector = OrthogonalProjection(&focal_length, &principal_point);
 
         auto const pose_start = SE3Mat{glm::fvec3(0.f), glm::fmat3(1.f)};
         auto camera_model = CameraModel(resolution, projector, pose_start);
@@ -258,9 +250,7 @@ int test_camera_transformations() {
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
     std::array<uint32_t, 2> resolution = {800, 600};
 
-    auto projector =
-        BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
-    projector.set_index(0);
+    auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
 
     // Test case 1: Camera rotation and translation
     {
@@ -298,9 +288,7 @@ int test_rolling_shutter() {
     auto const principal_point = glm::fvec2(400.0f, 300.0f);
     std::array<uint32_t, 2> resolution = {800, 600};
 
-    auto projector =
-        BatchedOpencvPinholeProjection(1, &focal_length, &principal_point);
-    projector.set_index(0);
+    auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
 
     // Test case 1: Top-to-bottom rolling shutter
     {
