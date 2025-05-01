@@ -141,10 +141,10 @@ void test_cholesky_Linv() {
 //     glm::fmat3 v_L = gsplat::cholesky_Linv_vjp(L, v_Linv);
 
 //     // reference
-//     torch::Tensor L_torch = glm_to_tensor(L).requires_grad_(true);
-//     torch::Tensor Linv_torch = torch::linalg_inv(L_torch);
-//     torch::Tensor v_Linv_torch = glm_to_tensor(v_Linv);
-//     std::vector<torch::Tensor> grads = torch::autograd::grad(
+//     torch::MaybeCached L_torch = glm_to_tensor(L).requires_grad_(true);
+//     torch::MaybeCached Linv_torch = torch::linalg_inv(L_torch);
+//     torch::MaybeCached v_Linv_torch = glm_to_tensor(v_Linv);
+//     std::vector<torch::MaybeCached> grads = torch::autograd::grad(
 //         {Linv_torch},
 //         {L_torch},
 //         {v_Linv_torch},
@@ -180,10 +180,10 @@ void test_cholesky_Linv() {
 //     glm::fmat3 v_A = gsplat::cholesky_vjp(L, v_L);
 
 //     // reference
-//     torch::Tensor A_torch = glm_to_tensor(A).requires_grad_(true);
-//     torch::Tensor L_torch = torch::linalg_cholesky(A_torch);
-//     torch::Tensor v_L_torch = glm_to_tensor(v_L);
-//     std::vector<torch::Tensor> grads = torch::autograd::grad(
+//     torch::MaybeCached A_torch = glm_to_tensor(A).requires_grad_(true);
+//     torch::MaybeCached L_torch = torch::linalg_cholesky(A_torch);
+//     torch::MaybeCached v_L_torch = glm_to_tensor(v_L);
+//     std::vector<torch::MaybeCached> grads = torch::autograd::grad(
 //         {L_torch},
 //         {A_torch},
 //         {v_L_torch},

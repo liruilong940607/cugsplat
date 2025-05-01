@@ -73,9 +73,9 @@ _poly3_minimal_postivie_root(float a, float b, float c) {
 }
 
 struct OpencvFisheyeProjection {
-    Tensor<glm::fvec2> focal_length;
-    Tensor<glm::fvec2> principal_point;
-    Tensor<std::array<float, 4>> radial_coeffs;
+    MaybeCached<glm::fvec2> focal_length;
+    MaybeCached<glm::fvec2> principal_point;
+    MaybeCached<std::array<float, 4>> radial_coeffs;
 
     bool is_perfect = false;
     float min_theta = 0.f;
@@ -117,8 +117,8 @@ struct OpencvFisheyeProjection {
         auto const scale_factor = theta_d / r;
         auto const uv = r < min_2d_norm ? xy : scale_factor * xy;
 
-        auto const focal_length = this->focal_length.get_data();
-        auto const principal_point = this->principal_point.get_data();
+        auto const focal_length = this->focal_length.get();
+        auto const principal_point = this->principal_point.get();
         auto const image_point = focal_length * uv + principal_point;
         return {image_point, true};
     }
@@ -128,8 +128,8 @@ struct OpencvFisheyeProjection {
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
         auto const origin = glm::fvec3{0.f, 0.f, 0.f};
 
-        auto const focal_length = this->focal_length.get_data();
-        auto const principal_point = this->principal_point.get_data();
+        auto const focal_length = this->focal_length.get();
+        auto const principal_point = this->principal_point.get();
         auto const uv = (image_point - principal_point) / focal_length;
 
         if (fabs(uv[0]) < min_2d_norm && fabs(uv[1]) < min_2d_norm) {
@@ -175,7 +175,7 @@ struct OpencvFisheyeProjection {
     // Compute the maximum theta such that [0, max_theta] is monotonicly
     // increasing.
     GSPLAT_HOST_DEVICE auto set_max_theta() -> float {
-        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get_data();
+        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get();
         const float INF = std::numeric_limits<float>::max();
 
         if (k4 == 0.f) {
@@ -211,7 +211,7 @@ struct OpencvFisheyeProjection {
     // Compute the distortion: theta_d from theta
     GSPLAT_HOST_DEVICE auto
     compute_distortion(const float theta, const float theta2) -> float {
-        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get_data();
+        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get();
         return theta * eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
     }
 
@@ -240,7 +240,7 @@ struct OpencvFisheyeProjection {
 
     // Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
     GSPLAT_HOST_DEVICE auto gradiant_distortion(const float &theta2) -> float {
-        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get_data();
+        auto const &[k1, k2, k3, k4] = this->radial_coeffs.get();
         return eval_poly_horner<5>(
             {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, theta2
         );

@@ -6,31 +6,32 @@
 
 using namespace gsplat;
 
-// Test kernel for Tensor with glm::fvec3
-__global__ void test_tensor_vec3(Tensor<glm::fvec3> tensor) {
+// Test kernel for MaybeCached with glm::fvec3
+__global__ void test_tensor_vec3(MaybeCached<glm::fvec3, true> tensor) {
     // Each thread sets its own gradient
     glm::fvec3 grad(1.0f, 2.0f, 3.0f);
-    tensor.set_grad(grad);
+    tensor.set(grad);
 
     // Export gradient with warp reduction
     tensor.export_grad<32>();
 }
 
-// Test kernel for Tensor with glm::fmat3
-__global__ void test_tensor_mat3(Tensor<glm::fmat3> tensor) {
+// Test kernel for MaybeCached with glm::fmat3
+__global__ void test_tensor_mat3(MaybeCached<glm::fmat3, true> tensor) {
     // Each thread sets its own gradient
     glm::fmat3 grad(1.0f);
-    tensor.set_grad(grad);
+    tensor.set(grad);
 
     // Export gradient with warp reduction
     tensor.export_grad<32>();
 }
 
-// Test kernel for Tensor with std::array<float, 6>
-__global__ void test_tensor_float6(Tensor<std::array<float, 6>> tensor) {
+// Test kernel for MaybeCached with std::array<float, 6>
+__global__ void
+test_tensor_float6(MaybeCached<std::array<float, 6>, true> tensor) {
     // Each thread sets its own gradient
     std::array<float, 6> grad = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f};
-    tensor.set_grad(grad);
+    tensor.set(grad);
 
     // Export gradient with warp reduction
     tensor.export_grad<32>();
@@ -47,7 +48,7 @@ int main() {
         cudaMalloc(&d_grad, sizeof(glm::fvec3));
         cudaMemset(d_grad, 0, sizeof(glm::fvec3));
 
-        Tensor<glm::fvec3> tensor(nullptr, d_grad);
+        MaybeCached<glm::fvec3, true> tensor(d_grad);
         test_tensor_vec3<<<1, total_threads>>>(tensor);
         cudaDeviceSynchronize();
 
@@ -74,7 +75,7 @@ int main() {
         cudaMalloc(&d_grad, sizeof(glm::fmat3));
         cudaMemset(d_grad, 0, sizeof(glm::fmat3));
 
-        Tensor<glm::fmat3> tensor(nullptr, d_grad);
+        MaybeCached<glm::fmat3, true> tensor(d_grad);
         test_tensor_mat3<<<1, total_threads>>>(tensor);
         cudaDeviceSynchronize();
 
@@ -105,7 +106,7 @@ int main() {
         cudaMalloc(&d_grad, sizeof(std::array<float, 6>));
         cudaMemset(d_grad, 0, sizeof(std::array<float, 6>));
 
-        Tensor<std::array<float, 6>> tensor(nullptr, d_grad);
+        MaybeCached<std::array<float, 6>, true> tensor(d_grad);
         test_tensor_float6<<<1, total_threads>>>(tensor);
         cudaDeviceSynchronize();
 

@@ -14,8 +14,8 @@
 namespace gsplat {
 
 struct OrthogonalProjection {
-    Tensor<glm::fvec2> focal_length;
-    Tensor<glm::fvec2> principal_point;
+    MaybeCached<glm::fvec2> focal_length;
+    MaybeCached<glm::fvec2> principal_point;
 
     GSPLAT_HOST_DEVICE
     OrthogonalProjection() {}
@@ -30,8 +30,8 @@ struct OrthogonalProjection {
     camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
         auto const xy = glm::fvec2(camera_point);
-        auto const focal_length = this->focal_length.get_data();
-        auto const principal_point = this->principal_point.get_data();
+        auto const focal_length = this->focal_length.get();
+        auto const principal_point = this->principal_point.get();
         auto const image_point = focal_length * xy + principal_point;
         return {image_point, true};
     }
@@ -39,8 +39,8 @@ struct OrthogonalProjection {
     GSPLAT_HOST_DEVICE auto image_point_to_camera_ray(
         const glm::fvec2 &image_point, bool normalize = true
     ) -> std::tuple<glm::fvec3, glm::fvec3, bool> {
-        auto const focal_length = this->focal_length.get_data();
-        auto const principal_point = this->principal_point.get_data();
+        auto const focal_length = this->focal_length.get();
+        auto const principal_point = this->principal_point.get();
         auto const xy = (image_point - principal_point) / focal_length;
         // for orthogonal projection, the camera ray origin is
         // (u, v, 0) and the direction is (0, 0, 1)
@@ -52,7 +52,7 @@ struct OrthogonalProjection {
     GSPLAT_HOST_DEVICE auto
     camera_point_to_image_point_jacobian(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fmat3x2, bool> {
-        auto const focal_length = this->focal_length.get_data();
+        auto const focal_length = this->focal_length.get();
         auto const J =
             glm::fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};
         return {J, true};

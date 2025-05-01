@@ -56,7 +56,7 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
 #endif
 
 // template <typename T, bool CacheOnly = false>
-// struct Tensor {
+// struct MaybeCached {
 //     // Data members
 //     std::conditional_t<CacheOnly, std::nullptr_t, const T*> data_ptr =
 //     nullptr; std::conditional_t<CacheOnly, std::nullptr_t, T*> grad_ptr =
@@ -64,16 +64,16 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
 //     bool requires_grad_ = false;
 
 //     // Default constructor
-//     GSPLAT_HOST_DEVICE Tensor() {}
+//     GSPLAT_HOST_DEVICE MaybeCached() {}
 
 //     // Constructor for cached-only mode
 //     template<bool C = CacheOnly, std::enable_if_t<C, int> = 0>
-//     GSPLAT_HOST_DEVICE Tensor(const T& data, const T& grad = T{})
+//     GSPLAT_HOST_DEVICE MaybeCached(const T& data, const T& grad = T{})
 //         : data_val(data), grad_val(grad) {}
 
 //     // Constructor for pointer mode
 //     template<bool C = CacheOnly, std::enable_if_t<!C, int> = 0>
-//     GSPLAT_HOST_DEVICE Tensor(const T* data_ptr, T* grad_ptr = nullptr)
+//     GSPLAT_HOST_DEVICE MaybeCached(const T* data_ptr, T* grad_ptr = nullptr)
 //         : data_ptr(data_ptr), grad_ptr(grad_ptr) {
 //             if (this->grad_ptr) requires_grad_ = true;
 //     }
@@ -81,77 +81,51 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
 //     // Rest of the methods remain similar but with conditional compilation...
 // };
 
-template <typename T> struct Tensor {
-    // Data members
-    const T *data_ptr = nullptr;    // Pointer to global memory for data
-    T *grad_ptr = nullptr;          // Pointer to global memory for gradient
-    Maybe<T> data_val = Maybe<T>(); // Cached data in local memory
-    Maybe<T> grad_val = Maybe<T>(); // Cached gradient in local memory
-    bool requires_grad_ = false;    // Whether gradient is required
+template <typename T, bool MUTABLE = false> struct MaybeCached {
+    using ptr_type = std::conditional_t<MUTABLE, T *, const T *>;
 
-    // Default constructor
-    GSPLAT_HOST_DEVICE Tensor() {}
+    ptr_type _data_ptr = nullptr;
+    Maybe<T> _data = Maybe<T>();
 
-    // Constructor with data pointer and (optional) gradient pointer
-    GSPLAT_HOST_DEVICE Tensor(const T *data_ptr, T *grad_ptr = nullptr)
-        : data_ptr(data_ptr), grad_ptr(grad_ptr) {
-        if (this->grad_ptr)
-            requires_grad_ = true;
+    GSPLAT_HOST_DEVICE MaybeCached() {}
+
+    GSPLAT_HOST_DEVICE MaybeCached(ptr_type data_ptr) : _data_ptr(data_ptr) {}
+
+    GSPLAT_HOST_DEVICE MaybeCached(T &data) { _data.set(data); }
+
+    GSPLAT_HOST_DEVICE inline T get() {
+        if (!_data.has_value() && _data_ptr) {
+            _data.set(_data_ptr[0]);
+        }
+        return _data.get();
     }
 
     // Shift pointer by an offset
     GSPLAT_HOST_DEVICE inline void shift_ptr(size_t offset) {
-        if (data_ptr) {
-            data_ptr += offset;
+        if (_data_ptr) {
+            _data_ptr += offset;
         }
-        if (grad_ptr) {
-            grad_ptr += offset;
-        }
-    }
-
-    // Check if gradient is required
-    GSPLAT_HOST_DEVICE inline bool requires_grad() { return requires_grad_; }
-
-    // Get data with caching
-    GSPLAT_HOST_DEVICE inline T get_data() {
-        if (!data_val.has_value() && data_ptr) {
-            data_val.set(data_ptr[0]);
-        }
-        return data_val.get();
-    }
-
-    // Get grad with caching
-    GSPLAT_HOST_DEVICE inline T get_grad() {
-        if (!grad_val.has_value() && grad_ptr) {
-            grad_val.set(grad_ptr[0]);
-        }
-        return grad_val.get();
     }
 
     // Set data
-    GSPLAT_HOST_DEVICE inline void set_data(T value) { data_val.set(value); }
+    GSPLAT_HOST_DEVICE inline void set(T value) { _data.set(value); }
 
-    // Set grad
-    GSPLAT_HOST_DEVICE inline void set_grad(T value) { grad_val.set(value); }
-
-    // accumulate grad
-    GSPLAT_HOST_DEVICE inline void accum_grad(T value) {
-        if (!grad_val.has_value()) {
-            grad_val.set(T{});
+    // Accumulate data
+    GSPLAT_HOST_DEVICE inline void accum(T value) {
+        if (!_data.has_value()) {
+            _data.set(T{});
         }
-        grad_val._value += value;
+        _data._value += value;
     }
 
 #ifdef __CUDACC__
-
-    // Warp reduction for gradient
     template <size_t WARP_SIZE> __device__ inline void export_grad() {
-        if (!grad_ptr || !grad_val.has_value())
+        if (!_data_ptr || !_data.has_value())
             return;
 
         // Convert to basic float type
-        float *val_components = reinterpret_cast<float *>(&grad_val._value);
-        float *ptr_components = reinterpret_cast<float *>(grad_ptr);
+        float *val_components = reinterpret_cast<float *>(&_data._value);
+        float *ptr_components = reinterpret_cast<float *>(_data_ptr);
 
         constexpr size_t num_components = get_float_components<T>();
 #pragma unroll
@@ -165,8 +139,110 @@ template <typename T> struct Tensor {
             }
         }
     }
-
 #endif
 };
+
+// template <typename T, bool RequiresGrad = false> struct MaybeCached {
+//     // Data members
+
+//     // Pointer to global memory
+//     const T *data_ptr = nullptr;
+//     // Cached data in local memory
+//     Maybe<T> data_val = Maybe<T>();
+//     if constexpr (RequiresGrad) {
+//         // Pointer to global memory for gradient
+//         T* grad_ptr = nullptr;
+//         // Cached gradient in local memory
+//         Maybe<T> grad_val = Maybe<T>();
+//     }
+
+//     // Default constructor
+//     GSPLAT_HOST_DEVICE MaybeCached() {}
+
+//     // Constructor with data pointer and (optional) gradient pointer
+//     if constexpr (RequiresGrad) {
+//         GSPLAT_HOST_DEVICE MaybeCached(const T *data_ptr, T *grad_ptr =
+//         nullptr)
+//             : data_ptr(data_ptr), grad_ptr(grad_ptr) {}
+//     } else {
+//         GSPLAT_HOST_DEVICE MaybeCached(const T *data_ptr)
+//             : data_ptr(data_ptr) {}
+//     }
+
+//     // Shift pointer by an offset
+//     GSPLAT_HOST_DEVICE inline void shift_ptr(size_t offset) {
+//         if (data_ptr) {
+//             data_ptr += offset;
+//         }
+//         if constexpr (RequiresGrad) {
+//             if (grad_ptr) {
+//                 grad_ptr += offset;
+//             }
+//         }
+//     }
+
+//     // Get data with caching
+//     GSPLAT_HOST_DEVICE inline T get_data() {
+//         if (!data_val.has_value() && data_ptr) {
+//             data_val.set(data_ptr[0]);
+//         }
+//         return data_val.get();
+//     }
+
+//     // Get grad with caching
+//     if constexpr (RequiresGrad) {
+//         GSPLAT_HOST_DEVICE inline T get_grad() {
+//             if (!grad_val.has_value() && grad_ptr) {
+//                 grad_val.set(grad_ptr[0]);
+//             }
+//             return grad_val.get();
+//         }
+//     }
+
+//     // Set data
+//     GSPLAT_HOST_DEVICE inline void set_data(T value) { data_val.set(value); }
+
+//     if constexpr (RequiresGrad) {
+//         // Set grad
+//         GSPLAT_HOST_DEVICE inline void set_grad(T value) {
+//         grad_val.set(value); }
+
+//         // accumulate grad
+//         GSPLAT_HOST_DEVICE inline void accum_grad(T value) {
+//             if (!grad_val.has_value()) {
+//                 grad_val.set(T{});
+//             }
+//             grad_val._value += value;
+//         }
+
+// #ifdef __CUDACC__
+
+//     // Warp reduction for gradient
+//     template <size_t WARP_SIZE> __device__ inline void export_grad() {
+//         if (!grad_ptr || !grad_val.has_value())
+//             return;
+
+//         // Convert to basic float type
+//         float *val_components = reinterpret_cast<float *>(&grad_val._value);
+//         float *ptr_components = reinterpret_cast<float *>(grad_ptr);
+
+//         constexpr size_t num_components = get_float_components<T>();
+// #pragma unroll
+//         for (int i = 0; i < num_components; ++i) {
+//             // Warp reduction with compile-time constant iterations
+//             float val = warp_reduce<WARP_SIZE / 2>(val_components[i]);
+
+//             // Atomic addition: only the first lane in the warp
+//             if ((threadIdx.x & (WARP_SIZE - 1)) == 0) {
+//                 atomicAdd(ptr_components + i, val);
+//             }
+//         }
+//     }
+
+// #endif
+
+//     }
+
+// };
 
 } // namespace gsplat
