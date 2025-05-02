@@ -8,6 +8,7 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
+#include "utils/se3.h"
 
 namespace gsplat::shutter {
 
@@ -42,8 +43,9 @@ GSPLAT_HOST_DEVICE inline auto relative_frame_time(
     return t;
 }
 
-template <size_t N_ITER = 10, typename RotationType>
+template <size_t N_ITER = 10, typename RotationType, typename Func>
 GSPLAT_HOST_DEVICE inline auto point_world_to_image(
+    Func point_camera_to_image,
     const glm::fvec3 &world_point,
     const RotationType &pose_r_start,
     const glm::fvec3 &pose_t_start,
@@ -56,8 +58,28 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
             std::is_same_v<RotationType, glm::fquat>,
         "RotationType must be either glm::fmat3 or glm::fquat"
     );
+    // Always perform transformation using start pose
+    auto const camera_point =
+        se3::transform_point(pose_r_start, pose_t_start, world_point);
+    auto const image_point = point_camera_to_image(camera_point);
+    if (shutter_type == Type::GLOBAL) {
+        return image_point;
+    }
 
-    auto const t = relative_frame_time(image_point, resolution, shutter_type);
+    // Iterate to converge to the correct image point
+    auto image_point_rs = image_point;
+#pragma unroll
+    for (auto j = 0; j < N_ITER; ++j) {
+        auto const t =
+            relative_frame_time(image_point, resolution, shutter_type);
+        auto const &[pose_r_rs, pose_t_rs] = se3::interpolate(
+            t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
+        );
+        auto const camera_point_rs =
+            se3::transform_point(pose_r_rs, pose_t_rs, world_point);
+        image_point_rs = point_camera_to_image(camera_point_rs);
+    }
+    return image_point_rs;
 }
 
 } // namespace gsplat::shutter
