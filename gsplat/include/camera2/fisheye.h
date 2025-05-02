@@ -41,7 +41,7 @@ GSPLAT_HOST_DEVICE auto undistortion(
     float const &min_theta = 0.f,
     float const &max_theta = std::numeric_limits<float>::max()
 ) -> std::pair<float, bool> {
-
+    // define the residual and Jacobian of the equation
     auto const func = [&theta_d, &radial_coeffs, &min_theta, &max_theta](
                           const float &theta
                       ) -> std::pair<float, float> {
@@ -52,7 +52,7 @@ GSPLAT_HOST_DEVICE auto undistortion(
         auto const residual = distortion(theta, radial_coeffs) - theta_d;
         return {residual, J};
     };
-
+    // solve the equation
     return solver_newton<1, N_ITER>(func, theta_d, 1e-6f);
 }
 

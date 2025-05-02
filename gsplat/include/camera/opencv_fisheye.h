@@ -13,63 +13,79 @@
 
 namespace gsplat {
 
-// solve 1 + ax + bx^2 + cx^3 = 0
-inline GSPLAT_HOST_DEVICE float
-_poly3_minimal_postivie_root(float a, float b, float c) {
+// Helper function to solve linear equation 1 + ax = 0
+inline GSPLAT_HOST_DEVICE float _solve_linear(float a) {
+    const float INF = std::numeric_limits<float>::max();
+    return (a >= 0.0f) ? INF : -1.0f / a;
+}
+
+// Helper function to solve quadratic equation 1 + ax + bx^2 = 0
+inline GSPLAT_HOST_DEVICE float _solve_quadratic(float a, float b) {
+    const float INF = std::numeric_limits<float>::max();
+
+    if (b == 0.0f) {
+        return _solve_linear(a);
+    }
+
+    float delta = a * a - 4.0f * b;
+    if (delta < 0.0f)
+        return INF;
+
+    delta = std::sqrt(delta) - a;
+    return (delta > 0.0f) ? 2.0f / delta : INF;
+}
+
+// Helper function to solve cubic equation 1 + ax + bx^2 + cx^3 = 0
+// Returns the minimal positive root or INF if no positive root exists
+inline GSPLAT_HOST_DEVICE float _solve_cubic(float a, float b, float c) {
     const float INF = std::numeric_limits<float>::max();
     constexpr float PI = 3.14159265358979323846f;
 
+    float boc = b / c;
+    float boc2 = boc * boc;
+
+    float t1 = (9.0f * a * boc - 2.0f * b * boc2 - 27.0f) / c;
+    float t2 = 3.0f * a / c - boc2;
+    float delta = t1 * t1 + 4.0f * t2 * t2 * t2;
+
+    if (delta >= 0.0f) {
+        // One real root case
+        float d2 = std::sqrt(delta);
+        float cube_root = std::cbrt((d2 + t1) / 2.0f);
+        if (cube_root == 0.0f)
+            return INF;
+
+        float soln = (cube_root - (t2 / cube_root) - boc) / 3.0f;
+        return (soln > 0.0f) ? soln : INF;
+    } else {
+        // Three real roots case (delta < 0)
+        float theta = std::atan2(std::sqrt(-delta), t1) / 3.0f;
+        constexpr float two_third_pi = 2.0f * PI / 3.0f;
+
+        float t3 = 2.0f * std::sqrt(-t2);
+        float min_soln = INF;
+
+        for (int i : {-1, 0, 1}) {
+            float angle = theta + i * two_third_pi;
+            float s = (t3 * std::cos(angle) - boc) / 3.0f;
+            if (s > 0.0f) {
+                min_soln = std::min(min_soln, s);
+            }
+        }
+        return min_soln;
+    }
+}
+
+// Solve 1 + ax + bx^2 + cx^3 = 0 and return the minimal positive root
+inline GSPLAT_HOST_DEVICE float
+_poly3_minimal_postivie_root(float a, float b, float c) {
     if (c == 0.0f) {
         if (b == 0.0f) {
-            if (a >= 0.0f) {
-                return INF;
-            } else {
-                return -1.0f / a;
-            }
+            return _solve_linear(a);
         }
-        float delta = a * a - 4.0f * b;
-        if (delta >= 0.0f) {
-            delta = std::sqrt(delta) - a;
-            if (delta > 0.0f) {
-                return 2.0f / delta;
-            }
-        }
-    } else {
-        float boc = b / c;
-        float boc2 = boc * boc;
-
-        float t1 = (9.0f * a * boc - 2.0f * b * boc2 - 27.0f) / c;
-        float t2 = 3.0f * a / c - boc2;
-        float delta = t1 * t1 + 4.0f * t2 * t2 * t2;
-
-        if (delta >= 0.0f) {
-            float d2 = std::sqrt(delta);
-            float cube_root = std::cbrt((d2 + t1) / 2.0f);
-            if (cube_root != 0.0f) {
-                float soln = (cube_root - (t2 / cube_root) - boc) / 3.0f;
-                if (soln > 0.0f) {
-                    return soln;
-                }
-            }
-        } else {
-            // Complex root case (delta < 0): 3 real roots
-            float theta = std::atan2(std::sqrt(-delta), t1) / 3.0f;
-            constexpr float two_third_pi = 2.0f * PI / 3.0f;
-
-            float t3 = 2.0f * std::sqrt(-t2);
-            float soln = INF;
-            for (int i : {-1, 0, 1}) {
-                float angle = theta + i * two_third_pi;
-                float s = (t3 * std::cos(angle) - boc) / 3.0f;
-                if (s > 0.0f) {
-                    soln = std::min(soln, s);
-                }
-            }
-            return soln;
-        }
+        return _solve_quadratic(a, b);
     }
-
-    return INF;
+    return _solve_cubic(a, b, c);
 }
 
 struct OpencvFisheyeProjection {
