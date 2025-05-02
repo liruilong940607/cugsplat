@@ -5,7 +5,8 @@
 
 #include "core/macros.h"
 
-namespace gsplat {
+namespace gsplat::math {
+
 inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
 #ifdef __CUDACC__
     return ::rsqrtf(x); // use CUDA's fast rsqrtf()
@@ -46,10 +47,10 @@ eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
     return y;
 }
 
-template <size_t N>
+template <size_t SKIP_FIRST_N = 0, size_t N>
 inline GSPLAT_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
 #pragma unroll
-    for (size_t i = 0; i < N; ++i) {
+    for (size_t i = SKIP_FIRST_N; i < N; ++i) {
         if (fabsf(arr[i]) >= std::numeric_limits<float>::epsilon())
             return false;
     }
@@ -64,9 +65,8 @@ safe_normalize(const glm::vec<L, float, Q> &x) {
 }
 
 template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
-    const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out
-) {
+inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
+safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out) {
     const float l2 = glm::dot(x, x);
     if (l2 > 0.0f) {
         const float il = rsqrtf(l2);
@@ -76,4 +76,4 @@ inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
     return v_out;
 }
 
-} // namespace gsplat
+} // namespace gsplat::math
