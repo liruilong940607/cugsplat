@@ -56,6 +56,7 @@ template <typename RotationType> struct PointWorldToImageResult {
 template <size_t N_ITER = 10, typename RotationType, typename Func>
 GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     Func project_fn, // Function to project a camera point to an image point
+    const std::array<uint32_t, 2> &resolution,
     const glm::fvec3 &world_point,
     const RotationType &pose_r_start,
     const glm::fvec3 &pose_t_start,
@@ -75,7 +76,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     auto const &[image_point_start, valid_flag_start] =
         project_fn(camera_point_start);
     if (shutter_type == Type::GLOBAL) {
-        return PointWorldToImageResult{};
+        return PointWorldToImageResult<RotationType>{};
     }
 
     // Initialize the image point using the start or end pose
@@ -90,7 +91,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
         if (valid_flag_end) {
             init_image_point = image_point_end;
         } else {
-            return PointWorldToImageResult{};
+            return PointWorldToImageResult<RotationType>{};
         }
     }
 
@@ -103,7 +104,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
 #pragma unroll
     for (auto j = 0; j < N_ITER; ++j) {
         auto const t =
-            relative_frame_time(image_point, resolution, shutter_type);
+            relative_frame_time(image_point_rs, resolution, shutter_type);
         std::tie(pose_r_rs, pose_t_rs) = gsplat::se3::interpolate(
             t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
         );
@@ -111,11 +112,11 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
             gsplat::se3::transform_point(pose_r_rs, pose_t_rs, world_point);
         std::tie(image_point_rs, valid_flag_rs) = project_fn(camera_point_rs);
         if (!valid_flag_rs) {
-            return PointWorldToImageResult{};
+            return PointWorldToImageResult<RotationType>{};
         }
         // TODO: add early exit and convergence check
     }
-    return PointWorldToImageResult{
+    return PointWorldToImageResult<RotationType>{
         image_point_rs, camera_point_rs, pose_r_rs, pose_t_rs, true
     };
 }
