@@ -8,7 +8,6 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
-#include "utils/solver.h" // for solver_newton
 
 namespace gsplat::shutter {
 
@@ -20,13 +19,45 @@ enum class Type {
     ROLLING_RIGHT_TO_LEFT,
 };
 
-// // Example
-// GSPLAT_HOST_DEVICE auto distortion(
-//     float const &theta, std::array<float, 4> const &radial_coeffs
-// ) -> float {
-//     auto const theta2 = theta * theta;
-//     auto const &[k1, k2, k3, k4] = radial_coeffs;
-//     return theta * eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
-// }
+GSPLAT_HOST_DEVICE inline auto relative_frame_time(
+    const glm::fvec2 &image_point,
+    const std::array<uint32_t, 2> &resolution,
+    const Type &shutter_type
+) -> float {
+    auto t = 0.f;
+    switch (shutter_type) {
+    case Type::ROLLING_TOP_TO_BOTTOM:
+        t = std::floor(image_point[1]) / (resolution[1] - 1);
+        break;
+    case Type::ROLLING_LEFT_TO_RIGHT:
+        t = std::floor(image_point[0]) / (resolution[0] - 1);
+        break;
+    case Type::ROLLING_BOTTOM_TO_TOP:
+        t = (resolution[1] - std::ceil(image_point[1])) / (resolution[1] - 1);
+        break;
+    case Type::ROLLING_RIGHT_TO_LEFT:
+        t = (resolution[0] - std::ceil(image_point[0])) / (resolution[0] - 1);
+        break;
+    }
+    return t;
+}
+
+template <size_t N_ITER = 10, typename RotationType>
+GSPLAT_HOST_DEVICE inline auto point_world_to_image(
+    const glm::fvec3 &world_point,
+    const RotationType &pose_r_start,
+    const glm::fvec3 &pose_t_start,
+    const RotationType &pose_r_end,
+    const glm::fvec3 &pose_t_end,
+    const Type &shutter_type
+) -> glm::fvec2 {
+    static_assert(
+        std::is_same_v<RotationType, glm::fmat3> ||
+            std::is_same_v<RotationType, glm::fquat>,
+        "RotationType must be either glm::fmat3 or glm::fquat"
+    );
+
+    auto const t = relative_frame_time(image_point, resolution, shutter_type);
+}
 
 } // namespace gsplat::shutter
