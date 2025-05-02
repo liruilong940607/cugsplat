@@ -41,50 +41,59 @@ GSPLAT_HOST_DEVICE inline auto interpolate(
     return {glm::mat3_cast(rot), transl};
 }
 
+// Transform a point using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto transform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return rot * point + transl;
 }
 
+// Transform a point using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto transform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::mat3_cast(rot) * point + transl;
 }
 
+// Inverse transform a point using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(rot) * (point - transl);
 }
 
+// Inverse transform a point using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * (point - transl);
 }
 
+// Transform a direction using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return rot * dir;
 }
 
+// Transform a direction using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::mat3_cast(rot) * dir;
 }
 
+// Inverse transform a direction using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 invtransform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(rot) * dir;
 }
 
+// Inverse transform a direction using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 invtransform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * dir;
 }
 
+// Transform a ray using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto transform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
@@ -94,6 +103,7 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
     return {rot * ray_o + transl, rot * ray_d};
 }
 
+// Transform a ray using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto transform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
@@ -104,6 +114,7 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
     return {R * ray_o + transl, R * ray_d};
 }
 
+// Inverse transform a ray using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
@@ -114,6 +125,7 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     return {R_inv * (ray_o - transl), R_inv * ray_d};
 }
 
+// Inverse transform a ray using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
@@ -124,23 +136,27 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     return {R_inv * (ray_o - transl), R_inv * ray_d};
 }
 
+// Transform a covariance matrix using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     return rot * covar * glm::transpose(rot);
 }
 
+// Transform a covariance matrix using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     auto const R = glm::mat3_cast(rot);
     return R * covar * glm::transpose(R);
 }
 
+// Inverse transform a covariance matrix using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_covar(
     const glm::fmat3 &rot, const glm::fmat3 &covar
 ) -> glm::fmat3 {
     return glm::transpose(rot) * covar * rot;
 }
 
+// Inverse transform a covariance matrix using SE3 matrix
 GSPLAT_HOST_DEVICE inline auto invtransform_covar(
     const glm::fquat &rot, const glm::fmat3 &covar
 ) -> glm::fmat3 {
