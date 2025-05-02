@@ -6,6 +6,12 @@ This project uses automatic code formatting before each commit. The formatting i
 
 ### Setup
 
+First install `clang-format` which is required by the formatter script(`formatter.sh`):
+
+```bash
+sudo apt-get install clang-format
+```
+
 To set up the Git hooks, run:
 
 ```bash
