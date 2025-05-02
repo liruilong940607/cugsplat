@@ -6,7 +6,7 @@
 #include "../helpers.h"
 #include "core/math.h"
 
-using namespace gsplat::math;
+using namespace cugsplat::math;
 
 int test_rsqrtf() {
     int fails = 0;

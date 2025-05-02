@@ -6,7 +6,7 @@
 #include "../helpers.h"
 #include "camera/shutter.h"
 
-using namespace gsplat::shutter;
+using namespace cugsplat::shutter;
 
 // Test point_world_to_image function with quaternion rotation
 auto test_point_world_to_image_quat() -> int {
@@ -81,7 +81,7 @@ auto test_point_world_to_image_quat() -> int {
             // Check if the result is reasonable
             auto const t =
                 relative_frame_time(result.image_point, resolution, shutter_type);
-            auto const &[pose_r_rs, pose_t_rs] = gsplat::se3::interpolate(
+            auto const &[pose_r_rs, pose_t_rs] = cugsplat::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
 
@@ -171,7 +171,7 @@ auto test_point_world_to_image_mat() -> int {
             // Check if the result is reasonable
             auto const t =
                 relative_frame_time(result.image_point, resolution, shutter_type);
-            auto const &[pose_r_rs, pose_t_rs] = gsplat::se3::interpolate(
+            auto const &[pose_r_rs, pose_t_rs] = cugsplat::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
 

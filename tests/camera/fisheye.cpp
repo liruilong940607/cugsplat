@@ -6,7 +6,7 @@
 #include "../helpers.h"
 #include "camera/fisheye.h"
 
-using namespace gsplat::fisheye;
+using namespace cugsplat::fisheye;
 
 // Test distortion and distortion_jac functions
 auto test_distortion() -> int {

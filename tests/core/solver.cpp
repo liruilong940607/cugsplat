@@ -6,7 +6,7 @@
 #include "../helpers.h"
 #include "core/solver.h"
 
-using namespace gsplat::solver;
+using namespace cugsplat::solver;
 
 int test_newton_1d() {
     int fails = 0;

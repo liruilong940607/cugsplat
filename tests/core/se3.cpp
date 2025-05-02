@@ -7,7 +7,7 @@
 #include "../helpers.h"
 #include "core/se3.h"
 
-using namespace gsplat::se3;
+using namespace cugsplat::se3;
 
 int test_interpolate() {
     int fails = 0;

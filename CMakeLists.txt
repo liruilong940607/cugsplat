@@ -8,12 +8,12 @@ option(BUILD_TESTS "Build test executables" ON)
 
 # Only include CUDA if not in CPP-only mode
 if(NOT BUILD_CPP_ONLY)
-    project(gsplat LANGUAGES CUDA CXX)
+    project(cugsplat LANGUAGES CUDA CXX)
     set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
     # relax restrictions on glm constexpr functions so they can be called in device code.
     add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 else()
-    project(gsplat LANGUAGES CXX)
+    project(cugsplat LANGUAGES CXX)
 endif()
 
 
@@ -21,9 +21,9 @@ endif()
 # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 
 # Header-only core
-add_library(gsplat INTERFACE)
-target_include_directories(gsplat INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/gsplat/include
+add_library(cugsplat INTERFACE)
+target_include_directories(cugsplat INTERFACE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
 
@@ -60,7 +60,7 @@ function(build_cuda_executables_recursive BASE_DIR PREFIX)
 
         add_executable(${TARGET_NAME} "${SRC}")
         target_link_libraries(${TARGET_NAME}
-            PRIVATE gsplat
+            PRIVATE cugsplat
             # PRIVATE ${TORCH_LIBRARIES}
         )
         set_target_properties(${TARGET_NAME} PROPERTIES
