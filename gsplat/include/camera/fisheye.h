@@ -7,7 +7,7 @@
 #include <tuple>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"   // for numerically_stable_norm2, eval_poly_horner
+#include "core/math.h"
 #include "core/solver.h"
 
 namespace gsplat::fisheye {
@@ -51,7 +51,9 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
         return {residual, J};
     };
     // solve the equation
-    return gsplat::solver::newton<1, N_ITER>(func, theta_d, 1e-6f);
+    auto const &[theta, converged] =
+        gsplat::solver::newton<1, N_ITER>(func, theta_d, 1e-6f);
+    return {theta, converged};
 }
 
 // Compute the maximum theta such that [0, max_theta] is monotonicly
@@ -74,7 +76,10 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     auto const &[k1, k2, k3, k4] = radial_coeffs;
     constexpr float INF = std::numeric_limits<float>::max();
     auto const x2 = gsplat::solver::poly_minimal_positive<N_ITER>(
-        {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, 0.f, guess, INF
+        std::array<float, 5>{1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4},
+        0.f,
+        guess,
+        INF
     );
     return x2 == INF ? INF : std::sqrt(x2);
 }
@@ -189,7 +194,7 @@ GSPLAT_HOST_DEVICE inline auto unproject(
         return {glm::fvec3{}, false};
     }
 
-    auto const xy = std::sin(theta) / theta * uv;
+    auto const xy = std::sin(theta) / theta_d * uv;
     auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
     return {dir, true};
 }
