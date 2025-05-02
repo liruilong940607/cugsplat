@@ -21,15 +21,31 @@ T numerical_gradient(const T &x, F f, float eps = 1e-4f) {
 // relative tolerances
 template <typename T>
 bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
-    for (int i = 0; i < a.length(); ++i) {
-        if (std::abs(a[i] - b[i]) > atol + rtol * std::abs(b[i])) {
-            return false;
+    if constexpr (std::is_same_v<T, glm::fquat>) {
+        return std::abs(a.w - b.w) <= atol + rtol * std::abs(b.w) &&
+               std::abs(a.x - b.x) <= atol + rtol * std::abs(b.x) &&
+               std::abs(a.y - b.y) <= atol + rtol * std::abs(b.y) &&
+               std::abs(a.z - b.z) <= atol + rtol * std::abs(b.z);
+    } else if constexpr (std::is_same_v<T, float>) {
+        return std::abs(a - b) < atol + rtol * std::abs(b);
+    } else if constexpr (std::is_same_v<T, glm::fmat2> ||
+                         std::is_same_v<T, glm::fmat3> ||
+                         std::is_same_v<T, glm::fmat4>) {
+        for (int i = 0; i < T::length(); ++i) {
+            for (int j = 0; j < T::col_type::length(); ++j) {
+                if (std::abs(a[i][j] - b[i][j]) >
+                    atol + rtol * std::abs(b[i][j])) {
+                    return false;
+                }
+            }
         }
+        return true;
+    } else {
+        for (int i = 0; i < a.length(); ++i) {
+            if (std::abs(a[i] - b[i]) > atol + rtol * std::abs(b[i])) {
+                return false;
+            }
+        }
+        return true;
     }
-    return true;
-}
-
-template <>
-bool is_close(const float &a, const float &b, float atol, float rtol) {
-    return std::abs(a - b) < atol + rtol * std::abs(b);
 }
