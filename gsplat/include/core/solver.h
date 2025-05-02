@@ -215,8 +215,9 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
     // define the residual and Jacobian of the equation
     auto const func = [&y, &poly, &d_poly](const float &x
                       ) -> std::pair<float, float> {
-        auto const J = eval_poly_horner<N_COEFFS - 1>(d_poly, x);
-        auto const residual = eval_poly_horner<N_COEFFS>(poly, x) - y;
+        auto const J = gsplat::math::eval_poly_horner<N_COEFFS - 1>(d_poly, x);
+        auto const residual =
+            gsplat::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
         return {residual, J};
     };
     // solve the equation.
