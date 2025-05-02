@@ -28,3 +28,8 @@ bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
     }
     return true;
 }
+
+template <>
+bool is_close(const float &a, const float &b, float atol, float rtol) {
+    return std::abs(a - b) < atol + rtol * std::abs(b);
+}

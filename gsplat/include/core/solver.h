@@ -7,8 +7,9 @@
 #include <glm/glm.hpp>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "core/math.h"
 
-namespace gsplat {
+namespace gsplat::solver {
 
 template <size_t DIM> struct NewtonSolverResult;
 
@@ -27,7 +28,7 @@ template <> struct NewtonSolverResult<2> {
 template <
     size_t N_ITER,
     typename Func> // Func(float x) -> pair<float, float> = {residual, dfdx}
-inline GSPLAT_HOST_DEVICE auto solver_newton_1d(
+inline GSPLAT_HOST_DEVICE auto newton_1d(
     const Func &f, const float &x0, const float epsilon = 1e-6f
 ) -> NewtonSolverResult<1> {
     auto x = x0;
@@ -51,7 +52,7 @@ inline GSPLAT_HOST_DEVICE auto solver_newton_1d(
 template <
     size_t N_ITER,
     typename Func> // Func(xy) -> pair<residual[2], jacobian[2][2]>
-inline GSPLAT_HOST_DEVICE auto solver_newton_2d(
+inline GSPLAT_HOST_DEVICE auto newton_2d(
     const Func &f, const glm::fvec2 &x0, float epsilon = 1e-6f
 ) -> NewtonSolverResult<2> {
     auto x = x0;
@@ -74,7 +75,7 @@ inline GSPLAT_HOST_DEVICE auto solver_newton_2d(
 }
 
 template <size_t DIM, size_t N_ITER, typename Func>
-inline GSPLAT_HOST_DEVICE auto solver_newton(
+inline GSPLAT_HOST_DEVICE auto newton(
     const Func &f,
     typename NewtonSolverResult<DIM>::dtype x0,
     const float epsilon = 1e-6f
@@ -82,15 +83,15 @@ inline GSPLAT_HOST_DEVICE auto solver_newton(
     static_assert(DIM == 1 || DIM == 2, "Only 1D and 2D supported");
 
     if constexpr (DIM == 1) {
-        return solver_newton_1d<N_ITER>(f, x0, epsilon);
+        return newton_1d<N_ITER>(f, x0, epsilon);
     } else {
-        return solver_newton_2d<N_ITER>(f, x0, epsilon);
+        return newton_2d<N_ITER>(f, x0, epsilon);
     }
 }
 
 // Solve a linear equation y=c_0+c_1*x and return the minimal positive root.
 // If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float solver_linear_minimal_positive(
+inline GSPLAT_HOST_DEVICE float linear_minimal_positive(
     std::array<float, 2> const &poly, float y, float default_value
 ) {
     auto const &[c0, c1] = poly;
@@ -103,16 +104,16 @@ inline GSPLAT_HOST_DEVICE float solver_linear_minimal_positive(
 
 // Solve a quadratic equation y=c_0+c_1*x+c_2*x^2 and return the minimal
 // positive root. If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float solver_quadratic_minimal_positive(
+inline GSPLAT_HOST_DEVICE float quadratic_minimal_positive(
     std::array<float, 3> const &poly, float y, float default_value
 ) {
     auto const &[c0, c1, c2] = poly;
     if (c2 == 0.f) {
         // reduce to y = c0 + c1*x
-        return solver_linear_minimal_positive({c0, c1}, y, default_value);
+        return linear_minimal_positive({c0, c1}, y, default_value);
     } else if (c0 == y) {
         // reduce to x(c1 + c2*x) = 0
-        return solver_linear_minimal_positive({c1, c2}, 0.f, default_value);
+        return linear_minimal_positive({c1, c2}, 0.f, default_value);
     }
 
     // normalize the equation to 1 + ax + bx^2 = 0
@@ -128,20 +129,16 @@ inline GSPLAT_HOST_DEVICE float solver_quadratic_minimal_positive(
 
 // Solve a cubic equation y=c_0+c_1*x+c_2*x^2+c_3*x^3 and return the minimal
 // positive root. If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float solver_cubic_minimal_positive(
+inline GSPLAT_HOST_DEVICE float cubic_minimal_positive(
     std::array<float, 4> const &poly, float y, float default_value
 ) {
     auto const &[c0, c1, c2, c3] = poly;
     if (c3 == 0.f) {
         // reduce to y = c0 + c1*x + c2*x^2
-        return solver_quadratic_minimal_positive(
-            {c0, c1, c2}, y, default_value
-        );
+        return quadratic_minimal_positive({c0, c1, c2}, y, default_value);
     } else if (c0 == y) {
         // reduce to x(c1 + c2*x + c3*x^2) = 0
-        return solver_quadratic_minimal_positive(
-            {c1, c2, c3}, 0.f, default_value
-        );
+        return quadratic_minimal_positive({c1, c2, c3}, 0.f, default_value);
     }
 
     // normalize the equation to 1 + ax + bx^2 + cx^3 = 0
@@ -195,24 +192,16 @@ inline GSPLAT_HOST_DEVICE float solver_cubic_minimal_positive(
 // using newton method and return the minimal positive root.
 // If no positive root exists or netwon does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float solver_polyN_minimal_positive_newton(
+inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
     std::array<float, N_COEFFS> const &poly,
     float y,
     float guess,
     float default_value
 ) {
     // check if all coefficients from x^4 onwards are zero
-    bool is_higher_order_all_zero = true;
-#pragma unroll
-    for (size_t i = 4; i < N_COEFFS; ++i) {
-        if (poly[i] != 0.f) {
-            is_higher_order_all_zero = false;
-            break;
-        }
-    }
-    if (is_higher_order_all_zero) {
+    if (gsplat::math::is_all_zero<4, N_COEFFS>(poly)) {
         // reduce to cubic
-        return solver_cubic_minimal_positive(
+        return cubic_minimal_positive(
             {poly[0], poly[1], poly[2], poly[3]}, y, default_value
         );
     }
@@ -231,8 +220,7 @@ inline GSPLAT_HOST_DEVICE float solver_polyN_minimal_positive_newton(
         return {residual, J};
     };
     // solve the equation.
-    auto const &[root, converged] =
-        solver_newton<1, N_ITER>(func, guess, 1e-6f);
+    auto const &[root, converged] = newton<1, N_ITER>(func, guess, 1e-6f);
     return (converged && root > 0.f) ? root : default_value;
 }
 
@@ -244,7 +232,7 @@ inline GSPLAT_HOST_DEVICE float solver_polyN_minimal_positive_newton(
 // up to cubic polynomials and newton method for higher order polynomials.
 // If no positive root exists or newton does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float solver_poly_minimal_positive(
+inline GSPLAT_HOST_DEVICE float poly_minimal_positive(
     std::array<float, N_COEFFS> const &poly,
     float y,
     float guess,
@@ -255,19 +243,19 @@ inline GSPLAT_HOST_DEVICE float solver_poly_minimal_positive(
         return default_value;
     } else if constexpr (N_COEFFS == 2) { // linear
         // f(x) = c_0 + c_1*x
-        return solver_linear_minimal_positive(poly, y, default_value);
+        return linear_minimal_positive(poly, y, default_value);
     } else if constexpr (N_COEFFS == 3) { // quadratic
         // f(x) = c_0 + c_1*x + c_2*x^2
-        return solver_quadratic_minimal_positive(poly, y, default_value);
+        return quadratic_minimal_positive(poly, y, default_value);
     } else if constexpr (N_COEFFS == 4) { // cubic
         // f(x) = c_0 + c_1*x + c_2*x^2 + c_3*x^3
-        return solver_cubic_minimal_positive(poly, y, default_value);
+        return cubic_minimal_positive(poly, y, default_value);
     } else {
         // f(x) = c_0 + c_1*x + c_2*x^2 + c_3*x^3 + c_4*x^4 ...
-        return solver_polyN_minimal_positive_newton<N_ITER>(
+        return polyN_minimal_positive_newton<N_ITER>(
             poly, y, guess, default_value
         );
     }
 }
 
-} // namespace gsplat
+} // namespace gsplat::solver

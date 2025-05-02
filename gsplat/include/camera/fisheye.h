@@ -7,8 +7,8 @@
 #include <tuple>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"
-#include "utils/solver.h" // for solver_newton
+#include "core/math.h"   // for numerically_stable_norm2, eval_poly_horner
+#include "core/solver.h"
 
 namespace gsplat::fisheye {
 
@@ -18,7 +18,8 @@ GSPLAT_HOST_DEVICE inline auto distortion(
 ) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return theta * eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
+    return theta *
+           gsplat::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
 }
 
 // Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
@@ -27,7 +28,7 @@ GSPLAT_HOST_DEVICE inline auto distortion_jac(
 ) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return eval_poly_horner<5>(
+    return gsplat::math::eval_poly_horner<5>(
         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, theta2
     );
 }
@@ -50,7 +51,7 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
         return {residual, J};
     };
     // solve the equation
-    return solver_newton<1, N_ITER>(func, theta_d, 1e-6f);
+    return gsplat::solver::newton<1, N_ITER>(func, theta_d, 1e-6f);
 }
 
 // Compute the maximum theta such that [0, max_theta] is monotonicly
@@ -72,7 +73,7 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     //   0 = 1 + 3*k1*x + 5*k2*x^2 + 7*k3*x^3 + 9*k4*x^4
     auto const &[k1, k2, k3, k4] = radial_coeffs;
     constexpr float INF = std::numeric_limits<float>::max();
-    auto const x2 = solver_poly_minimal_positive<N_ITER>(
+    auto const x2 = gsplat::solver::poly_minimal_positive<N_ITER>(
         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, 0.f, guess, INF
     );
     return x2 == INF ? INF : std::sqrt(x2);
@@ -87,7 +88,7 @@ GSPLAT_HOST_DEVICE inline auto project(
     float const &min_2d_norm = 1e-6f
 ) -> glm::fvec2 {
     auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = gsplat::math::numerically_stable_norm2(xy[0], xy[1]);
     glm::fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion
@@ -122,7 +123,7 @@ GSPLAT_HOST_DEVICE inline auto project(
     float const &max_theta = std::numeric_limits<float>::max()
 ) -> std::pair<glm::fvec2, bool> {
     auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = gsplat::math::numerically_stable_norm2(xy[0], xy[1]);
     glm::fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion

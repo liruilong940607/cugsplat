@@ -7,8 +7,7 @@
 #include <tuple>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"
-#include "utils/se3.h"
+#include "core/se3.h"
 
 namespace gsplat::shutter {
 
