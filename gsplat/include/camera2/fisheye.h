@@ -8,7 +8,6 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
-#include "core/tensor.h"
 #include "utils/solver.h" // for solver_newton
 
 namespace gsplat::fisheye {
@@ -101,6 +100,17 @@ GSPLAT_HOST_DEVICE auto project(
     return image_point;
 }
 
+// Compute the Jacobian of the projection: J = d(image_point) / d(camera_point)
+GSPLAT_HOST_DEVICE auto project_jac(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    float const &min_2d_norm = 1e-6f
+) -> glm::fmat3x2 {
+    // TODO: implement this
+    return glm::fmat3x2{};
+}
+
 // Project the point from camera space to image space (distorted fisheye)
 // Returns the image point and a flag indicating if the projection is valid
 GSPLAT_HOST_DEVICE auto project(
@@ -181,4 +191,6 @@ GSPLAT_HOST_DEVICE auto unproject(
     auto const xy = std::sin(theta) / theta * uv;
     auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
     return {dir, true};
+}
+
 } // namespace gsplat::fisheye
