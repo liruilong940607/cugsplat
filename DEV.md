@@ -12,11 +12,9 @@ After build, you will find test executables under `build/tests`. You can run any
 ./build/tests/core/math
 ```
 
-## Formatting
+## Setup Auto Formatting
 
 This project uses automatic code formatting before each commit. The formatting is enforced through Git hooks.
-
-### Setup
 
 First install `clang-format` which is required by the formatter script(`formatter.sh`):
 
@@ -24,7 +22,7 @@ First install `clang-format` which is required by the formatter script(`formatte
 sudo apt-get install clang-format
 ```
 
-To set up the Git hooks, run:
+Then set up the Git hooks, run:
 
 ```bash
 ./scripts/setup-git-hooks.sh
