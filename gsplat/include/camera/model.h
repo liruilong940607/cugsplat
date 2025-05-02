@@ -175,12 +175,13 @@ inline GSPLAT_HOST_DEVICE auto world_covar_to_camera_covar(
     }
 }
 
-template <class CameraProjection, class RotationType> struct CameraModel {
+template <class CameraProjection, class RotationType, bool RequiresGrad = false>
+struct CameraModel {
     // extrinsic
-    MaybeCached<RotationType> pose_r_start;
-    MaybeCached<glm::fvec3> pose_t_start;
-    MaybeCached<RotationType> pose_r_end;
-    MaybeCached<glm::fvec3> pose_t_end; // for rolling shutter only
+    Tensor<RotationType, RequiresGrad> pose_r_start;
+    Tensor<glm::fvec3, RequiresGrad> pose_t_start;
+    Tensor<RotationType, RequiresGrad> pose_r_end;
+    Tensor<glm::fvec3, RequiresGrad> pose_t_end; // for rolling shutter only
     // intrinsic
     ShutterType shutter_type = ShutterType::GLOBAL;
     CameraProjection projector;

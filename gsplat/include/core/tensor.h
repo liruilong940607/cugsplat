@@ -81,8 +81,8 @@ template <int OFFSET> __device__ static float warp_reduce(float val) {
 //     // Rest of the methods remain similar but with conditional compilation...
 // };
 
-template <typename T, bool MUTABLE = false> struct MaybeCached {
-    using ptr_type = std::conditional_t<MUTABLE, T *, const T *>;
+template <typename T, bool Mutable = false> struct MaybeCached {
+    using ptr_type = std::conditional_t<Mutable, T *, const T *>;
 
     ptr_type _data_ptr = nullptr;
     Maybe<T> _data = Maybe<T>();
@@ -140,6 +140,43 @@ template <typename T, bool MUTABLE = false> struct MaybeCached {
         }
     }
 #endif
+};
+
+template <typename T, bool RequiresGrad = false> struct Tensor {
+    using data_type = MaybeCached<T, false>;
+    using grad_type =
+        std::conditional_t<RequiresGrad, MaybeCached<T, true>, std::nullptr_t>;
+
+    data_type data;
+    grad_type grad;
+
+    GSPLAT_HOST_DEVICE Tensor() {}
+
+    GSPLAT_HOST_DEVICE Tensor(const T *data_ptr) : data(data_ptr) {}
+
+    GSPLAT_HOST_DEVICE Tensor(const T *data_ptr, T *grad_ptr)
+        : data(data_ptr), grad(grad_ptr) {}
+
+    GSPLAT_HOST_DEVICE static constexpr bool requires_grad() {
+        return RequiresGrad;
+    }
+
+    GSPLAT_HOST_DEVICE inline void shift_ptr(size_t offset) {
+        data.shift_ptr(offset);
+        if constexpr (RequiresGrad) {
+            grad.shift_ptr(offset);
+        }
+    }
+
+    GSPLAT_HOST_DEVICE inline T get() { return data.get(); }
+
+    GSPLAT_HOST_DEVICE inline T get_grad() {
+        if constexpr (RequiresGrad) {
+            return grad.get();
+        } else {
+            return T{};
+        }
+    }
 };
 
 // template <typename T, bool RequiresGrad = false> struct MaybeCached {
