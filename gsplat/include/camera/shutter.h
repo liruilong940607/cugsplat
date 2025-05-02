@@ -73,8 +73,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     // Always perform transformation using start pose
     auto const camera_point_start =
         gsplat::se3::transform_point(pose_r_start, pose_t_start, world_point);
-    auto const &[image_point_start, valid_flag_start] =
-        project_fn(camera_point_start);
+    auto const &[image_point_start, valid_flag_start] = project_fn(camera_point_start);
     if (shutter_type == Type::GLOBAL) {
         return PointWorldToImageResult<RotationType>{};
     }
@@ -86,8 +85,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     } else {
         auto const camera_point_end =
             gsplat::se3::transform_point(pose_r_end, pose_t_end, world_point);
-        auto const &[image_point_end, valid_flag_end] =
-            project_fn(camera_point_end);
+        auto const &[image_point_end, valid_flag_end] = project_fn(camera_point_end);
         if (valid_flag_end) {
             init_image_point = image_point_end;
         } else {
@@ -103,8 +101,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     glm::fvec3 pose_t_rs;
 #pragma unroll
     for (auto j = 0; j < N_ITER; ++j) {
-        auto const t =
-            relative_frame_time(image_point_rs, resolution, shutter_type);
+        auto const t = relative_frame_time(image_point_rs, resolution, shutter_type);
         std::tie(pose_r_rs, pose_t_rs) = gsplat::se3::interpolate(
             t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
         );

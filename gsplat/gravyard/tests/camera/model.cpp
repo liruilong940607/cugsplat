@@ -40,17 +40,11 @@ bool test_round_trip_consistency(
 
     if (!consistent) {
         printf("\n%s:\n", test_name);
-        printf(
-            "  Initial Image Point: %s\n", glm::to_string(image_point).c_str()
-        );
+        printf("  Initial Image Point: %s\n", glm::to_string(image_point).c_str());
         printf("  World Ray Origin: %s\n", glm::to_string(world_ray_o).c_str());
+        printf("  World Ray Direction: %s\n", glm::to_string(world_ray_d).c_str());
         printf(
-            "  World Ray Direction: %s\n", glm::to_string(world_ray_d).c_str()
-        );
-        printf(
-            "  World Point (at t=%.2f): %s\n",
-            t,
-            glm::to_string(world_point).c_str()
+            "  World Point (at t=%.2f): %s\n", t, glm::to_string(world_point).c_str()
         );
         printf(
             "  Round-trip Image Point: %s\n",
@@ -78,8 +72,7 @@ int test_pinhole_camera() {
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector =
-            OpencvPinholeProjection(&focal_length, &principal_point);
+        auto projector = OpencvPinholeProjection(&focal_length, &principal_point);
 
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
@@ -94,9 +87,7 @@ int test_pinhole_camera() {
         }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
         if (!test_round_trip_consistency(
-                camera_model,
-                image_point2,
-                "Basic pinhole camera - corner point"
+                camera_model, image_point2, "Basic pinhole camera - corner point"
             )) {
             fails += 1;
         }
@@ -156,8 +147,7 @@ int test_fisheye_camera() {
         auto const principal_point = glm::fvec2(400.0f, 300.0f);
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector =
-            OpencvFisheyeProjection(&focal_length, &principal_point);
+        auto projector = OpencvFisheyeProjection(&focal_length, &principal_point);
 
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
@@ -172,9 +162,7 @@ int test_fisheye_camera() {
         }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
         if (!test_round_trip_consistency(
-                camera_model,
-                image_point2,
-                "Basic fisheye camera - corner point"
+                camera_model, image_point2, "Basic fisheye camera - corner point"
             )) {
             fails += 1;
         }
@@ -187,8 +175,7 @@ int test_fisheye_camera() {
         std::array<float, 4> k = {0.1f, 0.01f, -0.01f, 0.01f};
         std::array<uint32_t, 2> resolution = {800, 600};
 
-        auto projector =
-            OpencvFisheyeProjection(&focal_length, &principal_point, &k);
+        auto projector = OpencvFisheyeProjection(&focal_length, &principal_point, &k);
 
         auto const pose_r_start = glm::fmat3(1.f);
         auto const pose_t_start = glm::fvec3(0.f);
@@ -234,17 +221,13 @@ int test_orthogonal_camera() {
 
         auto const image_point = glm::fvec2(400.0f, 300.0f);
         if (!test_round_trip_consistency(
-                camera_model,
-                image_point,
-                "Basic orthogonal camera - center point"
+                camera_model, image_point, "Basic orthogonal camera - center point"
             )) {
             fails += 1;
         }
         auto const image_point2 = glm::fvec2(0.0f, 0.0f);
         if (!test_round_trip_consistency(
-                camera_model,
-                image_point2,
-                "Basic orthogonal camera - corner point"
+                camera_model, image_point2, "Basic orthogonal camera - corner point"
             )) {
             fails += 1;
         }

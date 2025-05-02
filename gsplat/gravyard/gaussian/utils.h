@@ -15,8 +15,7 @@ namespace gsplat {
 
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
-inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat
-) -> glm::fmat3 {
+inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fmat3 {
     auto const quat_n = quat * rsqrtf(glm::dot(quat, quat));
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
     float x2 = x * x, y2 = y * y, z2 = z * z;
@@ -44,16 +43,14 @@ quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
     auto const v_quat_n = glm::fvec4(
         2.f * (x * (v_R[1][2] - v_R[2][1]) + y * (v_R[2][0] - v_R[0][2]) +
                z * (v_R[0][1] - v_R[1][0])),
-        2.f *
-            (-2.f * x * (v_R[1][1] + v_R[2][2]) + y * (v_R[0][1] + v_R[1][0]) +
-             z * (v_R[0][2] + v_R[2][0]) + w * (v_R[1][2] - v_R[2][1])),
+        2.f * (-2.f * x * (v_R[1][1] + v_R[2][2]) + y * (v_R[0][1] + v_R[1][0]) +
+               z * (v_R[0][2] + v_R[2][0]) + w * (v_R[1][2] - v_R[2][1])),
         2.f * (x * (v_R[0][1] + v_R[1][0]) - 2.f * y * (v_R[0][0] + v_R[2][2]) +
                z * (v_R[1][2] + v_R[2][1]) + w * (v_R[2][0] - v_R[0][2])),
         2.f * (x * (v_R[0][2] + v_R[2][0]) + y * (v_R[1][2] + v_R[2][1]) -
                2.f * z * (v_R[0][0] + v_R[1][1]) + w * (v_R[0][1] - v_R[1][0]))
     );
-    auto const v_quat =
-        (v_quat_n - glm::dot(v_quat_n, quat_n) * quat_n) * inv_norm;
+    auto const v_quat = (v_quat_n - glm::dot(v_quat_n, quat_n) * quat_n) * inv_norm;
     return v_quat;
 }
 
@@ -62,8 +59,7 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
     glm::fvec4 const &quat, glm::fvec3 const &scale
 ) -> glm::fmat3 {
     auto const R = quat_to_rotmat(quat);
-    auto const M =
-        glm::fmat3(R[0] * scale[0], R[1] * scale[1], R[2] * scale[2]);
+    auto const M = glm::fmat3(R[0] * scale[0], R[1] * scale[1], R[2] * scale[2]);
     return M;
 }
 
@@ -85,9 +81,8 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat_vjp(
 }
 
 // Convert {quat, scale} to a covariance matrix: RSSᵀRᵀ
-inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar(
-    glm::fvec4 const &quat, glm::fvec3 const &scale
-) -> glm::fmat3 {
+inline GSPLAT_HOST_DEVICE auto
+quat_scale_to_covar(glm::fvec4 const &quat, glm::fvec3 const &scale) -> glm::fmat3 {
     auto const M = quat_scale_to_scaled_rotmat(quat, scale);
     return M * glm::transpose(M);
 }
@@ -100,8 +95,7 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar_vjp(
     glm::fmat3 const &v_covar
 ) -> std::pair<glm::fvec4, glm::fvec3> {
     auto const R = quat_to_rotmat(quat);
-    auto const M =
-        glm::fmat3(R[0] * scale[0], R[1] * scale[1], R[2] * scale[2]);
+    auto const M = glm::fmat3(R[0] * scale[0], R[1] * scale[1], R[2] * scale[2]);
 
     auto const v_M = v_covar * M + M * glm::transpose(v_covar);
     auto const v_R =
@@ -192,15 +186,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
 ) -> float {
     auto const R = quat_to_rotmat(quat);
     auto const Sinv = glm::fmat3(
-        1.f / scale[0],
-        0.f,
-        0.f,
-        0.f,
-        1.f / scale[1],
-        0.f,
-        0.f,
-        0.f,
-        1.f / scale[2]
+        1.f / scale[0], 0.f, 0.f, 0.f, 1.f / scale[1], 0.f, 0.f, 0.f, 1.f / scale[2]
     );
     auto const Mt = glm::transpose(R * Sinv);
     auto const o_minus_mu = ray_o - mu;
@@ -228,15 +214,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     // forward
     auto const R = quat_to_rotmat(quat);
     auto const Sinv = glm::fmat3(
-        1.f / scale[0],
-        0.f,
-        0.f,
-        0.f,
-        1.f / scale[1],
-        0.f,
-        0.f,
-        0.f,
-        1.f / scale[2]
+        1.f / scale[0], 0.f, 0.f, 0.f, 1.f / scale[1], 0.f, 0.f, 0.f, 1.f / scale[2]
     );
     auto const Mt = glm::transpose(R * Sinv);
     auto const o_minus_mu = ray_o - mu;
@@ -344,8 +322,8 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     auto const v_gro = glm::cross(gcrod, grd_n);
     auto const v_grd = safe_normalize_vjp(grd2, v_grd_n);
     auto const v_mu = -cholesky_LTinv_y(L2, v_gro);
-    auto const v_L2 = cholesky_Linv_y_vjp(L2, grd2, v_grd) +
-                      cholesky_Linv_y_vjp(L2, gro2, v_gro);
+    auto const v_L2 =
+        cholesky_Linv_y_vjp(L2, grd2, v_grd) + cholesky_Linv_y_vjp(L2, gro2, v_gro);
     auto v_covar2 = cholesky_vjp(L2, v_L2);
 
     // backward: d(-log(coeff))/d(covar), d(-log(coeff))/d(covar2)
@@ -353,8 +331,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     auto const ggrd2 = backward_substitution(L2, grd2);
     auto const v_covar =
         -0.5f * (cholesky_Winv(L) - glm::outerProduct(ggrd, ggrd) / grdgrd);
-    v_covar2 +=
-        0.5f * (cholesky_Winv(L2) - glm::outerProduct(ggrd2, ggrd2) / grd2grd2);
+    v_covar2 += 0.5f * (cholesky_Winv(L2) - glm::outerProduct(ggrd2, ggrd2) / grd2grd2);
     return {sigma - log(coeff), v_mu, v_covar, v_covar2};
 }
 

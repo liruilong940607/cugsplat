@@ -17,9 +17,7 @@ template <typename T> struct Maybe {
         return this->_has_value ? this->_value : T{};
     }
 
-    GSPLAT_HOST_DEVICE inline bool has_value() const {
-        return this->_has_value;
-    }
+    GSPLAT_HOST_DEVICE inline bool has_value() const { return this->_has_value; }
 
     GSPLAT_HOST_DEVICE inline void set(const T &v) {
         this->_value = v;
@@ -157,9 +155,7 @@ template <typename T, bool RequiresGrad = false> struct Tensor {
     GSPLAT_HOST_DEVICE Tensor(const T *data_ptr, T *grad_ptr)
         : data(data_ptr), grad(grad_ptr) {}
 
-    GSPLAT_HOST_DEVICE static constexpr bool requires_grad() {
-        return RequiresGrad;
-    }
+    GSPLAT_HOST_DEVICE static constexpr bool requires_grad() { return RequiresGrad; }
 
     GSPLAT_HOST_DEVICE inline void shift_ptr(size_t offset) {
         data.shift_ptr(offset);

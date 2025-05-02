@@ -179,9 +179,7 @@ int test_safe_normalize_vjp() {
             printf("  Input: %s\n", glm::to_string(x).c_str());
             printf("  v_out: %s\n", glm::to_string(v_out).c_str());
             printf("  Analytical gradient: %s\n", glm::to_string(grad).c_str());
-            printf(
-                "  Numerical gradient: %s\n", glm::to_string(grad_num).c_str()
-            );
+            printf("  Numerical gradient: %s\n", glm::to_string(grad_num).c_str());
             printf("  Error: %f\n", glm::length(grad - grad_num));
             fails += 1;
         }

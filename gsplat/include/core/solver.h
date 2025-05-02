@@ -129,9 +129,8 @@ inline GSPLAT_HOST_DEVICE float quadratic_minimal_positive(
 
 // Solve a cubic equation y=c_0+c_1*x+c_2*x^2+c_3*x^3 and return the minimal
 // positive root. If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float cubic_minimal_positive(
-    std::array<float, 4> const &poly, float y, float default_value
-) {
+inline GSPLAT_HOST_DEVICE float
+cubic_minimal_positive(std::array<float, 4> const &poly, float y, float default_value) {
     auto const &[c0, c1, c2, c3] = poly;
     if (c3 == 0.f) {
         // reduce to y = c0 + c1*x + c2*x^2
@@ -193,10 +192,7 @@ inline GSPLAT_HOST_DEVICE float cubic_minimal_positive(
 // If no positive root exists or netwon does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
 inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
-    std::array<float, N_COEFFS> const &poly,
-    float y,
-    float guess,
-    float default_value
+    std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     // check if all coefficients from x^4 onwards are zero
     if (gsplat::math::is_all_zero<4, N_COEFFS>(poly)) {
@@ -213,11 +209,9 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
         d_poly[i] = (i + 1) * poly[i + 1];
     }
     // define the residual and Jacobian of the equation
-    auto const func = [&y, &poly, &d_poly](const float &x
-                      ) -> std::pair<float, float> {
+    auto const func = [&y, &poly, &d_poly](const float &x) -> std::pair<float, float> {
         auto const J = gsplat::math::eval_poly_horner<N_COEFFS - 1>(d_poly, x);
-        auto const residual =
-            gsplat::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
+        auto const residual = gsplat::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
         return {residual, J};
     };
     // solve the equation.
@@ -234,10 +228,7 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
 // If no positive root exists or newton does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
 inline GSPLAT_HOST_DEVICE float poly_minimal_positive(
-    std::array<float, N_COEFFS> const &poly,
-    float y,
-    float guess,
-    float default_value
+    std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     if constexpr (N_COEFFS == 1) {
         // f(x) = c_0*x^0
@@ -253,9 +244,7 @@ inline GSPLAT_HOST_DEVICE float poly_minimal_positive(
         return cubic_minimal_positive(poly, y, default_value);
     } else {
         // f(x) = c_0 + c_1*x + c_2*x^2 + c_3*x^3 + c_4*x^4 ...
-        return polyN_minimal_positive_newton<N_ITER>(
-            poly, y, guess, default_value
-        );
+        return polyN_minimal_positive_newton<N_ITER>(poly, y, guess, default_value);
     }
 }
 

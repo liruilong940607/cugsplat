@@ -117,8 +117,7 @@ struct OpencvFisheyeProjection {
         : focal_length(focal_length), principal_point(principal_point),
           radial_coeffs(radial_coeffs) {}
 
-    GSPLAT_HOST_DEVICE auto
-    camera_point_to_image_point(const glm::fvec3 &camera_point
+    GSPLAT_HOST_DEVICE auto camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
         auto const xy = glm::fvec2(camera_point) / camera_point.z;
         auto const r = numerically_stable_norm2(xy[0], xy[1]);
@@ -161,8 +160,7 @@ struct OpencvFisheyeProjection {
         if (is_perfect) {
             theta = theta_d;
         } else {
-            auto const &[theta_, valid_flag] =
-                this->compute_undistortion(theta_d);
+            auto const &[theta_, valid_flag] = this->compute_undistortion(theta_d);
             if (!valid_flag)
                 return {glm::fvec3{}, glm::fvec3{}, false};
             theta = theta_;
@@ -196,14 +194,12 @@ struct OpencvFisheyeProjection {
 
         if (k4 == 0.f) {
             // solve the root of f'(x) = 0 analyticly
-            this->max_theta = std::sqrt(
-                _poly3_minimal_postivie_root(3.f * k1, 5.f * k2, 7.f * k3)
-            );
+            this->max_theta =
+                std::sqrt(_poly3_minimal_postivie_root(3.f * k1, 5.f * k2, 7.f * k3));
         } else {
             // solve the root of f'(x) = 0 numerically
             auto const &[root, converged] = solver_newton<1, 20>(
-                [this, &k1, &k2, &k3, &k4](const float &x
-                ) -> std::pair<float, float> {
+                [this, &k1, &k2, &k3, &k4](const float &x) -> std::pair<float, float> {
                     auto const x2 = x * x;
                     auto const residual = eval_poly_horner<5>(
                         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, x2
@@ -236,8 +232,7 @@ struct OpencvFisheyeProjection {
     ) -> std::pair<float, bool> {
         auto const &result = solver_newton<1, 20>(
             [this, &theta_d](const float &theta) -> std::pair<float, float> {
-                auto const valid_flag =
-                    (theta >= min_theta) && (theta <= max_theta);
+                auto const valid_flag = (theta >= min_theta) && (theta <= max_theta);
                 if (!valid_flag)
                     return {float{}, float{}};
                 auto const gradient = this->gradiant_distortion(theta);

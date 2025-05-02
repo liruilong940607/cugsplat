@@ -65,9 +65,8 @@ safe_normalize(const glm::vec<L, float, Q> &x) {
 }
 
 template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q> safe_normalize_vjp(
-    const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out
-) {
+inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
+safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out) {
     const float l2 = glm::dot(x, x);
     if (l2 > 0.0f) {
         const float il = rsqrtf(l2);

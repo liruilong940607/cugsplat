@@ -23,26 +23,21 @@ template <class T> T *create_device_ptr() {
     return d_ptr;
 }
 
-template <class T>
-void print_device_ptr(const T *d_ptr, const std::string &name) {
+template <class T> void print_device_ptr(const T *d_ptr, const std::string &name) {
     T h_val;
     cudaMemcpy(&h_val, d_ptr, sizeof(T), cudaMemcpyDeviceToHost);
     std::cout << name << ": " << h_val << std::endl;
 }
 
 template <>
-void print_device_ptr<glm::fvec2>(
-    const glm::fvec2 *d_ptr, const std::string &name
-) {
+void print_device_ptr<glm::fvec2>(const glm::fvec2 *d_ptr, const std::string &name) {
     glm::fvec2 h_val;
     cudaMemcpy(&h_val, d_ptr, sizeof(glm::fvec2), cudaMemcpyDeviceToHost);
     std::cout << name << ": " << h_val.x << ", " << h_val.y << std::endl;
 }
 
 template <>
-void print_device_ptr<glm::fvec3>(
-    const glm::fvec3 *d_ptr, const std::string &name
-) {
+void print_device_ptr<glm::fvec3>(const glm::fvec3 *d_ptr, const std::string &name) {
     glm::fvec3 h_val;
     cudaMemcpy(&h_val, d_ptr, sizeof(glm::fvec3), cudaMemcpyDeviceToHost);
     std::cout << name << ": " << h_val.x << ", " << h_val.y << ", " << h_val.z
@@ -52,22 +47,19 @@ void print_device_ptr<glm::fvec3>(
 int main() {
     // setup camera
     auto const d_focal_length = create_device_ptr(glm::fvec2(800.0f, 600.0f));
-    auto const d_principal_point =
-        create_device_ptr(glm::fvec2(400.0f, 300.0f));
+    auto const d_principal_point = create_device_ptr(glm::fvec2(400.0f, 300.0f));
     auto const d_pose_r_start = create_device_ptr(glm::fmat3(1.f));
     auto const d_pose_t_start = create_device_ptr(glm::fvec3(0.f));
     std::array<uint32_t, 2> resolution = {800, 600};
     auto projector = OpencvPinholeProjection(d_focal_length, d_principal_point);
-    auto d_camera =
-        CameraModel(resolution, projector, d_pose_r_start, d_pose_t_start);
+    auto d_camera = CameraModel(resolution, projector, d_pose_r_start, d_pose_t_start);
 
     // setup input gaussian
     auto const d_opacity = create_device_ptr(float(0.8f));
     auto const d_mean = create_device_ptr(glm::fvec3(0.0f, 0.0f, 1.0f));
     auto const d_quat = create_device_ptr(glm::fvec4(1.0f, 0.0f, 0.0f, 0.0f));
     auto const d_scale = create_device_ptr(glm::fvec3(1.0f, 1.0f, 1.0f));
-    auto const d_gaussian =
-        DevicePrimitiveIn3DGS{d_mean, d_quat, d_scale, d_opacity};
+    auto const d_gaussian = DevicePrimitiveIn3DGS{d_mean, d_quat, d_scale, d_opacity};
 
     // setup output gaussian
     auto const d_opacity_out = create_device_ptr<float>();

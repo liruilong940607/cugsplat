@@ -25,10 +25,10 @@ inline GSPLAT_HOST_DEVICE auto image_point_in_image_bounds_margin(
     const float MARGIN_X = resolution[0] * margin_factor;
     const float MARGIN_Y = resolution[1] * margin_factor;
     bool valid = true;
-    valid &= (-MARGIN_X) <= image_point[0] &&
-             image_point[0] < (resolution[0] + MARGIN_X);
-    valid &= (-MARGIN_Y) <= image_point[1] &&
-             image_point[1] < (resolution[1] + MARGIN_Y);
+    valid &=
+        (-MARGIN_X) <= image_point[0] && image_point[0] < (resolution[0] + MARGIN_X);
+    valid &=
+        (-MARGIN_Y) <= image_point[1] && image_point[1] < (resolution[1] + MARGIN_Y);
     return valid;
 }
 
@@ -41,8 +41,8 @@ inline GSPLAT_HOST_DEVICE auto interpolate_shutter_pose(
     const RotationType &pose_r_end,
     const glm::fvec3 &pose_t_end
 ) -> std::pair<RotationType, glm::fvec3> {
-    auto const pose_t_rs = (1.f - relative_frame_time) * pose_t_start +
-                           relative_frame_time * pose_t_end;
+    auto const pose_t_rs =
+        (1.f - relative_frame_time) * pose_t_start + relative_frame_time * pose_t_end;
     if constexpr (std::is_same_v<RotationType, glm::fquat>) {
         auto const pose_r_rs =
             glm::slerp(pose_r_start, pose_r_end, relative_frame_time);
@@ -115,9 +115,7 @@ inline GSPLAT_HOST_DEVICE auto world_ray_to_camera_ray(
 // Transform a point from world space to camera space
 template <class RotationType>
 inline GSPLAT_HOST_DEVICE auto world_point_to_camera_point(
-    const glm::fvec3 &world_point,
-    const RotationType &pose_r,
-    const glm::fvec3 &pose_t
+    const glm::fvec3 &world_point, const RotationType &pose_r, const glm::fvec3 &pose_t
 ) -> glm::fvec3 {
     if constexpr (std::is_same_v<RotationType, glm::fquat>) {
         return glm::rotate(pose_r, world_point) + pose_t;
@@ -135,9 +133,7 @@ inline GSPLAT_HOST_DEVICE auto world_point_to_camera_point(
 // Transform a point from camera space to world space
 template <class RotationType>
 inline GSPLAT_HOST_DEVICE auto camera_point_to_world_point(
-    const glm::fvec3 &camera_point,
-    const RotationType &pose_r,
-    const glm::fvec3 &pose_t
+    const glm::fvec3 &camera_point, const RotationType &pose_r, const glm::fvec3 &pose_t
 ) -> glm::fvec3 {
     if constexpr (std::is_same_v<RotationType, glm::fquat>) {
         return glm::rotate(glm::inverse(pose_r), camera_point) + pose_t;
@@ -155,9 +151,7 @@ inline GSPLAT_HOST_DEVICE auto camera_point_to_world_point(
 // Transform a covariance matrix from world space to camera space
 template <class RotationType>
 inline GSPLAT_HOST_DEVICE auto world_covar_to_camera_covar(
-    const glm::fmat3 &world_covar,
-    const RotationType &pose_r,
-    const glm::fvec3 &pose_t
+    const glm::fmat3 &world_covar, const RotationType &pose_r, const glm::fvec3 &pose_t
 ) -> glm::fmat3 {
     if constexpr (std::is_same_v<RotationType, glm::fquat>) {
         auto const R = glm::mat3_cast(pose_r);
@@ -212,10 +206,9 @@ struct CameraModel {
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution), projector(projector),
-          pose_r_start(pose_r_start), pose_t_start(pose_t_start),
-          margin_factor(margin_factor), near_plane(near_plane),
-          far_plane(far_plane) {}
+        : resolution(resolution), projector(projector), pose_r_start(pose_r_start),
+          pose_t_start(pose_t_start), margin_factor(margin_factor),
+          near_plane(near_plane), far_plane(far_plane) {}
 
     // Constructor for Rolling Shutter
     inline GSPLAT_HOST_DEVICE CameraModel(
@@ -230,9 +223,8 @@ struct CameraModel {
         const float near_plane = std::numeric_limits<float>::min(),
         const float far_plane = std::numeric_limits<float>::max()
     )
-        : resolution(resolution), projector(projector),
-          pose_r_start(pose_r_start), pose_t_start(pose_t_start),
-          pose_r_end(pose_r_end), pose_t_end(pose_t_end),
+        : resolution(resolution), projector(projector), pose_r_start(pose_r_start),
+          pose_t_start(pose_t_start), pose_r_end(pose_r_end), pose_t_end(pose_t_end),
           shutter_type(shutter_type), margin_factor(margin_factor),
           near_plane(near_plane), far_plane(far_plane) {}
 
@@ -379,9 +371,7 @@ struct CameraModel {
             image_point_rs = image_point_rs_;
             camera_point_rs = camera_point_rs_;
             if (!valid_rs) {
-                return {
-                    camera_point_rs, image_point_rs, false, pose_r_rs, pose_t_rs
-                };
+                return {camera_point_rs, image_point_rs, false, pose_r_rs, pose_t_rs};
             }
             // TODO: add early exit if the image point is not changing
         }
@@ -403,12 +393,10 @@ struct CameraModel {
             t = std::floor(image_point[0]) / (resolution[0] - 1);
             break;
         case ShutterType::ROLLING_BOTTOM_TO_TOP:
-            t = (resolution[1] - std::ceil(image_point[1])) /
-                (resolution[1] - 1);
+            t = (resolution[1] - std::ceil(image_point[1])) / (resolution[1] - 1);
             break;
         case ShutterType::ROLLING_RIGHT_TO_LEFT:
-            t = (resolution[0] - std::ceil(image_point[0])) /
-                (resolution[0] - 1);
+            t = (resolution[0] - std::ceil(image_point[0])) / (resolution[0] - 1);
             break;
         }
         return t;
@@ -431,9 +419,8 @@ struct CameraModel {
             return {glm::fvec3{}, glm::fvec2{}, false};
         }
 
-        auto const in_fov = image_point_in_image_bounds_margin(
-            image_point, resolution, margin_factor
-        );
+        auto const in_fov =
+            image_point_in_image_bounds_margin(image_point, resolution, margin_factor);
         if (!in_fov) {
             return {glm::fvec3{}, glm::fvec2{}, false};
         }

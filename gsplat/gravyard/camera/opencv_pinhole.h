@@ -46,8 +46,7 @@ struct OpencvPinholeProjection {
           radial_coeffs(radial_coeffs), tangential_coeffs(tangential_coeffs),
           thin_prism_coeffs(thin_prism_coeffs) {}
 
-    GSPLAT_HOST_DEVICE auto
-    camera_point_to_image_point(const glm::fvec3 &camera_point
+    GSPLAT_HOST_DEVICE auto camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
         auto const xy = glm::fvec2(camera_point) / camera_point.z;
 
@@ -141,8 +140,7 @@ struct OpencvPinholeProjection {
         if (is_perfect) {
             J_uv_xy = glm::fmat2{1.f, 0.f, 0.f, 1.f};
         } else {
-            auto const &[J_uv_xy_, icD, r2, valid_flag] =
-                jacobian_distortion(xy);
+            auto const &[J_uv_xy_, icD, r2, valid_flag] = jacobian_distortion(xy);
             if (!valid_flag)
                 return {glm::fmat3x2(0.f), false};
             J_uv_xy = J_uv_xy_;
@@ -182,8 +180,7 @@ struct OpencvPinholeProjection {
     // Where:
     //      icD_num = 1 + k1 * r2 + k2 * r4 + k3 * r6
     //      icD_den = 1 + k4 * r2 + k5 * r4 + k6 * r6
-    GSPLAT_HOST_DEVICE auto compute_icD(const float r2
-    ) -> std::pair<float, float> {
+    GSPLAT_HOST_DEVICE auto compute_icD(const float r2) -> std::pair<float, float> {
         auto const &[k1, k2, k3, k4, k5, k6] = this->radial_coeffs.get();
         auto const icD_num = eval_poly_horner<4>({1.f, k1, k2, k3}, r2);
         auto const icD_den = eval_poly_horner<4>({1.f, k4, k5, k6}, r2);
@@ -193,14 +190,11 @@ struct OpencvPinholeProjection {
     // Compute the gradient of the radial distortion factor icD w.r.t. r2
     // Where:
     //      r2 = x^2 + y^2
-    GSPLAT_HOST_DEVICE auto gradient_icD(
-        const float r2, const float icD_den, const float icD_num
-    ) -> float {
+    GSPLAT_HOST_DEVICE auto
+    gradient_icD(const float r2, const float icD_den, const float icD_num) -> float {
         auto const &[k1, k2, k3, k4, k5, k6] = this->radial_coeffs.get();
-        auto const d_icD_num =
-            eval_poly_horner<3>({k1, 2.f * k2, 3.f * k3}, r2);
-        auto const d_icD_den =
-            eval_poly_horner<3>({k4, 2.f * k5, 3.f * k6}, r2);
+        auto const d_icD_num = eval_poly_horner<3>({k1, 2.f * k2, 3.f * k3}, r2);
+        auto const d_icD_den = eval_poly_horner<3>({k4, 2.f * k5, 3.f * k6}, r2);
         auto const d_icD_dr2 =
             (d_icD_num * icD_den - icD_num * d_icD_den) / (icD_den * icD_den);
         return d_icD_dr2; // d(icD) / d(r2)
@@ -233,9 +227,7 @@ struct OpencvPinholeProjection {
         auto const d_delta_y_dx = p2y + p1x + xy[0] * d_sy_dr2;
         auto const d_delta_y_dy = p2x + p1y * 3.f + xy[1] * d_sy_dr2;
         // column-major order
-        return glm::fmat2{
-            d_delta_x_dx, d_delta_y_dx, d_delta_x_dy, d_delta_y_dy
-        };
+        return glm::fmat2{d_delta_x_dx, d_delta_y_dx, d_delta_x_dy, d_delta_y_dy};
     }
 
     // Compute the distortion: uv = icD * xy + delta
@@ -244,8 +236,7 @@ struct OpencvPinholeProjection {
         auto const r2 = glm::dot(xy, xy);
         auto const &[icD_num, icD_den] = compute_icD(r2);
         auto const icD = icD_num / icD_den;
-        auto const valid_flag =
-            (icD > min_radial_dist) && (icD < max_radial_dist);
+        auto const valid_flag = (icD > min_radial_dist) && (icD < max_radial_dist);
         if (!valid_flag)
             return {glm::fvec2{}, false};
         auto const delta = compute_delta(xy, r2);
@@ -257,8 +248,7 @@ struct OpencvPinholeProjection {
     GSPLAT_HOST_DEVICE auto compute_undistortion(const glm::fvec2 &uv
     ) -> std::pair<glm::fvec2, bool> {
         auto const &result = solver_newton<2, 20>(
-            [this,
-             &uv](const glm::fvec2 &xy) -> std::pair<glm::fvec2, glm::fmat2> {
+            [this, &uv](const glm::fvec2 &xy) -> std::pair<glm::fvec2, glm::fmat2> {
                 auto const &[J, icD, r2, valid_flag] = jacobian_distortion(xy);
                 if (!valid_flag)
                     return {glm::fvec2{}, glm::fmat2{}};
@@ -282,8 +272,7 @@ struct OpencvPinholeProjection {
         auto const r2 = glm::dot(xy, xy);
         auto const &[icD_num, icD_den] = compute_icD(r2);
         auto const icD = icD_num / icD_den;
-        auto const valid_flag =
-            (icD > min_radial_dist) && (icD < max_radial_dist);
+        auto const valid_flag = (icD > min_radial_dist) && (icD < max_radial_dist);
         if (!valid_flag)
             return {glm::fmat2(0.f), 0.f, 0.f, false};
 

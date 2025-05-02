@@ -20,25 +20,18 @@ int test_interpolate() {
         auto const transl2 = glm::fvec3(1.0f, 1.0f, 1.0f);
         auto const ratio = 0.5f;
 
-        auto const [rot, transl] =
-            interpolate(ratio, rot1, transl1, rot2, transl2);
+        auto const [rot, transl] = interpolate(ratio, rot1, transl1, rot2, transl2);
         auto const expected_rot =
             glm::fquat(0.707106781f, 0.707106781f, 0.0f, 0.0f); // 90° around x
         auto const expected_transl = glm::fvec3(0.5f, 0.5f, 0.5f);
 
-        if (!is_close(rot, expected_rot) ||
-            !is_close(transl, expected_transl)) {
+        if (!is_close(rot, expected_rot) || !is_close(transl, expected_transl)) {
             printf("\n=== Testing interpolate (quaternion) ===\n");
             printf("\n[FAIL] Test 1: Quaternion interpolation\n");
             printf("  Rot: %s\n", glm::to_string(rot).c_str());
-            printf(
-                "  Expected rot: %s\n", glm::to_string(expected_rot).c_str()
-            );
+            printf("  Expected rot: %s\n", glm::to_string(expected_rot).c_str());
             printf("  Transl: %s\n", glm::to_string(transl).c_str());
-            printf(
-                "  Expected transl: %s\n",
-                glm::to_string(expected_transl).c_str()
-            );
+            printf("  Expected transl: %s\n", glm::to_string(expected_transl).c_str());
             fails += 1;
         }
     }
@@ -73,8 +66,7 @@ int test_interpolate() {
         auto const transl2 = glm::fvec3(2.0f, 2.0f, 2.0f);
         auto const ratio = 0.5f;
 
-        auto const [rot, transl] =
-            interpolate(ratio, rot1, transl1, rot2, transl2);
+        auto const [rot, transl] = interpolate(ratio, rot1, transl1, rot2, transl2);
         // 90° rotation around y (column-major)
         auto const expected_rot = glm::fmat3(
             0.0f,
@@ -89,18 +81,12 @@ int test_interpolate() {
         ); // third column
         auto const expected_transl = glm::fvec3(1.0f, 1.0f, 1.0f);
 
-        if (!is_close(rot, expected_rot) ||
-            !is_close(transl, expected_transl)) {
+        if (!is_close(rot, expected_rot) || !is_close(transl, expected_transl)) {
             printf("\n[FAIL] Test 2: Matrix interpolation\n");
             printf("  Rot: %s\n", glm::to_string(rot).c_str());
-            printf(
-                "  Expected rot: %s\n", glm::to_string(expected_rot).c_str()
-            );
+            printf("  Expected rot: %s\n", glm::to_string(expected_rot).c_str());
             printf("  Transl: %s\n", glm::to_string(transl).c_str());
-            printf(
-                "  Expected transl: %s\n",
-                glm::to_string(expected_transl).c_str()
-            );
+            printf("  Expected transl: %s\n", glm::to_string(expected_transl).c_str());
             fails += 1;
         }
     }
@@ -347,20 +333,12 @@ int test_transform_ray() {
             !is_close(transformed_d, expected_d)) {
             printf("\n=== Testing transform_ray (quaternion) ===\n");
             printf("\n[FAIL] Test 1: Quaternion transform\n");
+            printf("  Transformed origin: %s\n", glm::to_string(transformed_o).c_str());
+            printf("  Expected origin: %s\n", glm::to_string(expected_o).c_str());
             printf(
-                "  Transformed origin: %s\n",
-                glm::to_string(transformed_o).c_str()
+                "  Transformed direction: %s\n", glm::to_string(transformed_d).c_str()
             );
-            printf(
-                "  Expected origin: %s\n", glm::to_string(expected_o).c_str()
-            );
-            printf(
-                "  Transformed direction: %s\n",
-                glm::to_string(transformed_d).c_str()
-            );
-            printf(
-                "  Expected direction: %s\n", glm::to_string(expected_d).c_str()
-            );
+            printf("  Expected direction: %s\n", glm::to_string(expected_d).c_str());
             fails += 1;
         }
     }
@@ -390,20 +368,12 @@ int test_transform_ray() {
         if (!is_close(transformed_o, expected_o) ||
             !is_close(transformed_d, expected_d)) {
             printf("\n[FAIL] Test 2: Matrix transform\n");
+            printf("  Transformed origin: %s\n", glm::to_string(transformed_o).c_str());
+            printf("  Expected origin: %s\n", glm::to_string(expected_o).c_str());
             printf(
-                "  Transformed origin: %s\n",
-                glm::to_string(transformed_o).c_str()
+                "  Transformed direction: %s\n", glm::to_string(transformed_d).c_str()
             );
-            printf(
-                "  Expected origin: %s\n", glm::to_string(expected_o).c_str()
-            );
-            printf(
-                "  Transformed direction: %s\n",
-                glm::to_string(transformed_d).c_str()
-            );
-            printf(
-                "  Expected direction: %s\n", glm::to_string(expected_d).c_str()
-            );
+            printf("  Expected direction: %s\n", glm::to_string(expected_d).c_str());
             fails += 1;
         }
     }
@@ -432,20 +402,12 @@ int test_invtransform_ray() {
             !is_close(transformed_d, expected_d)) {
             printf("\n=== Testing invtransform_ray (quaternion) ===\n");
             printf("\n[FAIL] Test 1: Quaternion inverse transform\n");
+            printf("  Transformed origin: %s\n", glm::to_string(transformed_o).c_str());
+            printf("  Expected origin: %s\n", glm::to_string(expected_o).c_str());
             printf(
-                "  Transformed origin: %s\n",
-                glm::to_string(transformed_o).c_str()
+                "  Transformed direction: %s\n", glm::to_string(transformed_d).c_str()
             );
-            printf(
-                "  Expected origin: %s\n", glm::to_string(expected_o).c_str()
-            );
-            printf(
-                "  Transformed direction: %s\n",
-                glm::to_string(transformed_d).c_str()
-            );
-            printf(
-                "  Expected direction: %s\n", glm::to_string(expected_d).c_str()
-            );
+            printf("  Expected direction: %s\n", glm::to_string(expected_d).c_str());
             fails += 1;
         }
     }
@@ -475,20 +437,12 @@ int test_invtransform_ray() {
         if (!is_close(transformed_o, expected_o) ||
             !is_close(transformed_d, expected_d)) {
             printf("\n[FAIL] Test 2: Matrix inverse transform\n");
+            printf("  Transformed origin: %s\n", glm::to_string(transformed_o).c_str());
+            printf("  Expected origin: %s\n", glm::to_string(expected_o).c_str());
             printf(
-                "  Transformed origin: %s\n",
-                glm::to_string(transformed_o).c_str()
+                "  Transformed direction: %s\n", glm::to_string(transformed_d).c_str()
             );
-            printf(
-                "  Expected origin: %s\n", glm::to_string(expected_o).c_str()
-            );
-            printf(
-                "  Transformed direction: %s\n",
-                glm::to_string(transformed_d).c_str()
-            );
-            printf(
-                "  Expected direction: %s\n", glm::to_string(expected_d).c_str()
-            );
+            printf("  Expected direction: %s\n", glm::to_string(expected_d).c_str());
             fails += 1;
         }
     }

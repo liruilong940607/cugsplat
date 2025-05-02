@@ -11,8 +11,7 @@
 namespace gsplat {
 
 template <typename T, size_t N>
-inline GSPLAT_HOST_DEVICE std::array<T, N>
-make_array(const T *ptr, size_t offset = 0) {
+inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
     std::array<T, N> arr{}; // zero-initialize
     if (!ptr) {
         return arr;

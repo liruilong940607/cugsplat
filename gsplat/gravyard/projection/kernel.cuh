@@ -105,8 +105,7 @@ __global__ void PreprocessFwdKernel(
     d_primitives_in.shift_ptr(pidx);
 
     // Preprocess the primitive
-    auto const &[primitive_out, valid_flag] =
-        op.forward(d_camera, d_primitives_in);
+    auto const &[primitive_out, valid_flag] = op.forward(d_camera, d_primitives_in);
 
     if constexpr (PACKED) {
         auto const block_idx = blockIdx.y * gridDim.x + blockIdx.x;
@@ -116,8 +115,7 @@ __global__ void PreprocessFwdKernel(
             // will be output by this block of threads.
             uint32_t aggregate = 0;
             if (__syncthreads_or(thread_data)) {
-                typedef cub::BlockReduce<uint32_t, THREADS_PER_BLOCK>
-                    BlockReduce;
+                typedef cub::BlockReduce<uint32_t, THREADS_PER_BLOCK> BlockReduce;
                 __shared__ typename BlockReduce::TempStorage temp_storage;
                 aggregate = BlockReduce(temp_storage).Sum(thread_data);
             }
@@ -202,9 +200,8 @@ __global__ void PreprocessBwdKernel(
     d_primitives_out_grad.shift_ptr(oidx);
 
     // Preprocess the primitive.
-    auto const &[primitive_in_grad, camera_grad, valid_flag] = op.backward(
-        d_camera, d_primitives_in, d_primitives_out, d_primitives_out_grad
-    );
+    auto const &[primitive_in_grad, camera_grad, valid_flag] =
+        op.backward(d_camera, d_primitives_in, d_primitives_out, d_primitives_out_grad);
 
     if (valid_flag) {
         // Write out results with warp-level reduction

@@ -32,9 +32,7 @@ template <typename MatT, std::enable_if_t<is_glm_mat<MatT>::value, int> = 0>
 MatT tensor_to_glm(const torch::MaybeCached &tensor) {
     constexpr int Cols = MatT::length();
     constexpr int Rows = MatT::col_type::length();
-    assert(
-        tensor.dim() == 2 && tensor.size(0) == Rows && tensor.size(1) == Cols
-    );
+    assert(tensor.dim() == 2 && tensor.size(0) == Rows && tensor.size(1) == Cols);
 
     MatT mat;
     auto acc = tensor.accessor<float, 2>();

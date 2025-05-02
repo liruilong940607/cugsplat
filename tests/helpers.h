@@ -33,8 +33,7 @@ bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
                          std::is_same_v<T, glm::fmat4>) {
         for (int i = 0; i < T::length(); ++i) {
             for (int j = 0; j < T::col_type::length(); ++j) {
-                if (std::abs(a[i][j] - b[i][j]) >
-                    atol + rtol * std::abs(b[i][j])) {
+                if (std::abs(a[i][j] - b[i][j]) > atol + rtol * std::abs(b[i][j])) {
                     return false;
                 }
             }

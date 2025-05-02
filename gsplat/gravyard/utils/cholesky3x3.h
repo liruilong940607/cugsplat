@@ -89,8 +89,7 @@ cholesky_Linv_vjp(const glm::fmat3 &L, const glm::fmat3 &v_Linv) {
 }
 
 // Compute Cholesky decomposition: A = LLᵀ
-inline GSPLAT_HOST_DEVICE std::pair<glm::fmat3, bool>
-cholesky(const glm::fmat3 &A) {
+inline GSPLAT_HOST_DEVICE std::pair<glm::fmat3, bool> cholesky(const glm::fmat3 &A) {
     glm::fmat3 L(0.0f);
     constexpr double eps = 1e-10;
 

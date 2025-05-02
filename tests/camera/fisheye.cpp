@@ -21,8 +21,7 @@ auto test_distortion() -> int {
         auto const expected_distorted = theta;
         auto const expected_jac = 1.0f;
 
-        if (!is_close(distorted, expected_distorted) ||
-            !is_close(jac, expected_jac)) {
+        if (!is_close(distorted, expected_distorted) || !is_close(jac, expected_jac)) {
             printf("\n=== Testing distortion ===\n");
             printf("\n[FAIL] Test 1: No distortion\n");
             printf("  Distorted: %f\n", distorted);
@@ -42,8 +41,7 @@ auto test_distortion() -> int {
         auto const expected_distorted = theta * (1.0f + 0.1f * theta * theta);
         auto const expected_jac = 1.0f + 3.0f * 0.1f * theta * theta;
 
-        if (!is_close(distorted, expected_distorted) ||
-            !is_close(jac, expected_jac)) {
+        if (!is_close(distorted, expected_distorted) || !is_close(jac, expected_jac)) {
             printf("\n[FAIL] Test 2: Simple distortion\n");
             printf("  Distorted: %f\n", distorted);
             printf("  Expected distorted: %f\n", expected_distorted);
@@ -117,8 +115,7 @@ auto test_monotonic_max_theta() -> int {
 
     // Test case 2: Simple distortion
     {
-        auto const radial_coeffs =
-            std::array<float, 4>{-0.1f, 0.0f, 0.0f, 0.0f};
+        auto const radial_coeffs = std::array<float, 4>{-0.1f, 0.0f, 0.0f, 0.0f};
         auto const max_theta = monotonic_max_theta(radial_coeffs);
         // For f'(theta) = 1 + 3*k1*theta^2 = 0
         // theta = sqrt(-1/(3*k1))
@@ -144,8 +141,7 @@ auto test_project() -> int {
         auto const camera_point = glm::fvec3(0.0f, 0.0f, 1.0f);
         auto const focal_length = glm::fvec2(100.0f, 100.0f);
         auto const principal_point = glm::fvec2(320.0f, 240.0f);
-        auto const image_point =
-            project(camera_point, focal_length, principal_point);
+        auto const image_point = project(camera_point, focal_length, principal_point);
         auto const expected = principal_point;
 
         if (!is_close(image_point, expected)) {
@@ -162,12 +158,11 @@ auto test_project() -> int {
         auto const camera_point = glm::fvec3(1.0f, 1.0f, 1.0f);
         auto const focal_length = glm::fvec2(100.0f, 100.0f);
         auto const principal_point = glm::fvec2(320.0f, 240.0f);
-        auto const image_point =
-            project(camera_point, focal_length, principal_point);
+        auto const image_point = project(camera_point, focal_length, principal_point);
         auto const r = std::sqrt(2.0f);
         auto const theta = std::atan(r);
-        auto const expected = principal_point + focal_length * (theta / r) *
-                                                    glm::fvec2(1.0f, 1.0f);
+        auto const expected =
+            principal_point + focal_length * (theta / r) * glm::fvec2(1.0f, 1.0f);
 
         if (!is_close(image_point, expected, 1e-4f)) {
             printf("\n[FAIL] Test 2: Point at 45 degrees\n");
@@ -215,8 +210,8 @@ auto test_project_distorted() -> int {
         auto const r = std::sqrt(2.0f);
         auto const theta = std::atan(r);
         auto const theta_d = distortion(theta, radial_coeffs);
-        auto const expected = principal_point + focal_length * (theta_d / r) *
-                                                    glm::fvec2(1.0f, 1.0f);
+        auto const expected =
+            principal_point + focal_length * (theta_d / r) * glm::fvec2(1.0f, 1.0f);
 
         if (!valid || !is_close(image_point, expected, 1e-4f)) {
             printf("\n[FAIL] Test 2: Point at 45 degrees\n");
@@ -284,9 +279,8 @@ auto test_unproject_distorted() -> int {
         auto const focal_length = glm::fvec2(100.0f, 100.0f);
         auto const principal_point = glm::fvec2(320.0f, 240.0f);
         auto const radial_coeffs = std::array<float, 4>{0.1f, 0.0f, 0.0f, 0.0f};
-        auto const [dir, valid] = unproject(
-            image_point, focal_length, principal_point, radial_coeffs
-        );
+        auto const [dir, valid] =
+            unproject(image_point, focal_length, principal_point, radial_coeffs);
         auto const expected = glm::fvec3(0.0f, 0.0f, 1.0f);
 
         if (!valid || !is_close(dir, expected)) {
@@ -310,9 +304,8 @@ auto test_unproject_distorted() -> int {
             glm::fvec2(100.0f, 100.0f) * (theta_d / r) * glm::fvec2(1.0f, 1.0f);
         auto const focal_length = glm::fvec2(100.0f, 100.0f);
         auto const principal_point = glm::fvec2(320.0f, 240.0f);
-        auto const [dir, valid] = unproject(
-            image_point, focal_length, principal_point, radial_coeffs
-        );
+        auto const [dir, valid] =
+            unproject(image_point, focal_length, principal_point, radial_coeffs);
         auto const expected = glm::normalize(glm::fvec3(1.0f, 1.0f, 1.0f));
 
         if (!valid || !is_close(dir, expected, 1e-4f)) {

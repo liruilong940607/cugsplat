@@ -29,9 +29,8 @@ struct PreprocessOperator3DGS {
     glm::fvec2 radius;
 
     template <class CameraProjection, class CameraPose, class Gaussian>
-    inline GSPLAT_HOST_DEVICE bool forward(
-        CameraModel<CameraProjection, CameraPose> &camera, Gaussian &gaussian
-    ) {
+    inline GSPLAT_HOST_DEVICE bool
+    forward(CameraModel<CameraProjection, CameraPose> &camera, Gaussian &gaussian) {
         // Compute projected center.
         auto const world_point = gaussian.get_mean();
         auto const &[camera_point, image_point, point_valid_flag, pose] =
@@ -57,8 +56,7 @@ struct PreprocessOperator3DGS {
         auto const temp =
             glm::fvec2(glm::compAdd(f * M0 * M0), glm::compAdd(f * M1 * M1));
         auto const half_extend = center * center - temp;
-        auto const radius =
-            3.33f * glm::sqrt(glm::max(fvec2(1e-4f), half_extend));
+        auto const radius = 3.33f * glm::sqrt(glm::max(fvec2(1e-4f), half_extend));
 
         // Check again if the gaussian is outside the image plane
         auto const &[render_width, render_height] = camera.resolution;

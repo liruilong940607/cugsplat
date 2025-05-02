@@ -19,13 +19,11 @@ auto test_point_world_to_image_quat() -> int {
         auto const pose_r_start =
             glm::fquat(1.0f, 0.0f, 0.0f, 0.0f); // Identity rotation
         auto const pose_t_start = glm::fvec3(0.0f, 0.0f, 0.0f);
-        auto const pose_r_end =
-            glm::fquat(1.0f, 0.0f, 0.0f, 0.0f); // Identity rotation
+        auto const pose_r_end = glm::fquat(1.0f, 0.0f, 0.0f, 0.0f); // Identity rotation
         auto const pose_t_end = glm::fvec3(0.0f, 0.0f, 0.0f);
 
         // Simple projection function that just divides by z
-        auto project_fn = [](const glm::fvec3 &p
-                          ) -> std::pair<glm::fvec2, bool> {
+        auto project_fn = [](const glm::fvec3 &p) -> std::pair<glm::fvec2, bool> {
             return {glm::fvec2(p.x / p.z, p.y / p.z), true};
         };
 
@@ -59,8 +57,7 @@ auto test_point_world_to_image_quat() -> int {
         auto const pose_t_end = glm::fvec3(0.0f, 0.0f, 0.0f);
 
         // Simple projection function that just divides by z
-        auto project_fn = [](const glm::fvec3 &p
-                          ) -> std::pair<glm::fvec2, bool> {
+        auto project_fn = [](const glm::fvec3 &p) -> std::pair<glm::fvec2, bool> {
             return {glm::fvec2(p.x / p.z, p.y / p.z), true};
         };
 
@@ -82,9 +79,8 @@ auto test_point_world_to_image_quat() -> int {
             fails += 1;
         } else {
             // Check if the result is reasonable
-            auto const t = relative_frame_time(
-                result.image_point, resolution, shutter_type
-            );
+            auto const t =
+                relative_frame_time(result.image_point, resolution, shutter_type);
             auto const &[pose_r_rs, pose_t_rs] = gsplat::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
@@ -94,12 +90,8 @@ auto test_point_world_to_image_quat() -> int {
                 printf("\n[FAIL] Test 2: Rolling shutter result incorrect\n");
                 printf("  Expected r: %s\n", glm::to_string(pose_r_rs).c_str());
                 printf("  Expected t: %s\n", glm::to_string(pose_t_rs).c_str());
-                printf(
-                    "  Result r: %s\n", glm::to_string(result.pose_r).c_str()
-                );
-                printf(
-                    "  Result t: %s\n", glm::to_string(result.pose_t).c_str()
-                );
+                printf("  Result r: %s\n", glm::to_string(result.pose_r).c_str());
+                printf("  Result t: %s\n", glm::to_string(result.pose_t).c_str());
                 fails += 1;
             }
         }
@@ -122,8 +114,7 @@ auto test_point_world_to_image_mat() -> int {
         auto const pose_t_end = glm::fvec3(0.0f, 0.0f, 0.0f);
 
         // Simple projection function that just divides by z
-        auto project_fn = [](const glm::fvec3 &p
-                          ) -> std::pair<glm::fvec2, bool> {
+        auto project_fn = [](const glm::fvec3 &p) -> std::pair<glm::fvec2, bool> {
             return {glm::fvec2(p.x / p.z, p.y / p.z), true};
         };
 
@@ -157,8 +148,7 @@ auto test_point_world_to_image_mat() -> int {
         auto const pose_t_end = glm::fvec3(0.0f, 0.0f, 0.0f);
 
         // Simple projection function that just divides by z
-        auto project_fn = [](const glm::fvec3 &p
-                          ) -> std::pair<glm::fvec2, bool> {
+        auto project_fn = [](const glm::fvec3 &p) -> std::pair<glm::fvec2, bool> {
             return {glm::fvec2(p.x / p.z, p.y / p.z), true};
         };
         auto const shutter_type = Type::ROLLING_LEFT_TO_RIGHT;
@@ -179,9 +169,8 @@ auto test_point_world_to_image_mat() -> int {
             fails += 1;
         } else {
             // Check if the result is reasonable
-            auto const t = relative_frame_time(
-                result.image_point, resolution, shutter_type
-            );
+            auto const t =
+                relative_frame_time(result.image_point, resolution, shutter_type);
             auto const &[pose_r_rs, pose_t_rs] = gsplat::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
@@ -191,12 +180,8 @@ auto test_point_world_to_image_mat() -> int {
                 printf("\n[FAIL] Test 2: Rolling shutter result incorrect\n");
                 printf("  Expected r: %s\n", glm::to_string(pose_r_rs).c_str());
                 printf("  Expected t: %s\n", glm::to_string(pose_t_rs).c_str());
-                printf(
-                    "  Result r: %s\n", glm::to_string(result.pose_r).c_str()
-                );
-                printf(
-                    "  Result t: %s\n", glm::to_string(result.pose_t).c_str()
-                );
+                printf("  Result r: %s\n", glm::to_string(result.pose_r).c_str());
+                printf("  Result t: %s\n", glm::to_string(result.pose_t).c_str());
                 fails += 1;
             }
         }

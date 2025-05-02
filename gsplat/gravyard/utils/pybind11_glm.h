@@ -15,8 +15,7 @@ template <typename T> struct glm_vec_caster;
 template <typename T> struct glm_mat_caster;
 
 // ---------- Vector Caster ----------
-template <glm::length_t L>
-struct glm_vec_caster<glm::vec<L, float, glm::defaultp>> {
+template <glm::length_t L> struct glm_vec_caster<glm::vec<L, float, glm::defaultp>> {
     using glm_type = glm::vec<L, float, glm::defaultp>;
 
     static constexpr auto type_name() {

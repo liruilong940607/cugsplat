@@ -26,8 +26,7 @@ struct OrthogonalProjection {
     )
         : focal_length(focal_length), principal_point(principal_point) {}
 
-    GSPLAT_HOST_DEVICE auto
-    camera_point_to_image_point(const glm::fvec3 &camera_point
+    GSPLAT_HOST_DEVICE auto camera_point_to_image_point(const glm::fvec3 &camera_point
     ) -> std::pair<glm::fvec2, bool> {
         auto const xy = glm::fvec2(camera_point);
         auto const focal_length = this->focal_length.get();

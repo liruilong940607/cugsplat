@@ -109,8 +109,7 @@ int test_quadratic_minimal_positive() {
 
     // Test case 1: Simple quadratic equation
     {
-        auto const poly =
-            std::array<float, 3>{-3.0f, 2.0f, 1.0f}; // -3 + 2x + x^2 = 0
+        auto const poly = std::array<float, 3>{-3.0f, 2.0f, 1.0f}; // -3 + 2x + x^2 = 0
         auto const root = quadratic_minimal_positive(poly, 0.0f, -1.0f);
         if (!is_close(root, 1.0f)) {
             printf("\n=== Testing quadratic_minimal_positive ===\n");
@@ -123,8 +122,7 @@ int test_quadratic_minimal_positive() {
 
     // Test case 2: No positive root
     {
-        auto const poly =
-            std::array<float, 3>{3.0f, 2.0f, 1.0f}; // 3 + 2x + x^2 = 0
+        auto const poly = std::array<float, 3>{3.0f, 2.0f, 1.0f}; // 3 + 2x + x^2 = 0
         auto const root = quadratic_minimal_positive(poly, 0.0f, -1.0f);
         if (root != -1.0f) {
             printf("\n[FAIL] Test 2: No positive root\n");
@@ -142,9 +140,8 @@ int test_cubic_minimal_positive() {
 
     // Test case 1: Simple cubic equation
     {
-        auto const poly = std::array<float, 4>{
-            -6.0f, 11.0f, -6.0f, 1.0f
-        }; // (x-1)(x-2)(x-3) = 0
+        auto const poly =
+            std::array<float, 4>{-6.0f, 11.0f, -6.0f, 1.0f}; // (x-1)(x-2)(x-3) = 0
         auto const root = cubic_minimal_positive(poly, 0.0f, -1.0f);
         if (!is_close(root, 1.0f)) {
             printf("\n=== Testing cubic_minimal_positive ===\n");
@@ -157,9 +154,8 @@ int test_cubic_minimal_positive() {
 
     // Test case 2: No positive root
     {
-        auto const poly = std::array<float, 4>{
-            6.0f, 11.0f, 6.0f, 1.0f
-        }; // (x+1)(x+2)(x+3) = 0
+        auto const poly =
+            std::array<float, 4>{6.0f, 11.0f, 6.0f, 1.0f}; // (x+1)(x+2)(x+3) = 0
         auto const root = cubic_minimal_positive(poly, 0.0f, -1.0f);
         if (root != -1.0f) {
             printf("\n[FAIL] Test 2: No positive root\n");
@@ -180,8 +176,7 @@ int test_polyN_minimal_positive_newton() {
         auto const poly = std::array<float, 5>{
             -24.0f, 50.0f, -35.0f, 10.0f, -1.0f
         }; // (x-1)(x-2)(x-3)(x-4) = 0
-        auto const root =
-            polyN_minimal_positive_newton<10>(poly, 0.0f, 0.5f, -1.0f);
+        auto const root = polyN_minimal_positive_newton<10>(poly, 0.0f, 0.5f, -1.0f);
         if (!is_close(root, 1.0f)) {
             printf("\n=== Testing polyN_minimal_positive_newton ===\n");
             printf("\n[FAIL] Test 1: Quartic equation\n");
@@ -195,8 +190,7 @@ int test_polyN_minimal_positive_newton() {
     {
         auto const poly =
             std::array<float, 5>{1.0f, 0.0f, 0.0f, 0.0f, 1.0f}; // 1 + x^4 = 0
-        auto const root =
-            polyN_minimal_positive_newton<10>(poly, 0.0f, 1.0f, -1.0f);
+        auto const root = polyN_minimal_positive_newton<10>(poly, 0.0f, 1.0f, -1.0f);
         if (root != -1.0f) {
             printf("\n[FAIL] Test 2: No convergence\n");
             printf("  Root: %f\n", root);

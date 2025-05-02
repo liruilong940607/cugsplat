@@ -13,19 +13,16 @@
 namespace gsplat::fisheye {
 
 // Compute the radial distortion: theta -> theta_d
-GSPLAT_HOST_DEVICE inline auto distortion(
-    float const &theta, std::array<float, 4> const &radial_coeffs
-) -> float {
+GSPLAT_HOST_DEVICE inline auto
+distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return theta *
-           gsplat::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
+    return theta * gsplat::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
 }
 
 // Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
-GSPLAT_HOST_DEVICE inline auto distortion_jac(
-    float const &theta, std::array<float, 4> const &radial_coeffs
-) -> float {
+GSPLAT_HOST_DEVICE inline auto
+distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
     return gsplat::math::eval_poly_horner<5>(
@@ -188,8 +185,7 @@ GSPLAT_HOST_DEVICE inline auto unproject(
         return {glm::fvec3{0.f, 0.f, 1.f}, true};
     }
 
-    auto const &[theta, valid_flag] =
-        undistortion(theta_d, radial_coeffs, max_theta);
+    auto const &[theta, valid_flag] = undistortion(theta_d, radial_coeffs, max_theta);
     if (!valid_flag) {
         return {glm::fvec3{}, false};
     }
