@@ -38,14 +38,12 @@ template <size_t N_ITER = 20>
 GSPLAT_HOST_DEVICE auto undistortion(
     float const &theta_d,
     std::array<float, 4> const &radial_coeffs,
-    float const &min_theta = 0.f,
     float const &max_theta = std::numeric_limits<float>::max()
 ) -> std::pair<float, bool> {
     // define the residual and Jacobian of the equation
-    auto const func = [&theta_d, &radial_coeffs, &min_theta, &max_theta](
-                          const float &theta
+    auto const func = [&theta_d, &radial_coeffs, &max_theta](const float &theta
                       ) -> std::pair<float, float> {
-        auto const valid_flag = (theta >= min_theta) && (theta <= max_theta);
+        auto const valid_flag = theta <= max_theta;
         if (!valid_flag)
             return {float{}, float{}};
         auto const J = distortion_jac(theta, radial_coeffs);
@@ -81,4 +79,106 @@ GSPLAT_HOST_DEVICE auto monotonic_max_theta(
     return x2 == INF ? INF : std::sqrt(x2);
 }
 
+// Project the point from camera space to image space (perfect fisheye)
+// Returns projected image point.
+GSPLAT_HOST_DEVICE auto project(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    float const &min_2d_norm = 1e-6f
+) -> glm::fvec2 {
+    auto const xy = glm::fvec2(camera_point) / camera_point.z;
+    auto const r = numerically_stable_norm2(xy[0], xy[1]);
+    glm::fvec2 uv;
+    if (r < min_2d_norm) {
+        // For points at the image center, there is no distortion
+        uv = xy;
+    } else {
+        auto const theta = std::atan(r);
+        uv = theta / r * xy;
+    }
+    auto const image_point = focal_length * uv + principal_point;
+    return image_point;
+}
+
+// Project the point from camera space to image space (distorted fisheye)
+// Returns the image point and a flag indicating if the projection is valid
+GSPLAT_HOST_DEVICE auto project(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    std::array<float, 4> const &radial_coeffs,
+    float const &min_2d_norm = 1e-6f,
+    float const &max_theta = std::numeric_limits<float>::max()
+) -> std::pair<glm::fvec2, bool> {
+    auto const xy = glm::fvec2(camera_point) / camera_point.z;
+    auto const r = numerically_stable_norm2(xy[0], xy[1]);
+    glm::fvec2 uv;
+    if (r < min_2d_norm) {
+        // For points at the image center, there is no distortion
+        uv = xy;
+    } else {
+        auto const theta = std::atan(r);
+        if (theta > max_theta) {
+            // Theta is too large, might be in the invalid region
+            return {glm::fvec2{}, false};
+        }
+        auto const theta_d = distortion(theta, radial_coeffs);
+        uv = theta_d / r * xy;
+    }
+    auto const image_point = focal_length * uv + principal_point;
+    return {image_point, true};
+}
+
+// Unproject the point from image space to camera space (perfect fisheye)
+// Returns the normalized ray direction.
+GSPLAT_HOST_DEVICE auto unproject(
+    glm::fvec2 const &image_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    float const &min_2d_norm = 1e-6f
+) -> glm::fvec3 {
+    auto const uv = (image_point - principal_point) / focal_length;
+    auto const theta = sqrtf(glm::dot(uv, uv));
+
+    if (theta < min_2d_norm) {
+        // For points at the image center, the ray direction is
+        // simply pointing forward.
+        return glm::fvec3{0.f, 0.f, 1.f};
+    }
+
+    auto const xy = std::sin(theta) / theta * uv;
+    auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
+    return dir;
+}
+
+// Unproject the point from image space to camera space (distorted fisheye)
+// Returns the normalized ray direction and a flag indicating if the
+// unprojection is valid
+GSPLAT_HOST_DEVICE auto unproject(
+    glm::fvec2 const &image_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    std::array<float, 4> const &radial_coeffs,
+    float const &min_2d_norm = 1e-6f,
+    float const &max_theta = std::numeric_limits<float>::max()
+) -> std::pair<glm::fvec3, bool> {
+    auto const uv = (image_point - principal_point) / focal_length;
+    auto const theta_d = sqrtf(glm::dot(uv, uv));
+
+    if (theta_d < min_2d_norm) {
+        // For points at the image center, the ray direction is
+        // simply pointing forward.
+        return {glm::fvec3{0.f, 0.f, 1.f}, true};
+    }
+
+    auto const &[theta, valid_flag] =
+        undistortion(theta_d, radial_coeffs, max_theta);
+    if (!valid_flag) {
+        return {glm::fvec3{}, false};
+    }
+
+    auto const xy = std::sin(theta) / theta * uv;
+    auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
+    return {dir, true};
 } // namespace gsplat::fisheye
