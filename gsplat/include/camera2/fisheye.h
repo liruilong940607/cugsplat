@@ -13,7 +13,7 @@
 namespace gsplat::fisheye {
 
 // Compute the radial distortion: theta -> theta_d
-GSPLAT_HOST_DEVICE auto distortion(
+GSPLAT_HOST_DEVICE inline auto distortion(
     float const &theta, std::array<float, 4> const &radial_coeffs
 ) -> float {
     auto const theta2 = theta * theta;
@@ -22,7 +22,7 @@ GSPLAT_HOST_DEVICE auto distortion(
 }
 
 // Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
-GSPLAT_HOST_DEVICE auto distortion_jac(
+GSPLAT_HOST_DEVICE inline auto distortion_jac(
     float const &theta, std::array<float, 4> const &radial_coeffs
 ) -> float {
     auto const theta2 = theta * theta;
@@ -34,7 +34,7 @@ GSPLAT_HOST_DEVICE auto distortion_jac(
 
 // Compute the inverse radial distortion: theta_d -> theta
 template <size_t N_ITER = 20>
-GSPLAT_HOST_DEVICE auto undistortion(
+GSPLAT_HOST_DEVICE inline auto undistortion(
     float const &theta_d,
     std::array<float, 4> const &radial_coeffs,
     float const &max_theta = std::numeric_limits<float>::max()
@@ -56,7 +56,7 @@ GSPLAT_HOST_DEVICE auto undistortion(
 // Compute the maximum theta such that [0, max_theta] is monotonicly
 // increasing.
 template <size_t N_ITER = 20>
-GSPLAT_HOST_DEVICE auto monotonic_max_theta(
+GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     std::array<float, 4> const &radial_coeffs, float guess = 1.57f
 ) -> float {
     // The distortion function is
@@ -80,7 +80,7 @@ GSPLAT_HOST_DEVICE auto monotonic_max_theta(
 
 // Project the point from camera space to image space (perfect fisheye)
 // Returns projected image point.
-GSPLAT_HOST_DEVICE auto project(
+GSPLAT_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -101,7 +101,7 @@ GSPLAT_HOST_DEVICE auto project(
 }
 
 // Compute the Jacobian of the projection: J = d(image_point) / d(camera_point)
-GSPLAT_HOST_DEVICE auto project_jac(
+GSPLAT_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -113,7 +113,7 @@ GSPLAT_HOST_DEVICE auto project_jac(
 
 // Project the point from camera space to image space (distorted fisheye)
 // Returns the image point and a flag indicating if the projection is valid
-GSPLAT_HOST_DEVICE auto project(
+GSPLAT_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -142,7 +142,7 @@ GSPLAT_HOST_DEVICE auto project(
 
 // Unproject the point from image space to camera space (perfect fisheye)
 // Returns the normalized ray direction.
-GSPLAT_HOST_DEVICE auto unproject(
+GSPLAT_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -165,7 +165,7 @@ GSPLAT_HOST_DEVICE auto unproject(
 // Unproject the point from image space to camera space (distorted fisheye)
 // Returns the normalized ray direction and a flag indicating if the
 // unprojection is valid
-GSPLAT_HOST_DEVICE auto unproject(
+GSPLAT_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
