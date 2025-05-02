@@ -72,7 +72,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
 
     // Always perform transformation using start pose
     auto const camera_point_start =
-        se3::transform_point(pose_r_start, pose_t_start, world_point);
+        gsplat::se3::transform_point(pose_r_start, pose_t_start, world_point);
     auto const &[image_point_start, valid_flag_start] =
         project_fn(camera_point_start);
     if (shutter_type == Type::GLOBAL) {
@@ -85,7 +85,7 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
         init_image_point = image_point_start;
     } else {
         auto const camera_point_end =
-            se3::transform_point(pose_r_end, pose_t_end, world_point);
+            gsplat::se3::transform_point(pose_r_end, pose_t_end, world_point);
         auto const &[image_point_end, valid_flag_end] =
             project_fn(camera_point_end);
         if (valid_flag_end) {
@@ -105,11 +105,11 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     for (auto j = 0; j < N_ITER; ++j) {
         auto const t =
             relative_frame_time(image_point, resolution, shutter_type);
-        std::tie(pose_r_rs, pose_t_rs) = se3::interpolate(
+        std::tie(pose_r_rs, pose_t_rs) = gsplat::se3::interpolate(
             t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
         );
         camera_point_rs =
-            se3::transform_point(pose_r_rs, pose_t_rs, world_point);
+            gsplat::se3::transform_point(pose_r_rs, pose_t_rs, world_point);
         std::tie(image_point_rs, valid_flag_rs) = project_fn(camera_point_rs);
         if (!valid_flag_rs) {
             return PointWorldToImageResult{};
