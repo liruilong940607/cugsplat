@@ -1,5 +1,17 @@
 # Development Guide
 
+## Build
+
+Simplly `bash build.sh`
+
+## Run Tests
+
+After build, you will find test executables under `build/tests`. You can run any of them in bash, for example:
+
+```bash
+./build/tests/core/math
+```
+
 ## Formatting
 
 This project uses automatic code formatting before each commit. The formatting is enforced through Git hooks.
