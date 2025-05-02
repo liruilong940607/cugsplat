@@ -195,14 +195,31 @@ inline GSPLAT_HOST_DEVICE float solver_cubic_minimal_positive(
 // using newton method and return the minimal positive root.
 // If no positive root exists or netwon does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float solver_poly_minimal_positive_newton(
+inline GSPLAT_HOST_DEVICE float solver_polyN_minimal_positive_newton(
     std::array<float, N_COEFFS> const &poly,
     float y,
     float guess,
     float default_value
 ) {
+    // check if all coefficients from x^4 onwards are zero
+    bool is_higher_order_all_zero = true;
+#pragma unroll
+    for (size_t i = 4; i < N_COEFFS; ++i) {
+        if (poly[i] != 0.f) {
+            is_higher_order_all_zero = false;
+            break;
+        }
+    }
+    if (is_higher_order_all_zero) {
+        // reduce to cubic
+        return solver_cubic_minimal_positive(
+            {poly[0], poly[1], poly[2], poly[3]}, y, default_value
+        );
+    }
+
     // compute the derivative of the polynomial
-    auto const d_poly = std::array<float, N_COEFFS - 1>{};
+    auto d_poly = std::array<float, N_COEFFS - 1>{};
+#pragma unroll
     for (size_t i = 0; i < N_COEFFS - 1; ++i) {
         d_poly[i] = (i + 1) * poly[i + 1];
     }
@@ -247,7 +264,7 @@ inline GSPLAT_HOST_DEVICE float solver_poly_minimal_positive(
         return solver_cubic_minimal_positive(poly, y, default_value);
     } else {
         // f(x) = c_0 + c_1*x + c_2*x^2 + c_3*x^3 + c_4*x^4 ...
-        return solver_poly_minimal_positive_newton<N_ITER>(
+        return solver_polyN_minimal_positive_newton<N_ITER>(
             poly, y, guess, default_value
         );
     }
