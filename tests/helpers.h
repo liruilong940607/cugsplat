@@ -30,7 +30,9 @@ bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
         return std::abs(a - b) < atol + rtol * std::abs(b);
     } else if constexpr (std::is_same_v<T, glm::fmat2> ||
                          std::is_same_v<T, glm::fmat3> ||
-                         std::is_same_v<T, glm::fmat4>) {
+                         std::is_same_v<T, glm::fmat4> ||
+                         std::is_same_v<T, glm::fmat2x3> ||
+                         std::is_same_v<T, glm::fmat3x2>) {
         for (int i = 0; i < T::length(); ++i) {
             for (int j = 0; j < T::col_type::length(); ++j) {
                 if (std::abs(a[i][j] - b[i][j]) > atol + rtol * std::abs(b[i][j])) {

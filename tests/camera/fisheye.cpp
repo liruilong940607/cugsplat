@@ -320,6 +320,39 @@ auto test_unproject_distorted() -> int {
     return fails;
 }
 
+// Test project_jac function (perfect fisheye)
+auto test_project_jac() -> int {
+    int fails = 0;
+
+    {
+        auto const camera_point = glm::fvec3(2.0f, 1.2f, 1.1f);
+        auto const focal_length = glm::fvec2(100.0f, 100.0f);
+        auto const principal_point = glm::fvec2(320.0f, 240.0f);
+
+        // Compute analytical gradient
+        auto const J = project_jac(camera_point, focal_length, principal_point);
+        auto const v_image_point = glm::fvec2(0.5f, 0.8f);
+        auto const v_camera_point = glm::transpose(J) * v_image_point;
+
+        // Compute numerical gradient
+        auto const expected =
+            numerical_gradient(camera_point, [&](const glm::fvec3 &camera_point) {
+                auto const image_point =
+                    project(camera_point, focal_length, principal_point);
+                return glm::dot(v_image_point, image_point);
+            });
+
+        if (!is_close(v_camera_point, expected)) {
+            printf("\n[FAIL] Test 1: Point at image center\n");
+            printf("  Analytical: %s\n", glm::to_string(v_camera_point).c_str());
+            printf("  Numerical: %s\n", glm::to_string(expected).c_str());
+            fails += 1;
+        }
+    }
+
+    return fails;
+}
+
 auto main() -> int {
     int fails = 0;
 
@@ -327,6 +360,7 @@ auto main() -> int {
     fails += test_undistortion();
     fails += test_monotonic_max_theta();
     fails += test_project();
+    fails += test_project_jac();
     fails += test_project_distorted();
     fails += test_unproject();
     fails += test_unproject_distorted();

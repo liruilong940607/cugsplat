@@ -110,8 +110,39 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     glm::fvec2 const &principal_point,
     float const &min_2d_norm = 1e-6f
 ) -> glm::fmat3x2 {
-    // TODO: implement this
-    return glm::fmat3x2{};
+    // forward:
+    auto const invz = 1.0f / camera_point.z;
+    auto const xy = glm::fvec2(camera_point) * invz;
+    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+
+    glm::fmat2 J_uv_xy;
+    if (r < min_2d_norm) {
+        // For points at the image center, J_uv_xy = I
+        J_uv_xy = glm::fmat2(1.0f);
+    } else {
+        auto const invr = 1.0f / r;
+        auto const theta = std::atan(r);
+        auto const s = theta * invr;
+        // auto const uv = s * xy;
+        // auto const image_point = focal_length * uv + principal_point;
+
+        // backward:
+        // Note: this can be slightly optimized by fusing the matrix multiplications.
+        auto const J_theta_r = 1.0f / (1.0f + r * r);
+        auto const J_s_xy = (J_theta_r - s) * invr * invr * xy;
+        J_uv_xy = s * glm::fmat2(1.0f) + glm::outerProduct(J_s_xy, xy);
+    }
+
+    auto const J_im_xy = glm::fmat2x2(
+        focal_length[0] * J_uv_xy[0][0],
+        focal_length[1] * J_uv_xy[0][1],
+        focal_length[0] * J_uv_xy[1][0],
+        focal_length[1] * J_uv_xy[1][1]
+    );
+    auto const J_xy_cam =
+        glm::fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
+    auto const J = J_im_xy * J_xy_cam;
+    return J;
 }
 
 // Project the point from camera space to image space (distorted fisheye)
