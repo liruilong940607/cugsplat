@@ -107,7 +107,6 @@ GSPLAT_HOST_DEVICE inline auto project(
 GSPLAT_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
     float const &min_2d_norm = 1e-6f
 ) -> glm::fmat3x2 {
     // forward:

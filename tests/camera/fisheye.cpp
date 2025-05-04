@@ -330,7 +330,7 @@ auto test_project_jac() -> int {
         auto const principal_point = glm::fvec2(320.0f, 240.0f);
 
         // Compute analytical gradient
-        auto const J = project_jac(camera_point, focal_length, principal_point);
+        auto const J = project_jac(camera_point, focal_length);
         auto const v_image_point = glm::fvec2(0.5f, 0.8f);
         auto const v_camera_point = glm::transpose(J) * v_image_point;
 
