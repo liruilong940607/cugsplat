@@ -16,37 +16,10 @@ def solve_tight_radius(covar: np.ndarray, prefactor: float, y: float = 1.0/255.0
     if prefactor < y:
         return np.zeros(2)
 
-    # Threshold distance squared on ellipse
-    sigma = -np.log(y / prefactor)
-    Q = 2.0 * sigma
+    # Q = xᵀ * covar⁻¹ * x
+    Q = -2.0 * np.log(y / prefactor)
+    return np.sqrt(Q * covar[[0, 1], [0, 1]])
 
-    # Eigenvalues of covariance matrix
-    det = np.linalg.det(covar)
-    half_trace = 0.5 * (covar[0, 0] + covar[1, 1])
-    discrim = np.sqrt(max(0.0, half_trace * half_trace - det))
-    lambda1 = half_trace + discrim
-    lambda2 = half_trace - discrim
-
-    # Compute unit eigenvectors
-    if covar[0, 1] == 0.0:
-        # pick the axis that corresponds to the larger eigenvalue
-        if covar[0, 0] >= covar[1, 1]:
-            v1 = np.array([1.0, 0.0])
-        else:
-            v1 = np.array([0.0, 1.0])
-    else:
-        v1 = np.array([lambda1 - covar[1, 1], covar[0, 1]])
-        v1 = v1 / np.linalg.norm(v1)
-    
-    v2 = np.array([-v1[1], v1[0]])  # perpendicular
-
-    # Scale eigenvectors with eigenvalues
-    v1 *= np.sqrt(Q * lambda1)
-    v2 *= np.sqrt(Q * lambda2)
-
-    # Compute max extent along world x/y axes (bounding box)
-    radius = np.sqrt(v1 * v1 + v2 * v2)
-    return radius
 
 def generate_points_on_aabb_edges(radius: np.ndarray, N: int) -> np.ndarray:
     """Generate points on the edges of an AABB defined by radius.
