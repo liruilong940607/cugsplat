@@ -1,22 +1,18 @@
 #pragma once
 
 #include <algorithm>
-#include <cmath>
-#include <cstdint>
 #include <glm/glm.hpp>
-#include <tuple>
-#define GLM_ENABLE_EXPERIMENTAL
 
+#include "core/cholesky3x3.h"
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "core/math.h"
-#include "utils/cholesky3x3.h"
 
-namespace cugsplat {
+namespace cugsplat::gaussian {
 
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
 inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fmat3 {
-    auto const quat_n = quat * rsqrtf(glm::dot(quat, quat));
+    auto const quat_n = quat * cugsplat::math::rsqrtf(glm::dot(quat, quat));
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
     float x2 = x * x, y2 = y * y, z2 = z * z;
     float xy = x * y, xz = x * z, yz = y * z;
@@ -37,7 +33,7 @@ inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fm
 // Given d(o)/d(R), Return d(o)/d(quat)
 inline GSPLAT_HOST_DEVICE auto
 quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
-    auto const inv_norm = rsqrtf(glm::dot(quat, quat));
+    auto const inv_norm = cugsplat::math::rsqrtf(glm::dot(quat, quat));
     auto const quat_n = quat * inv_norm;
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
     auto const v_quat_n = glm::fvec4(
@@ -54,7 +50,7 @@ quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
     return v_quat;
 }
 
-// Convert {quat, scale} to RS.
+// Convert {quat, scale} to R * S.
 inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
     glm::fvec4 const &quat, glm::fvec3 const &scale
 ) -> glm::fmat3 {
@@ -125,9 +121,9 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
     glm::fvec3 const &ray_d
 ) -> float {
     auto const o_minus_mu = ray_o - mu;
-    auto const gro = forward_substitution(L, o_minus_mu);
-    auto const grd = forward_substitution(L, ray_d);
-    auto const grd_n = safe_normalize(grd);
+    auto const gro = cugsplat::cholesky3x3::forward_substitution(L, o_minus_mu);
+    auto const grd = cugsplat::cholesky3x3::forward_substitution(L, ray_d);
+    auto const grd_n = cugsplat::math::safe_normalize(grd);
     auto const gcrod = glm::cross(grd_n, gro);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
@@ -146,20 +142,20 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
 ) -> std::tuple<float, glm::fvec3, glm::fmat3> {
     // forward
     auto const o_minus_mu = ray_o - mu;
-    auto const gro = cholesky_Linv_y(L, o_minus_mu);
-    auto const grd = cholesky_Linv_y(L, ray_d);
-    auto const grd_n = safe_normalize(grd);
+    auto const gro = cugsplat::cholesky3x3::forward_substitution(L, o_minus_mu);
+    auto const grd = cugsplat::cholesky3x3::forward_substitution(L, ray_d);
+    auto const grd_n = cugsplat::math::safe_normalize(grd);
     auto const gcrod = glm::cross(grd_n, gro);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
     // backward
     auto const v_grd_n = -glm::cross(gcrod, gro);
     auto const v_gro = glm::cross(gcrod, grd_n);
-    auto const v_grd = safe_normalize_vjp(grd, v_grd_n);
-    auto const v_mu = -cholesky_LTinv_y(L, v_gro);
-    auto const v_L =
-        cholesky_Linv_y_vjp(L, grd, v_grd) + cholesky_Linv_y_vjp(L, gro, v_gro);
-    auto const v_covar = cholesky_vjp(L, v_L);
+    auto const v_grd = cugsplat::math::safe_normalize_vjp(grd, v_grd_n);
+    auto const v_mu = -cugsplat::cholesky3x3::backward_substitution(L, v_gro);
+    auto const v_L = cugsplat::cholesky3x3::forward_substitution_vjp(L, grd, v_grd) +
+                     cugsplat::cholesky3x3::forward_substitution_vjp(L, gro, v_gro);
+    auto const v_covar = cugsplat::cholesky3x3::cholesky_vjp(L, v_L);
     return {sigma, v_mu, v_covar};
 }
 
@@ -192,7 +188,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
     auto const o_minus_mu = ray_o - mu;
     auto const gro = Mt * o_minus_mu;
     auto const grd = Mt * ray_d;
-    auto const grd_n = safe_normalize(grd);
+    auto const grd_n = cugsplat::math::safe_normalize(grd);
     auto const gcrod = glm::cross(grd_n, gro);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
@@ -220,7 +216,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     auto const o_minus_mu = ray_o - mu;
     auto const gro = Mt * o_minus_mu;
     auto const grd = Mt * ray_d;
-    auto const grd_n = safe_normalize(grd);
+    auto const grd_n = cugsplat::math::safe_normalize(grd);
     auto const gcrod = glm::cross(grd_n, gro);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
@@ -228,7 +224,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     // backward
     auto const v_grd_n = -glm::cross(gcrod, gro);
     auto const v_gro = glm::cross(gcrod, grd_n);
-    auto const v_grd = safe_normalize_vjp(grd, v_grd_n);
+    auto const v_grd = cugsplat::math::safe_normalize_vjp(grd, v_grd_n);
     auto const v_Mt =
         glm::outerProduct(v_grd, ray_d) + glm::outerProduct(v_gro, o_minus_mu);
     auto const v_mu = -glm::transpose(Mt) * v_gro;
@@ -259,15 +255,15 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
     glm::fvec3 const &ray_d
 ) -> float {
     auto const o_minus_mu = ray_o - mu;
-    auto const gro2 = forward_substitution(L2, o_minus_mu);
-    auto const grd2 = forward_substitution(L2, ray_d);
-    auto const grd_n = safe_normalize(grd2);
+    auto const gro2 = cugsplat::cholesky3x3::forward_substitution(L2, o_minus_mu);
+    auto const grd2 = cugsplat::cholesky3x3::forward_substitution(L2, ray_d);
+    auto const grd_n = cugsplat::math::safe_normalize(grd2);
     auto const gcrod = glm::cross(grd_n, gro2);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
 
     // compute coeff
-    auto const grd = forward_substitution(L, ray_d);
+    auto const grd = cugsplat::cholesky3x3::forward_substitution(L, ray_d);
     auto const sqrt_det = L[0][0] * L[1][1] * L[2][2];
     auto const sqrt_det2 = L2[0][0] * L2[1][1] * L2[2][2];
     if (std::isnan(sqrt_det)) {
@@ -296,15 +292,15 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
 ) -> std::tuple<float, glm::fvec3, glm::fmat3, glm::fmat3> {
     // forward
     auto const o_minus_mu = ray_o - mu;
-    auto const gro2 = forward_substitution(L2, o_minus_mu);
-    auto const grd2 = forward_substitution(L2, ray_d);
-    auto const grd_n = safe_normalize(grd2);
+    auto const gro2 = cugsplat::cholesky3x3::forward_substitution(L2, o_minus_mu);
+    auto const grd2 = cugsplat::cholesky3x3::forward_substitution(L2, ray_d);
+    auto const grd_n = cugsplat::math::safe_normalize(grd2);
     auto const gcrod = glm::cross(grd_n, gro2);
     auto const grayDist = glm::dot(gcrod, gcrod);
     auto const sigma = 0.5f * grayDist;
 
     // compute coeff
-    auto const grd = forward_substitution(L, ray_d);
+    auto const grd = cugsplat::cholesky3x3::forward_substitution(L, ray_d);
     auto const sqrt_det = L[0][0] * L[1][1] * L[2][2];
     auto const sqrt_det2 = L2[0][0] * L2[1][1] * L2[2][2];
     if (std::isnan(sqrt_det)) {
@@ -320,18 +316,19 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     // backward: d(sigma)/d(mu), d(sigma)/d(covar2)
     auto const v_grd_n = -glm::cross(gcrod, gro2);
     auto const v_gro = glm::cross(gcrod, grd_n);
-    auto const v_grd = safe_normalize_vjp(grd2, v_grd_n);
-    auto const v_mu = -cholesky_LTinv_y(L2, v_gro);
-    auto const v_L2 =
-        cholesky_Linv_y_vjp(L2, grd2, v_grd) + cholesky_Linv_y_vjp(L2, gro2, v_gro);
-    auto v_covar2 = cholesky_vjp(L2, v_L2);
+    auto const v_grd = cugsplat::math::safe_normalize_vjp(grd2, v_grd_n);
+    auto const v_mu = -cugsplat::cholesky3x3::backward_substitution(L2, v_gro);
+    auto const v_L2 = cugsplat::cholesky3x3::forward_substitution_vjp(L2, grd2, v_grd) +
+                      cugsplat::cholesky3x3::forward_substitution_vjp(L2, gro2, v_gro);
+    auto v_covar2 = cugsplat::cholesky3x3::cholesky_vjp(L2, v_L2);
 
     // backward: d(-log(coeff))/d(covar), d(-log(coeff))/d(covar2)
-    auto const ggrd = backward_substitution(L, grd);
-    auto const ggrd2 = backward_substitution(L2, grd2);
-    auto const v_covar =
-        -0.5f * (cholesky_Winv(L) - glm::outerProduct(ggrd, ggrd) / grdgrd);
-    v_covar2 += 0.5f * (cholesky_Winv(L2) - glm::outerProduct(ggrd2, ggrd2) / grd2grd2);
+    auto const ggrd = cugsplat::cholesky3x3::backward_substitution(L, grd);
+    auto const ggrd2 = cugsplat::cholesky3x3::backward_substitution(L2, grd2);
+    auto const v_covar = -0.5f * (cugsplat::cholesky3x3::cholesky_Winv(L) -
+                                  glm::outerProduct(ggrd, ggrd) / grdgrd);
+    v_covar2 += 0.5f * (cugsplat::cholesky3x3::cholesky_Winv(L2) -
+                        glm::outerProduct(ggrd2, ggrd2) / grd2grd2);
     return {sigma - log(coeff), v_mu, v_covar, v_covar2};
 }
 
@@ -379,4 +376,4 @@ inline GSPLAT_HOST_DEVICE auto solve_tight_radius(
     return radius;
 }
 
-} // namespace cugsplat
+} // namespace cugsplat::gaussian

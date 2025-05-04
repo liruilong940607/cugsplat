@@ -6,7 +6,7 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace cugsplat {
+namespace cugsplat::cholesky3x3 {
 
 // Solve Lx = y where L is lower triangular
 inline GSPLAT_HOST_DEVICE glm::fvec3
@@ -139,4 +139,4 @@ cholesky_vjp(const glm::fmat3 &L, const glm::fmat3 &v_L) {
     return 0.5f * (v_A + glm::transpose(v_A));
 }
 
-} // namespace cugsplat
+} // namespace cugsplat::cholesky3x3
