@@ -15,7 +15,8 @@ EXTRACT_STATIC         = NO
 GENERATE_LATEX         = NO
 GENERATE_HTML          = YES
 GENERATE_XML           = YES
-XML_OUTPUT             = @DOXYGEN_OUTPUT_DIR@/xml
+XML_OUTPUT             = xml
+XML_PROGRAMLISTING     = YES
 
 # Preprocessor
 ENABLE_PREPROCESSING   = YES

@@ -24,10 +24,13 @@ configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 # Add custom target for documentation
 add_custom_target(docs
     COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/source/generate_api_docs.py
+            DOXYGEN_XML_DIR=${DOXYGEN_OUTPUT_DIR}/xml
+            API_DOCS_DIR=${CMAKE_CURRENT_SOURCE_DIR}/source/api
     COMMAND ${Python3_EXECUTABLE} -m sphinx -b html
             ${CMAKE_CURRENT_SOURCE_DIR}/source
             ${CMAKE_BINARY_DIR}/docs/html
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    WORKING_DIRECTORY ${DOXYGEN_OUTPUT_DIR}
     COMMENT "Generating documentation"
     VERBATIM
 ) 

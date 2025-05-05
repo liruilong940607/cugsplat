@@ -10,10 +10,10 @@
 #include "core/math.h"
 #include "core/solver.h"
 
-namespace cugsplat::fisheye {
-
 /// \defgroup fisheye_api Fisheye Camera API
 /// \brief API functions for fisheye camera operations
+
+namespace cugsplat::fisheye {
 
 // Compute the radial distortion: theta -> theta_d
 GSPLAT_HOST_DEVICE inline auto
@@ -84,7 +84,6 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     return x2 == INF ? INF : std::sqrt(x2);
 }
 
-/// \ingroup fisheye_api
 /// \brief Project a 3D point in camera space to 2D image space using fisheye projection
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
@@ -111,7 +110,6 @@ GSPLAT_HOST_DEVICE inline auto project(
     return image_point;
 }
 
-/// \ingroup fisheye_api
 /// \brief Project a 3D point in camera space to 2D image space using fisheye projection
 /// with radial distortion \param camera_point 3D point in camera space (x, y, z) \param
 /// focal_length Focal length in pixels (fx, fy) \param principal_point Principal point

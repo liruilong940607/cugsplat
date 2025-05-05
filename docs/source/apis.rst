@@ -1,7 +1,8 @@
-APIs
-====
+API Documentation
+==================
 
 .. toctree::
    :maxdepth: 2
+   :caption: API Reference
 
-   api/fisheye 
+   api/cugsplat_fisheye
