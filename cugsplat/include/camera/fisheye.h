@@ -10,12 +10,12 @@
 #include "core/math.h"
 #include "core/solver.h"
 
-/// \defgroup fisheye_api Fisheye Camera API
-/// \brief API functions for fisheye camera operations
-
 namespace cugsplat::fisheye {
 
-// Compute the radial distortion: theta -> theta_d
+/// \brief Compute the radial distortion: theta -> theta_d
+/// \param theta Angle in radians
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \return Distorted angle theta_d
 GSPLAT_HOST_DEVICE inline auto
 distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
@@ -23,7 +23,10 @@ distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> flo
     return theta * cugsplat::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
 }
 
-// Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
+/// \brief Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
+/// \param theta Angle in radians
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \return Jacobian of the distortion function
 GSPLAT_HOST_DEVICE inline auto
 distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
@@ -33,7 +36,12 @@ distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) ->
     );
 }
 
-// Compute the inverse radial distortion: theta_d -> theta
+/// \brief Compute the inverse radial distortion: theta_d -> theta
+/// \tparam N_ITER Number of iterations for Newton's method
+/// \param theta_d Distorted angle in radians
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \param max_theta Maximum valid theta angle
+/// \return Pair of undistorted angle and convergence flag
 template <size_t N_ITER = 20>
 GSPLAT_HOST_DEVICE inline auto undistortion(
     float const &theta_d,
@@ -56,8 +64,11 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
     return {theta, converged};
 }
 
-// Compute the maximum theta such that [0, max_theta] is monotonicly
-// increasing.
+/// \brief Compute the maximum theta such that [0, max_theta] is monotonicly increasing
+/// \tparam N_ITER Number of iterations for root finding
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \param guess Initial guess for the root
+/// \return Maximum theta angle for monotonic distortion
 template <size_t N_ITER = 20>
 GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     std::array<float, 4> const &radial_coeffs, float guess = 1.57f
@@ -113,10 +124,10 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \brief Project a 3D point in camera space to 2D image space using fisheye projection
 /// with radial distortion \param camera_point 3D point in camera space (x, y, z) \param
 /// focal_length Focal length in pixels (fx, fy) \param principal_point Principal point
-/// in pixels (cx, cy) \param radial_coeffs Radial distortion coefficients \param
-/// min_2d_norm Minimum 2D norm threshold for numerical stability \param max_theta
-/// Maximum theta angle for valid projection \return Pair of projected 2D point and
-/// validity flag
+/// in pixels (cx, cy) \param radial_coeffs Radial distortion coefficients (k1, k2, k3,
+/// k4) \param min_2d_norm Minimum 2D norm threshold for numerical stability \param
+/// max_theta Maximum theta angle for valid projection \return Pair of projected 2D
+/// point and validity flag
 GSPLAT_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
@@ -144,7 +155,11 @@ GSPLAT_HOST_DEVICE inline auto project(
     return {image_point, true};
 }
 
-// Compute the Jacobian of the projection: J = d(image_point) / d(camera_point)
+/// \brief Compute the Jacobian of the projection: J = d(image_point) / d(camera_point)
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \return 3x2 Jacobian matrix
 GSPLAT_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
@@ -185,9 +200,11 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     return J;
 }
 
-// Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
-// Returns H1 = ∂²u/∂p², H2 = ∂²v/∂p²
-// Credit: ChatGPT-O3
+/// \brief Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
 GSPLAT_HOST_DEVICE inline auto project_hess(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
@@ -276,8 +293,12 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
     return H; // H[0] = ∂²u/∂p² ,  H[1] = ∂²v/∂p²
 }
 
-// Unproject the point from image space to camera space (perfect fisheye)
-// Returns the normalized ray direction.
+/// \brief Unproject a 2D point from image space to camera space (undistorted fisheye)
+/// \param image_point 2D point in image space
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param principal_point Principal point in pixels (cx, cy)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \return Normalized ray direction in camera space
 GSPLAT_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
@@ -298,9 +319,14 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return dir;
 }
 
-// Unproject the point from image space to camera space (distorted fisheye)
-// Returns the normalized ray direction and a flag indicating if the
-// unprojection is valid
+/// \brief Unproject a 2D point from image space to camera space (distorted fisheye)
+/// \param image_point 2D point in image space
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param principal_point Principal point in pixels (cx, cy)
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \param max_theta Maximum theta angle for valid unprojection
+/// \return Pair of normalized ray direction and validity flag
 GSPLAT_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,

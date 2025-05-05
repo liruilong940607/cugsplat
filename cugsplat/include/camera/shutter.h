@@ -11,15 +11,27 @@
 
 namespace cugsplat::shutter {
 
+/// \brief Enumeration of shutter types
+/// \details Defines different types of camera shutters
 enum class Type {
+    /// All pixels are exposed simultaneously (No rolling shutter)
     GLOBAL,
+    /// Exposure starts from top and moves to bottom
     ROLLING_TOP_TO_BOTTOM,
+    /// Exposure starts from left and moves to right
     ROLLING_LEFT_TO_RIGHT,
+    /// Exposure starts from bottom and moves to top
     ROLLING_BOTTOM_TO_TOP,
+    /// Exposure starts from right and moves to left
     ROLLING_RIGHT_TO_LEFT,
 };
 
-// Compute the relative frame time for a given image point
+/// \brief Compute the relative frame time for a given image point
+/// \param image_point 2D point in image space
+/// \param resolution Image resolution (width, height)
+/// \param shutter_type Type of shutter being used
+/// \return Relative time in [0, 1] range where 0 is start of frame and 1 is end of
+/// frame
 GSPLAT_HOST_DEVICE inline auto relative_frame_time(
     const glm::fvec2 &image_point,
     const std::array<uint32_t, 2> &resolution,
@@ -43,16 +55,29 @@ GSPLAT_HOST_DEVICE inline auto relative_frame_time(
     return t;
 }
 
+/// \brief Result structure for point_world_to_image function
+/// \tparam RotationType Type of rotation representation (glm::fmat3 or glm::fquat)
 template <typename RotationType> struct PointWorldToImageResult {
-    glm::fvec2 image_point;
-    glm::fvec3 camera_point;
-    RotationType pose_r;
-    glm::fvec3 pose_t;
-    bool valid_flag = false;
+    glm::fvec2 image_point;  ///< Projected 2D point in image space
+    glm::fvec3 camera_point; ///< 3D point in camera space
+    RotationType pose_r;     ///< Camera rotation at exposure time
+    glm::fvec3 pose_t;       ///< Camera translation at exposure time
+    bool valid_flag = false; ///< Flag indicating if projection was successful
 };
 
-// Project a world point to an image point using the start and end poses
-// and the shutter type
+/// \brief Project a world point to an image point using rolling shutter
+/// \tparam N_ITER Number of iterations for convergence
+/// \tparam RotationType Type of rotation representation (glm::fmat3 or glm::fquat)
+/// \tparam Func Type of projection function
+/// \param project_fn Function to project a camera point to an image point
+/// \param resolution Image resolution (width, height)
+/// \param world_point 3D point in world space
+/// \param pose_r_start Camera rotation at start of frame
+/// \param pose_t_start Camera translation at start of frame
+/// \param pose_r_end Camera rotation at end of frame
+/// \param pose_t_end Camera translation at end of frame
+/// \param shutter_type Type of shutter being used
+/// \return PointWorldToImageResult containing the projected results
 template <size_t N_ITER = 10, typename RotationType, typename Func>
 GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     Func project_fn, // Function to project a camera point to an image point
