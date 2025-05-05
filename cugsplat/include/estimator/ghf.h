@@ -249,7 +249,30 @@ template <int N, int order> auto get_precomputed_matrices() {
     }
 }
 
-// Runtime function to estimate Jacobian and Hessian
+/**
+ * @brief Estimates the Jacobian and Hessian of a function using Gauss-Hermite
+ * quadrature.
+ *
+ * This function uses Gauss-Hermite quadrature points to estimate the first and second
+ * derivatives of a function at a given point. It is particularly useful for functions
+ * where analytical derivatives are difficult to compute.
+ *
+ * @tparam N Input dimension of the function
+ * @tparam M Output dimension of the function
+ * @tparam Func Type of the function to differentiate
+ * @tparam order Order of the Gauss-Hermite quadrature (default: 3)
+ *
+ * @param f The function to differentiate
+ * @param mu The point at which to estimate derivatives
+ * @param std_dev The standard deviation for each input dimension
+ *
+ * @return A pair containing:
+ *         - The Jacobian matrix (M x N)
+ *         - An array of Hessian matrices (M elements, each N x N)
+ *
+ * @note The function uses 27 points for order 3 and 125 points for order 5.
+ *       Higher order provides better accuracy but requires more function evaluations.
+ */
 template <int N, int M, int order = 3, typename Func>
 GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev

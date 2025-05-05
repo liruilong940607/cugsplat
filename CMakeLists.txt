@@ -6,6 +6,9 @@ option(BUILD_CPP_ONLY "Skip CUDA files and only build C++ files" OFF)
 # Option to control whether to build tests
 option(BUILD_TESTS "Build test executables" ON)
 
+# Option to build documentation
+option(BUILD_DOCS "Build documentation" OFF)
+
 # Only include CUDA if not in CPP-only mode
 if(NOT BUILD_CPP_ONLY)
     project(cugsplat LANGUAGES CUDA CXX)
@@ -79,4 +82,9 @@ if(BUILD_TESTS)
         "${CMAKE_CURRENT_SOURCE_DIR}/tests"
         tests
     )
+endif()
+
+# Build documentation if enabled
+if(BUILD_DOCS)
+    add_subdirectory(docs)
 endif()
