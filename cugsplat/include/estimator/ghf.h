@@ -15,6 +15,8 @@
 #include <functional>
 #include <glm/glm.hpp>
 
+#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+
 namespace cugsplat::ghf {
 
 // Helper function to compute number of quadratic features
@@ -252,7 +254,7 @@ template <int N, int order> auto get_precomputed_matrices() {
 
 // Runtime function to estimate Jacobian and Hessian
 template <int N, int M, typename Func, int order = 3>
-auto estimate_jacobian_and_hessian(
+GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev
 ) -> std::pair<glm::mat<M, N, float>, std::array<glm::mat<N, N, float>, M>> {
     // Get precomputed matrices based on order
@@ -260,6 +262,7 @@ auto estimate_jacobian_and_hessian(
 
     // Evaluate function at all points
     std::array<glm::vec<M, float>, matrices.points_std.size()> outputs;
+#pragma unroll
     for (size_t i = 0; i < matrices.points_std.size(); ++i) {
         outputs[i] = f(mu + matrices.points_std[i] * std_dev);
     }
@@ -268,32 +271,39 @@ auto estimate_jacobian_and_hessian(
     glm::mat<M, N, float> J{};
     std::array<glm::mat<N, N, float>, M> H{};
 
-    // For each output dimension
+// For each output dimension
+#pragma unroll
     for (int output_dim = 0; output_dim < M; ++output_dim) {
         // Extract output values for this dimension
         std::array<float, matrices.points_std.size()> y;
+#pragma unroll
         for (size_t i = 0; i < matrices.points_std.size(); ++i) {
             y[i] = outputs[i][output_dim];
         }
 
         // Compute regression coefficients
         std::array<float, num_quadratic_features<N>()> theta{};
+#pragma unroll
         for (int i = 0; i < num_quadratic_features<N>(); ++i) {
             float sum = 0.0f;
+#pragma unroll
             for (size_t j = 0; j < matrices.points_std.size(); ++j) {
                 sum += matrices.coefficients[i][j] * y[j];
             }
             theta[i] = sum;
         }
 
-        // Extract Jacobian
+// Extract Jacobian
+#pragma unroll
         for (int i = 0; i < N; ++i) {
             J[output_dim][i] = theta[1 + i] / std_dev[i];
         }
 
         // Extract Hessian
         int k = 0;
+#pragma unroll
         for (int i = 0; i < N; ++i) {
+#pragma unroll
             for (int j = i; j < N; ++j) {
                 float coeff = theta[1 + N + k] / (std_dev[i] * std_dev[j]);
                 if (i == j) {
