@@ -1,12 +1,9 @@
-// Gauss-Hermite Filter precomputed matrices
+// Gauss-Hermite Filter
 //
 // Precomputes:
 // 1. Standardized sigma points
 // 2. Quadratic features matrix
 // 3. Weighted least squares matrices
-//
-// Reference:
-//   numpy.polynomial.hermite.hermgauss
 
 #pragma once
 
@@ -253,7 +250,7 @@ template <int N, int order> auto get_precomputed_matrices() {
 }
 
 // Runtime function to estimate Jacobian and Hessian
-template <int N, int M, typename Func, int order = 3>
+template <int N, int M, int order = 3, typename Func>
 GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev
 ) -> std::pair<glm::mat<M, N, float>, std::array<glm::mat<N, N, float>, M>> {
