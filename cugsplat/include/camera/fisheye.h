@@ -144,6 +144,97 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     return J;
 }
 
+// Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
+// Returns H1 = ∂²u/∂p², H2 = ∂²v/∂p²
+// Credit: ChatGPT-O3
+GSPLAT_HOST_DEVICE inline auto project_hess(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    float const min_2d_norm = 1e-6f
+) -> std::array<glm::fmat3x3, 2> {
+    // ‑‑‑ stage‑0 : helpers
+    const float invz = 1.f / camera_point.z;
+    const float x_ = camera_point.x * invz;
+    const float y_ = camera_point.y * invz;
+    const float r2 = x_ * x_ + y_ * y_;
+    const float r = cugsplat::math::numerically_stable_norm2(x_, y_);
+    const float invr = (r > 0.f) ? 1.f / r : 0.f;
+
+    // ‑‑‑ stage‑1 : s(r) and radial derivatives
+    float s = 1.f, s1 = 0.f, s2 = 0.f;
+    if (r > min_2d_norm) {
+        const float theta = std::atan(r);
+        const float Jtr = 1.f / (1.f + r2); // dθ/dr
+        s = theta * invr;
+        s1 = (Jtr - s) * invr; // ds/dr
+        const float dJtr = -2.f * r / ((1.f + r2) * (1.f + r2));
+        /*  exact  ∂²s/∂r²  (no extra ×2 term!) */
+        s2 = (dJtr - s1 - (Jtr - s) * invr) * invr;
+    }
+
+    // ∂s/∂xy  and  ∂²s/∂xy²
+    glm::fvec2 Js =
+        (r > min_2d_norm) ? s1 * invr * glm::fvec2(x_, y_) : glm::fvec2(0.f);
+    float Hs[2][2]{{0.f, 0.f}, {0.f, 0.f}};
+    if (r > min_2d_norm) {
+        const float invr2 = invr * invr;
+        const float c1 = s2 * invr2;
+        const float c2 = s1 * invr;
+        Hs[0][0] = c1 * x_ * x_ + c2 * (1.f - x_ * x_ * invr2);
+        Hs[0][1] = c1 * x_ * y_ - c2 * x_ * y_ * invr2;
+        Hs[1][0] = Hs[0][1];
+        Hs[1][1] = c1 * y_ * y_ + c2 * (1.f - y_ * y_ * invr2);
+    }
+
+    // J_xy (2×3)  and  H_xy (2×3×3)
+    const float invz2 = invz * invz, invz3 = invz2 * invz;
+    float Jxy[2][3] = {{invz, 0.f, -x_ * invz}, {0.f, invz, -y_ * invz}};
+    float Hxy[2][3][3]{}; // zero‑init
+    /*  x'/z  */
+    Hxy[0][0][2] = Hxy[0][2][0] = -invz2;
+    Hxy[0][2][2] = 2.f * camera_point.x * invz3;
+    /*  y'/z  */
+    Hxy[1][1][2] = Hxy[1][2][1] = -invz2;
+    Hxy[1][2][2] = 2.f * camera_point.y * invz3;
+
+    // H_uv in xy‑space
+    float Huv[2][2][2]{};
+    for (int i = 0; i < 2; ++i)
+        for (int j = 0; j < 2; ++j)
+            for (int k = 0; k < 2; ++k)
+                Huv[i][j][k] = Js[k] * (i == j) + Js[j] * (i == k) +
+                               ((i == 0) ? x_ : y_) * Hs[j][k];
+
+    // J_uv in xy‑space
+    float Juv[2][2] = {{s + x_ * Js.x, x_ * Js.y}, {y_ * Js.x, s + y_ * Js.y}};
+
+    // ‑‑‑ stage‑2 : assemble Hessians  (two 3×3 blocks)
+    std::array<glm::fmat3x3, 2> H{glm::fmat3x3(0.f), glm::fmat3x3(0.f)};
+
+    for (int i = 0; i < 2; ++i) { // 0 = u , 1 = v
+        float Htmp[3][3]{};       // row,col in p‑space
+
+        // (a)  H_uv  ×  (J_xy ⊗ J_xy)
+        for (int j = 0; j < 2; ++j)
+            for (int k = 0; k < 2; ++k)
+                for (int a = 0; a < 3; ++a)
+                    for (int b = 0; b < 3; ++b)
+                        Htmp[a][b] += Huv[i][j][k] * Jxy[j][a] * Jxy[k][b];
+
+        // (b)  J_uv_j * H_xy_j
+        for (int j = 0; j < 2; ++j)
+            for (int a = 0; a < 3; ++a)
+                for (int b = 0; b < 3; ++b)
+                    Htmp[a][b] += Juv[i][j] * Hxy[j][a][b];
+
+        /* write into column‑major glm::mat */
+        for (int row = 0; row < 3; ++row)
+            for (int col = 0; col < 3; ++col)
+                H[i][col][row] = focal_length[i] * Htmp[row][col];
+    }
+    return H; // H[0] = ∂²u/∂p² ,  H[1] = ∂²v/∂p²
+}
+
 // Project the point from camera space to image space (distorted fisheye)
 // Returns the image point and a flag indicating if the projection is valid
 GSPLAT_HOST_DEVICE inline auto project(

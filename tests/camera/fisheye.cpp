@@ -343,7 +343,45 @@ auto test_project_jac() -> int {
             });
 
         if (!is_close(v_camera_point, expected)) {
-            printf("\n[FAIL] Test 1: Point at image center\n");
+            printf("\n[FAIL] Test 1: Gradient\n");
+            printf("  Analytical: %s\n", glm::to_string(v_camera_point).c_str());
+            printf("  Numerical: %s\n", glm::to_string(expected).c_str());
+            fails += 1;
+        }
+    }
+
+    return fails;
+}
+
+// Test project_hess function (perfect fisheye)
+auto test_project_hess() -> int {
+    int fails = 0;
+
+    {
+        auto const camera_point = glm::fvec3(2.0f, 1.2f, 1.1f);
+        auto const focal_length = glm::fvec2(100.0f, 100.0f);
+        auto const principal_point = glm::fvec2(320.0f, 240.0f);
+
+        // Compute analytical gradient
+        auto const &[H1, H2] = project_hess(camera_point, focal_length);
+        auto const v_J1 = glm::fvec3(0.5f, 0.8f, 0.2f); // d((x, y, z) -> u)
+        auto const v_J2 = glm::fvec3(0.3f, 0.4f, 0.6f); // d((x, y, z) -> v)
+        auto const v_camera_point = H1 * v_J1 + H2 * v_J2;
+
+        // Compute numerical gradient
+        auto const expected = numerical_gradient(
+            camera_point,
+            [&](const glm::fvec3 &camera_point) {
+                auto const J = project_jac(camera_point, focal_length);
+                auto const J1 = glm::fvec3(J[0][0], J[1][0], J[2][0]);
+                auto const J2 = glm::fvec3(J[0][1], J[1][1], J[2][1]);
+                return glm::dot(v_J1, J1) + glm::dot(v_J2, J2);
+            },
+            1e-4f
+        );
+
+        if (!is_close(v_camera_point, expected)) {
+            printf("\n[FAIL] Test 1: Gradient\n");
             printf("  Analytical: %s\n", glm::to_string(v_camera_point).c_str());
             printf("  Numerical: %s\n", glm::to_string(expected).c_str());
             fails += 1;
@@ -361,6 +399,7 @@ auto main() -> int {
     fails += test_monotonic_max_theta();
     fails += test_project();
     fails += test_project_jac();
+    fails += test_project_hess();
     fails += test_project_distorted();
     fails += test_unproject();
     fails += test_unproject_distorted();
