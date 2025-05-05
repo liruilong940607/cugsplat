@@ -81,8 +81,12 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     return x2 == INF ? INF : std::sqrt(x2);
 }
 
-// Project the point from camera space to image space (perfect fisheye)
-// Returns projected image point.
+/// \brief Project a 3D point in camera space to 2D image space using fisheye projection
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param principal_point Principal point in pixels (cx, cy)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \return Projected 2D point in image space
 GSPLAT_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,

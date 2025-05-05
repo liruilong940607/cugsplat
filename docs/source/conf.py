@@ -11,38 +11,14 @@ author = 'Ruilong Li'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'breathe',
-    'exhale'
+    'breathe'
 ]
 
 # Breathe configuration
 breathe_projects = {
-    "cugsplat": "../build/xml"
+    "cugsplat": "../../build/docs/doxygen/xml"
 }
 breathe_default_project = "cugsplat"
-
-# Exhale configuration
-exhale_args = {
-    "containmentFolder":     "./api",
-    "rootFileName":          "library_root.rst",
-    "rootFileTitle":         "cugsplat API",
-    "doxygenStripFromPath":  "..",
-    "createTreeView":        True,
-    "exhaleExecutesDoxygen": True,
-    "exhaleDoxygenStdin":    """
-INPUT = ../../cugsplat/include
-EXTRACT_ALL = YES
-EXTRACT_PRIVATE = YES
-EXTRACT_STATIC = YES
-RECURSIVE = YES
-GENERATE_XML = YES
-XML_OUTPUT = ../build/xml
-ENABLE_PREPROCESSING = YES
-MACRO_EXPANSION = YES
-EXPAND_ONLY_PREDEF = YES
-PREDEFINED += __host__= __device__=
-    """
-}
 
 # Theme
 html_theme = 'sphinx_rtd_theme'

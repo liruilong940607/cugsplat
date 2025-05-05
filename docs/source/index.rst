@@ -1,17 +1,9 @@
-cugsplat
-================================
+Welcome to cugsplat's documentation!
+====================================
 
-cugsplat is a CUDA-accelerated Gaussian splatting library.
+API Reference
+-------------
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+.. doxygenfunction:: cugsplat::fisheye::project(glm::fvec3 const&, glm::fvec2 const&, glm::fvec2 const&, float const&)
 
-   api/library_root
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search` 
+.. doxygenfunction:: cugsplat::fisheye::project(glm::fvec3 const&, glm::fvec2 const&, glm::fvec2 const&, std::array<float, 4> const&, float const&, float const&)

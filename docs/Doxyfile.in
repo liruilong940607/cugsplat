@@ -2,22 +2,34 @@ PROJECT_NAME           = "cugsplat"
 PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "CUDA-accelerated Gaussian splatting library"
 OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIR@
-INPUT                  = @DOXYGEN_INPUT_DIR@
-RECURSIVE              = YES
-EXTRACT_ALL            = YES
-EXTRACT_PRIVATE        = YES
-EXTRACT_STATIC         = YES
+
+# Input configuration
+INPUT                  = @CMAKE_SOURCE_DIR@/cugsplat/include/camera/fisheye.h
+
+# Basic documentation settings
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+
+# Output format
 GENERATE_LATEX         = NO
 GENERATE_HTML          = YES
 GENERATE_XML           = YES
-XML_OUTPUT             = xml
+XML_OUTPUT             = @DOXYGEN_OUTPUT_DIR@/xml
+
+# Preprocessor
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
 PREDEFINED            += __host__= __device__=
-QUIET                  = YES
-WARNINGS               = YES
-WARN_IF_UNDOCUMENTED   = YES
-WARN_IF_DOC_ERROR      = YES
-WARN_NO_PARAMDOC       = YES
-WARN_FORMAT            = "$file:$line: $text" 
+
+# Documentation structure
+GENERATE_TREEVIEW      = NO
+GENERATE_CLASS_DIAGRAM = NO
+GENERATE_CLASS_GRAPH   = NO
+GENERATE_CALL_GRAPH    = NO
+GENERATE_CALLER_GRAPH  = NO
+
+# Documentation content
+HIDE_UNDOC_MEMBERS     = YES
+HIDE_UNDOC_CLASSES     = YES 
