@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake .. -DBUILD_DOCS=ON
+          cmake .. -DBUILD_DOCS=ON -DBUILD_CPP_ONLY=ON
           make docs
 
       - name: Deploy to GitHub Pages
