@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <glm/glm.hpp>
 
@@ -38,6 +39,13 @@ bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
                 if (std::abs(a[i][j] - b[i][j]) > atol + rtol * std::abs(b[i][j])) {
                     return false;
                 }
+            }
+        }
+        return true;
+    } else if constexpr (std::is_array_v<T>) {
+        for (size_t i = 0; i < a.size(); ++i) {
+            if (!is_close(a[i], b[i], atol, rtol)) {
+                return false;
             }
         }
         return true;
