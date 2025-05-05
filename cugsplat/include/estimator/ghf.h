@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "estimator/hermgauss.h"
 #include <array>
 #include <functional>
 #include <glm/glm.hpp>
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "estimator/hermgauss.h"
 
 namespace cugsplat::ghf {
 
