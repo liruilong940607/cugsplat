@@ -201,6 +201,6 @@ auto main() -> int {
         return 1;
     }
 
-    printf("\nAll tests passed!\n");
+    printf("[camera/shutter.cpp] All tests passed!\n");
     return 0;
 }
