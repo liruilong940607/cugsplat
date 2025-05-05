@@ -5,6 +5,7 @@
 
 #include "../helpers.h"
 #include "camera/fisheye.h"
+#include "estimator/ghf.h"
 
 using namespace cugsplat::fisheye;
 
@@ -379,6 +380,20 @@ auto test_project_hess() -> int {
             },
             1e-4f
         );
+
+        // // Use GHF to estimate gradient
+        // auto const &[J_est, H_est] = cugsplat::ghf::estimate_jacobian_and_hessian<3,
+        // 2>(
+        //     [&](const glm::fvec3 &camera_point) {
+        //         return project(camera_point, focal_length, principal_point);
+        //     },
+        //     camera_point,
+        //     glm::fvec3(1e-2f, 1e-2f, 1e-1f)
+        // );
+        // printf("H_est 0: %s\n", glm::to_string(std::get<0>(H_est)).c_str());
+        // printf("H1: %s\n", glm::to_string(H1).c_str());
+        // printf("H_est 1: %s\n", glm::to_string(std::get<1>(H_est)).c_str());
+        // printf("H2: %s\n", glm::to_string(H2).c_str());
 
         if (!is_close(v_camera_point, expected)) {
             printf("\n[FAIL] Test 1: Gradient\n");

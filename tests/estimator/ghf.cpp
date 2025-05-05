@@ -108,10 +108,10 @@ int test_ghf_hessian() {
     // Test case 1: Normal values
     {
         glm::vec3 mu{0.1f, 0.2f, -0.3f};
-        glm::vec3 sigma_diag{0.001f, 0.001f, 0.001f};
+        glm::vec3 std_dev{1e-2f, 1e-2f, 1e-1f};
 
         auto [J_est, H_est] =
-            estimate_jacobian_and_hessian<3, 2>(test_function, mu, sigma_diag);
+            estimate_jacobian_and_hessian<3, 2>(test_function, mu, std_dev);
         auto H_anal = analytical_hessian(mu);
 
         // Compare estimated and analytical Hessian
@@ -127,7 +127,7 @@ int test_ghf_hessian() {
             printf("\n=== Testing GHF Hessian ===\n");
             printf("\n[FAIL] Test 1: Normal values\n");
             printf("  Input mu: %s\n", glm::to_string(mu).c_str());
-            printf("  Input sigma_diag: %s\n", glm::to_string(sigma_diag).c_str());
+            printf("  Input std_dev: %s\n", glm::to_string(std_dev).c_str());
             printf("  Estimated Hessian:\n");
             for (int k = 0; k < 2; ++k) {
                 printf("  Output dimension %d:\n", k);

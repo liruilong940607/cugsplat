@@ -253,16 +253,10 @@ template <int N, int order> auto get_precomputed_matrices() {
 // Runtime function to estimate Jacobian and Hessian
 template <int N, int M, typename Func, int order = 3>
 auto estimate_jacobian_and_hessian(
-    Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &sigma_diag
+    Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev
 ) -> std::pair<glm::mat<M, N, float>, std::array<glm::mat<N, N, float>, M>> {
     // Get precomputed matrices based on order
     auto matrices = get_precomputed_matrices<N, order>();
-
-    // Compute standard deviations
-    glm::vec<N, float> std_dev;
-    for (int i = 0; i < N; ++i) {
-        std_dev[i] = std::sqrt(sigma_diag[i]);
-    }
 
     // Transform points to actual space
     std::array<glm::vec<N, float>, matrices.points_std.size()> points;
