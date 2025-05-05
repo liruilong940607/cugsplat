@@ -21,7 +21,10 @@ XML_OUTPUT             = @DOXYGEN_OUTPUT_DIR@/xml
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
-PREDEFINED            += __host__= __device__=
+PREDEFINED            += __host__= __device__= GSPLAT_HOST_DEVICE=
+
+# C++ settings
+CXX_OPTIONS           = -std=c++17
 
 # Documentation structure
 GENERATE_TREEVIEW      = NO
@@ -32,4 +35,6 @@ GENERATE_CALLER_GRAPH  = NO
 
 # Documentation content
 HIDE_UNDOC_MEMBERS     = YES
-HIDE_UNDOC_CLASSES     = YES 
+HIDE_UNDOC_CLASSES     = YES
+REPEAT_BRIEF           = YES
+BRIEF_MEMBER_DESC      = YES 

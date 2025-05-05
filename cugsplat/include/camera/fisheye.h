@@ -12,6 +12,9 @@
 
 namespace cugsplat::fisheye {
 
+/// \defgroup fisheye_api Fisheye Camera API
+/// \brief API functions for fisheye camera operations
+
 // Compute the radial distortion: theta -> theta_d
 GSPLAT_HOST_DEVICE inline auto
 distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
@@ -81,6 +84,7 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     return x2 == INF ? INF : std::sqrt(x2);
 }
 
+/// \ingroup fisheye_api
 /// \brief Project a 3D point in camera space to 2D image space using fisheye projection
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
@@ -105,6 +109,41 @@ GSPLAT_HOST_DEVICE inline auto project(
     }
     auto const image_point = focal_length * uv + principal_point;
     return image_point;
+}
+
+/// \ingroup fisheye_api
+/// \brief Project a 3D point in camera space to 2D image space using fisheye projection
+/// with radial distortion \param camera_point 3D point in camera space (x, y, z) \param
+/// focal_length Focal length in pixels (fx, fy) \param principal_point Principal point
+/// in pixels (cx, cy) \param radial_coeffs Radial distortion coefficients \param
+/// min_2d_norm Minimum 2D norm threshold for numerical stability \param max_theta
+/// Maximum theta angle for valid projection \return Pair of projected 2D point and
+/// validity flag
+GSPLAT_HOST_DEVICE inline auto project(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &principal_point,
+    std::array<float, 4> const &radial_coeffs,
+    float const &min_2d_norm = 1e-6f,
+    float const &max_theta = std::numeric_limits<float>::max()
+) -> std::pair<glm::fvec2, bool> {
+    auto const xy = glm::fvec2(camera_point) / camera_point.z;
+    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+    glm::fvec2 uv;
+    if (r < min_2d_norm) {
+        // For points at the image center, there is no distortion
+        uv = xy;
+    } else {
+        auto const theta = std::atan(r);
+        if (theta > max_theta) {
+            // Theta is too large, might be in the invalid region
+            return {glm::fvec2{}, false};
+        }
+        auto const theta_d = distortion(theta, radial_coeffs);
+        uv = theta_d / r * xy;
+    }
+    auto const image_point = focal_length * uv + principal_point;
+    return {image_point, true};
 }
 
 // Compute the Jacobian of the projection: J = d(image_point) / d(camera_point)
@@ -237,35 +276,6 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
                 H[i][col][row] = focal_length[i] * Htmp[row][col];
     }
     return H; // H[0] = ∂²u/∂p² ,  H[1] = ∂²v/∂p²
-}
-
-// Project the point from camera space to image space (distorted fisheye)
-// Returns the image point and a flag indicating if the projection is valid
-GSPLAT_HOST_DEVICE inline auto project(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
-    std::array<float, 4> const &radial_coeffs,
-    float const &min_2d_norm = 1e-6f,
-    float const &max_theta = std::numeric_limits<float>::max()
-) -> std::pair<glm::fvec2, bool> {
-    auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
-    glm::fvec2 uv;
-    if (r < min_2d_norm) {
-        // For points at the image center, there is no distortion
-        uv = xy;
-    } else {
-        auto const theta = std::atan(r);
-        if (theta > max_theta) {
-            // Theta is too large, might be in the invalid region
-            return {glm::fvec2{}, false};
-        }
-        auto const theta_d = distortion(theta, radial_coeffs);
-        uv = theta_d / r * xy;
-    }
-    auto const image_point = focal_length * uv + principal_point;
-    return {image_point, true};
 }
 
 // Unproject the point from image space to camera space (perfect fisheye)

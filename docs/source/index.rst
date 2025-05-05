@@ -1,9 +1,7 @@
-Welcome to cugsplat's documentation!
+Welcome to CUGSplat's documentation!
 ====================================
 
-API Reference
--------------
+.. toctree::
+   :maxdepth: 2
 
-.. doxygenfunction:: cugsplat::fisheye::project(glm::fvec3 const&, glm::fvec2 const&, glm::fvec2 const&, float const&)
-
-.. doxygenfunction:: cugsplat::fisheye::project(glm::fvec3 const&, glm::fvec2 const&, glm::fvec2 const&, std::array<float, 4> const&, float const&, float const&)
+   apis
