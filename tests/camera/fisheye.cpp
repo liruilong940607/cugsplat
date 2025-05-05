@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <chrono>
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
@@ -394,6 +395,38 @@ auto test_project_hess() -> int {
         // printf("H1: %s\n", glm::to_string(H1).c_str());
         // printf("H_est 1: %s\n", glm::to_string(std::get<1>(H_est)).c_str());
         // printf("H2: %s\n", glm::to_string(H2).c_str());
+
+        // // Compare time cost between GHF and analytical gradient
+        // {
+        //     auto const start_time = std::chrono::high_resolution_clock::now();
+        //     for (int i = 0; i < 10000; ++i) {
+        //         auto const &[J_est, H_est] =
+        //         cugsplat::ghf::estimate_jacobian_and_hessian<3, 2>(
+        //             [&](const glm::fvec3 &camera_point) {
+        //                 return project(camera_point, focal_length, principal_point);
+        //             },
+        //             camera_point, glm::fvec3(1e-2f, 1e-2f, 1e-1f));
+        //     }
+        //     auto const end_time = std::chrono::high_resolution_clock::now();
+        //     auto const duration =
+        //     std::chrono::duration_cast<std::chrono::microseconds>(end_time -
+        //     start_time).count(); printf("GHF time cost: %f ms\n", duration /
+        //     10000.0f);
+
+        //     auto const start_time_numerical =
+        //     std::chrono::high_resolution_clock::now();
+        // }
+        // {
+        //     auto const start_time = std::chrono::high_resolution_clock::now();
+        //     for (int i = 0; i < 10000; ++i) {
+        //         auto const &[H1, H2] = project_hess(camera_point, focal_length);
+        //     }
+        //     auto const end_time = std::chrono::high_resolution_clock::now();
+        //     auto const duration =
+        //     std::chrono::duration_cast<std::chrono::microseconds>(end_time -
+        //     start_time).count(); printf("Analytical time cost: %f ms\n", duration /
+        //     10000.0f);
+        // }
 
         if (!is_close(v_camera_point, expected)) {
             printf("\n[FAIL] Test 1: Gradient\n");

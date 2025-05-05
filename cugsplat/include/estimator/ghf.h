@@ -258,16 +258,10 @@ auto estimate_jacobian_and_hessian(
     // Get precomputed matrices based on order
     auto matrices = get_precomputed_matrices<N, order>();
 
-    // Transform points to actual space
-    std::array<glm::vec<N, float>, matrices.points_std.size()> points;
-    for (size_t i = 0; i < points.size(); ++i) {
-        points[i] = mu + matrices.points_std[i] * std_dev;
-    }
-
     // Evaluate function at all points
-    std::array<glm::vec<M, float>, points.size()> outputs;
-    for (size_t i = 0; i < points.size(); ++i) {
-        outputs[i] = f(points[i]);
+    std::array<glm::vec<M, float>, matrices.points_std.size()> outputs;
+    for (size_t i = 0; i < matrices.points_std.size(); ++i) {
+        outputs[i] = f(mu + matrices.points_std[i] * std_dev);
     }
 
     // Initialize results
@@ -277,8 +271,8 @@ auto estimate_jacobian_and_hessian(
     // For each output dimension
     for (int output_dim = 0; output_dim < M; ++output_dim) {
         // Extract output values for this dimension
-        std::array<float, points.size()> y;
-        for (size_t i = 0; i < points.size(); ++i) {
+        std::array<float, matrices.points_std.size()> y;
+        for (size_t i = 0; i < matrices.points_std.size(); ++i) {
             y[i] = outputs[i][output_dim];
         }
 
@@ -286,7 +280,7 @@ auto estimate_jacobian_and_hessian(
         std::array<float, num_quadratic_features<N>()> theta{};
         for (int i = 0; i < num_quadratic_features<N>(); ++i) {
             float sum = 0.0f;
-            for (size_t j = 0; j < points.size(); ++j) {
+            for (size_t j = 0; j < matrices.points_std.size(); ++j) {
                 sum += matrices.coefficients[i][j] * y[j];
             }
             theta[i] = sum;
