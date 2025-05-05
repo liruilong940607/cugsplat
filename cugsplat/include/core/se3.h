@@ -10,9 +10,13 @@
 
 namespace cugsplat::se3 {
 
-// Interpolate two SE3 poses. Translation is interpolated linearly, rotation
-// is interpolated using slerp. pose1 corresponds to ratio=0, pose2 corresponds
-// to ratio=1.
+/// \brief Interpolate two SE(3) poses using quaternion rotation
+/// \param ratio Interpolation ratio (0 for pose1, 1 for pose2)
+/// \param rot1 First rotation as quaternion
+/// \param transl1 First translation
+/// \param rot2 Second rotation as quaternion
+/// \param transl2 Second translation
+/// \return Pair of interpolated rotation and translation
 GSPLAT_HOST_DEVICE inline auto interpolate(
     const float ratio,
     const glm::fquat &rot1,
@@ -25,9 +29,13 @@ GSPLAT_HOST_DEVICE inline auto interpolate(
     return {rot, transl};
 }
 
-// Interpolate two SE3 poses. Translation is interpolated linearly, rotation
-// is interpolated using slerp. pose1 corresponds to ratio=0, pose2 corresponds
-// to ratio=1.
+/// \brief Interpolate two SE(3) poses using matrix rotation
+/// \param ratio Interpolation ratio (0 for pose1, 1 for pose2)
+/// \param rot1 First rotation as 3x3 matrix
+/// \param transl1 First translation
+/// \param rot2 Second rotation as 3x3 matrix
+/// \param transl2 Second translation
+/// \return Pair of interpolated rotation and translation
 GSPLAT_HOST_DEVICE inline auto interpolate(
     const float ratio,
     const glm::fmat3 &rot1,
@@ -40,59 +48,92 @@ GSPLAT_HOST_DEVICE inline auto interpolate(
     return {glm::mat3_cast(rot), transl};
 }
 
-// Transform a point using SE3 matrix
+/// \brief Transform a point using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param transl Translation vector
+/// \param point Point to transform
+/// \return Transformed point
 GSPLAT_HOST_DEVICE inline auto transform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return rot * point + transl;
 }
 
-// Transform a point using SE3 matrix
+/// \brief Transform a point using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param transl Translation vector
+/// \param point Point to transform
+/// \return Transformed point
 GSPLAT_HOST_DEVICE inline auto transform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::mat3_cast(rot) * point + transl;
 }
 
-// Inverse transform a point using SE3 matrix
+/// \brief Inverse transform a point using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param transl Translation vector
+/// \param point Point to inverse transform
+/// \return Inverse transformed point
 GSPLAT_HOST_DEVICE inline auto invtransform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(rot) * (point - transl);
 }
 
-// Inverse transform a point using SE3 matrix
+/// \brief Inverse transform a point using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param transl Translation vector
+/// \param point Point to inverse transform
+/// \return Inverse transformed point
 GSPLAT_HOST_DEVICE inline auto invtransform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * (point - transl);
 }
 
-// Transform a direction using SE3 matrix
+/// \brief Transform a direction using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param dir Direction to transform
+/// \return Transformed direction
 GSPLAT_HOST_DEVICE inline auto
 transform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return rot * dir;
 }
 
-// Transform a direction using SE3 matrix
+/// \brief Transform a direction using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param dir Direction to transform
+/// \return Transformed direction
 GSPLAT_HOST_DEVICE inline auto
 transform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::mat3_cast(rot) * dir;
 }
 
-// Inverse transform a direction using SE3 matrix
+/// \brief Inverse transform a direction using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param dir Direction to inverse transform
+/// \return Inverse transformed direction
 GSPLAT_HOST_DEVICE inline auto
 invtransform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(rot) * dir;
 }
 
-// Inverse transform a direction using SE3 matrix
+/// \brief Inverse transform a direction using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param dir Direction to inverse transform
+/// \return Inverse transformed direction
 GSPLAT_HOST_DEVICE inline auto
 invtransform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * dir;
 }
 
-// Transform a ray using SE3 matrix
+/// \brief Transform a ray using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param transl Translation vector
+/// \param ray_o Ray origin
+/// \param ray_d Ray direction
+/// \return Tuple of transformed ray origin and direction
 GSPLAT_HOST_DEVICE inline auto transform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
@@ -102,7 +143,12 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
     return {rot * ray_o + transl, rot * ray_d};
 }
 
-// Transform a ray using SE3 matrix
+/// \brief Transform a ray using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param transl Translation vector
+/// \param ray_o Ray origin
+/// \param ray_d Ray direction
+/// \return Tuple of transformed ray origin and direction
 GSPLAT_HOST_DEVICE inline auto transform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
@@ -113,7 +159,12 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
     return {R * ray_o + transl, R * ray_d};
 }
 
-// Inverse transform a ray using SE3 matrix
+/// \brief Inverse transform a ray using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param transl Translation vector
+/// \param ray_o Ray origin
+/// \param ray_d Ray direction
+/// \return Tuple of inverse transformed ray origin and direction
 GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
@@ -124,7 +175,12 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     return {R_inv * (ray_o - transl), R_inv * ray_d};
 }
 
-// Inverse transform a ray using SE3 matrix
+/// \brief Inverse transform a ray using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param transl Translation vector
+/// \param ray_o Ray origin
+/// \param ray_d Ray direction
+/// \return Tuple of inverse transformed ray origin and direction
 GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
@@ -135,26 +191,38 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
     return {R_inv * (ray_o - transl), R_inv * ray_d};
 }
 
-// Transform a covariance matrix using SE3 matrix
+/// \brief Transform a covariance matrix using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param covar Covariance matrix to transform
+/// \return Transformed covariance matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     return rot * covar * glm::transpose(rot);
 }
 
-// Transform a covariance matrix using SE3 matrix
+/// \brief Transform a covariance matrix using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param covar Covariance matrix to transform
+/// \return Transformed covariance matrix
 GSPLAT_HOST_DEVICE inline auto
 transform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     auto const R = glm::mat3_cast(rot);
     return R * covar * glm::transpose(R);
 }
 
-// Inverse transform a covariance matrix using SE3 matrix
+/// \brief Inverse transform a covariance matrix using SE(3) matrix
+/// \param rot Rotation matrix
+/// \param covar Covariance matrix to inverse transform
+/// \return Inverse transformed covariance matrix
 GSPLAT_HOST_DEVICE inline auto
 invtransform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     return glm::transpose(rot) * covar * rot;
 }
 
-// Inverse transform a covariance matrix using SE3 matrix
+/// \brief Inverse transform a covariance matrix using SE(3) quaternion
+/// \param rot Rotation quaternion
+/// \param covar Covariance matrix to inverse transform
+/// \return Inverse transformed covariance matrix
 GSPLAT_HOST_DEVICE inline auto
 invtransform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     auto const R = glm::mat3_cast(rot);
