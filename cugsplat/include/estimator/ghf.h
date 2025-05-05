@@ -16,11 +16,13 @@
 
 namespace cugsplat::ghf {
 
+/// @private
 // Helper function to compute number of quadratic features
 template <int N> constexpr int num_quadratic_features() {
     return 1 + N + N * (N + 1) / 2;
 }
 
+/// @private
 // Helper function to compute quadratic features for a single point
 template <int N>
 constexpr auto build_quadratic_features_point(glm::vec<N, float> const &point
@@ -46,6 +48,7 @@ constexpr auto build_quadratic_features_point(glm::vec<N, float> const &point
     return features;
 }
 
+/// @private
 // Build quadratic features matrix for all points
 template <int N, int M>
 constexpr auto build_quadratic_features(std::array<glm::vec<N, float>, M> const &points
@@ -57,6 +60,7 @@ constexpr auto build_quadratic_features(std::array<glm::vec<N, float>, M> const 
     return features_matrix;
 }
 
+/// @private
 // Compute weighted features transpose
 template <int N, int M>
 constexpr auto compute_weighted_features_transpose(
@@ -74,6 +78,7 @@ constexpr auto compute_weighted_features_transpose(
     return weighted_features_transpose;
 }
 
+/// @private
 // Compute weighted features covariance
 template <int N, int M>
 constexpr auto compute_weighted_features_covariance(
@@ -101,6 +106,7 @@ constexpr auto compute_weighted_features_covariance(
     return weighted_covariance;
 }
 
+/// @private
 // Compute inverse of weighted features covariance using Gauss-Jordan elimination
 template <int N>
 constexpr auto compute_inverse(std::array<
@@ -163,6 +169,7 @@ constexpr auto compute_inverse(std::array<
     return inverse;
 }
 
+/// @private
 // Compute weighted least squares coefficients
 template <int N, int M>
 constexpr auto compute_weighted_least_squares_coefficients(
@@ -187,51 +194,63 @@ constexpr auto compute_weighted_least_squares_coefficients(
 }
 
 // Precompute all matrices for order 3
+/// @private
 constexpr auto features_matrix_order3 =
     build_quadratic_features<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         HERMGAUSS_POINTS_3D_ORDER3
     );
+/// @private
 constexpr auto weighted_features_transpose_order3 =
     compute_weighted_features_transpose<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         features_matrix_order3, HERMGAUSS_WEIGHTS_3D_ORDER3
     );
+/// @private
 constexpr auto weighted_covariance_order3 =
     compute_weighted_features_covariance<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         features_matrix_order3, weighted_features_transpose_order3
     );
+/// @private
 constexpr auto weighted_covariance_inverse_order3 =
     compute_inverse<3>(weighted_covariance_order3);
+/// @private
 constexpr auto weighted_least_squares_coefficients_order3 =
     compute_weighted_least_squares_coefficients<3, constexpr_pow<ORDER3, 3>::value>(
         weighted_covariance_inverse_order3, weighted_features_transpose_order3
     );
 
 // Precompute all matrices for order 5
+/// @private
 constexpr auto features_matrix_order5 =
     build_quadratic_features<3, constexpr_pow<ORDER5, 3>::value>(
         HERMGAUSS_POINTS_3D_ORDER5
     );
+/// @private
 constexpr auto weighted_features_transpose_order5 =
     compute_weighted_features_transpose<3, constexpr_pow<ORDER5, 3>::value>(
         features_matrix_order5, HERMGAUSS_WEIGHTS_3D_ORDER5
     );
+/// @private
 constexpr auto weighted_covariance_order5 =
     compute_weighted_features_covariance<3, constexpr_pow<ORDER5, 3>::value>(
         features_matrix_order5, weighted_features_transpose_order5
     );
+/// @private
 constexpr auto weighted_covariance_inverse_order5 =
     compute_inverse<3>(weighted_covariance_order5);
+/// @private
 constexpr auto weighted_least_squares_coefficients_order5 =
     compute_weighted_least_squares_coefficients<3, constexpr_pow<ORDER5, 3>::value>(
         weighted_covariance_inverse_order5, weighted_features_transpose_order5
     );
 
+/// @private
 // Struct to hold precomputed matrices
 template <int N, int Size> struct PrecomputedMatrices {
     std::array<glm::vec<N, float>, Size> points_std;
     std::array<std::array<float, Size>, num_quadratic_features<N>()> coefficients;
 };
 
+/// @private
 // Helper function to get precomputed matrices based on order
 template <int N, int order> auto get_precomputed_matrices() {
     if constexpr (N == 3) {
