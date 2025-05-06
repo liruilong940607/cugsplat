@@ -6,7 +6,7 @@ API Documentation
    :caption: API Reference
 
    api/cugsplat_fisheye
-   api/cugsplat_ghf
+   api/cugsplat_ghq
    api/cugsplat_orthogonal
-   api/cugsplat_pinhhole
+   api/cugsplat_pinhole
    api/cugsplat_shutter

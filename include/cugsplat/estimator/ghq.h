@@ -1,4 +1,4 @@
-// Gauss-Hermite Filter
+// Gauss-Hermite Quadrature
 //
 // Precomputes:
 // 1. Standardized sigma points
@@ -14,7 +14,7 @@
 #include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "cugsplat/estimator/hermgauss.h"
 
-namespace cugsplat::ghf {
+namespace cugsplat::ghq {
 
 /// @private
 // Helper function to compute number of quadratic features
@@ -361,4 +361,4 @@ GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     return {J, H};
 }
 
-} // namespace cugsplat::ghf
+} // namespace cugsplat::ghq

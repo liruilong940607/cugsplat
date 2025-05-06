@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/estimator/ghf.h"
+#include "cugsplat/estimator/ghq.h"
 
-using namespace cugsplat::ghf;
+using namespace cugsplat::ghq;
 
 // Helper function to compute Frobenius norm of a matrix
 template <typename T> float frobenius_norm(T const &mat) {
@@ -62,7 +62,7 @@ auto analytical_hessian = [](glm::vec3 const &x) -> std::array<glm::mat3, 2> {
     return H;
 };
 
-int test_ghf_jacobian() {
+int test_ghq_jacobian() {
     int fails = 0;
 
     // Test case 1: Normal values
@@ -76,7 +76,7 @@ int test_ghf_jacobian() {
 
         // Compare estimated and analytical Jacobian
         if (!is_close(J_est, J_anal, 1e-3f, 1e-3f)) {
-            printf("\n=== Testing GHF Jacobian ===\n");
+            printf("\n=== Testing GHQ Jacobian ===\n");
             printf("\n[FAIL] Test 1: Normal values\n");
             printf("  Input mu: %s\n", glm::to_string(mu).c_str());
             printf("  Input sigma_diag: %s\n", glm::to_string(sigma_diag).c_str());
@@ -102,7 +102,7 @@ int test_ghf_jacobian() {
     return fails;
 }
 
-int test_ghf_hessian() {
+int test_ghq_hessian() {
     int fails = 0;
 
     // Test case 1: Normal values
@@ -124,7 +124,7 @@ int test_ghf_hessian() {
         }
 
         if (!hessian_match) {
-            printf("\n=== Testing GHF Hessian ===\n");
+            printf("\n=== Testing GHQ Hessian ===\n");
             printf("\n[FAIL] Test 1: Normal values\n");
             printf("  Input mu: %s\n", glm::to_string(mu).c_str());
             printf("  Input std_dev: %s\n", glm::to_string(std_dev).c_str());
@@ -163,13 +163,13 @@ int test_ghf_hessian() {
 int main() {
     int fails = 0;
 
-    fails += test_ghf_jacobian();
-    fails += test_ghf_hessian();
+    fails += test_ghq_jacobian();
+    fails += test_ghq_hessian();
 
     if (fails > 0) {
-        printf("[estimator/ghf.cpp] %d tests failed!\n", fails);
+        printf("[estimator/ghq.cpp] %d tests failed!\n", fails);
     } else {
-        printf("[estimator/ghf.cpp] All tests passed!\n");
+        printf("[estimator/ghq.cpp] All tests passed!\n");
     }
 
     return fails;

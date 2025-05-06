@@ -1,7 +1,7 @@
-cugsplat::ghf
+cugsplat::ghq
 =============
 
-.. doxygennamespace:: cugsplat::ghf
+.. doxygennamespace:: cugsplat::ghq
    :project: cugsplat
    :members:
    :undoc-members:

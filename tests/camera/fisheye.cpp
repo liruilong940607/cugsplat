@@ -6,7 +6,7 @@
 
 #include "../helpers.h"
 #include "cugsplat/camera/fisheye.h"
-#include "cugsplat/estimator/ghf.h"
+#include "cugsplat/estimator/ghq.h"
 
 using namespace cugsplat::fisheye;
 
@@ -382,8 +382,8 @@ auto test_project_hess() -> int {
             1e-4f
         );
 
-        // // Use GHF to estimate gradient
-        // auto const &[J_est, H_est] = cugsplat::ghf::estimate_jacobian_and_hessian<3,
+        // // Use GHQ to estimate gradient
+        // auto const &[J_est, H_est] = cugsplat::ghq::estimate_jacobian_and_hessian<3,
         // 2>(
         //     [&](const glm::fvec3 &camera_point) {
         //         return project(camera_point, focal_length, principal_point);
@@ -396,12 +396,12 @@ auto test_project_hess() -> int {
         // printf("H_est 1: %s\n", glm::to_string(std::get<1>(H_est)).c_str());
         // printf("H2: %s\n", glm::to_string(H2).c_str());
 
-        // // Compare time cost between GHF and analytical gradient
+        // // Compare time cost between GHQ and analytical gradient
         // {
         //     auto const start_time = std::chrono::high_resolution_clock::now();
         //     for (int i = 0; i < 10000; ++i) {
         //         auto const &[J_est, H_est] =
-        //         cugsplat::ghf::estimate_jacobian_and_hessian<3, 2>(
+        //         cugsplat::ghq::estimate_jacobian_and_hessian<3, 2>(
         //             [&](const glm::fvec3 &camera_point) {
         //                 return project(camera_point, focal_length, principal_point);
         //             },
@@ -410,7 +410,7 @@ auto test_project_hess() -> int {
         //     auto const end_time = std::chrono::high_resolution_clock::now();
         //     auto const duration =
         //     std::chrono::duration_cast<std::chrono::microseconds>(end_time -
-        //     start_time).count(); printf("GHF time cost: %f ms\n", duration /
+        //     start_time).count(); printf("GHQ time cost: %f ms\n", duration /
         //     10000.0f);
 
         //     auto const start_time_numerical =
