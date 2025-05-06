@@ -1,0 +1,8 @@
+cugsplat::ut
+============
+
+.. doxygennamespace:: cugsplat::ut
+   :project: cugsplat
+   :members:
+   :undoc-members:
+   :content-only:

@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cugsplat::pinhole &mdash; cugsplat  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cugsplat::shutter" href="cugsplat_shutter.html" />
+    <link rel="prev" title="cugsplat::orthogonal" href="cugsplat_orthogonal.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            cugsplat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../apis.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="cugsplat_fisheye.html">cugsplat::fisheye</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cugsplat_ghq.html">cugsplat::ghq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cugsplat_orthogonal.html">cugsplat::orthogonal</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">cugsplat::pinhole</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole10distortionERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">distortion()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole14distortion_jacERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">distortion_jac()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4I_6size_tEN8cugsplat7pinhole12undistortionENSt4pairIN3glm5fvec2EbEERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">undistortion()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"><code class="docutils literal notranslate"><span class="pre">project_jac()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">project()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">project_jac()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2E"><code class="docutils literal notranslate"><span class="pre">unproject()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"><code class="docutils literal notranslate"><span class="pre">unproject()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cugsplat_shutter.html">cugsplat::shutter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cugsplat_ut.html">cugsplat::ut</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">cugsplat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../apis.html">API Documentation</a></li>
+      <li class="breadcrumb-item active">cugsplat::pinhole</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/cugsplat_pinhole.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cugsplat-pinhole">
+<h1>cugsplat::pinhole<a class="headerlink" href="#cugsplat-pinhole" title="Link to this heading"></a></h1>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE">
+<span id="_CPPv3N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE"></span><span id="_CPPv2N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE"></span><span id="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST__float"></span><span class="target" id="pinhole_8h_1ad11e528eb4a48b8c0a13e9758e5553f6"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">0.8f</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE">
+<span id="_CPPv3N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE"></span><span id="_CPPv2N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE"></span><span id="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST__float"></span><span class="target" id="pinhole_8h_1a377f51d0dd0d940f9acaa6eb512290cd"></span><span class="k"><span class="pre">constexpr</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">numeric_limits</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole10distortionERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8cugsplat7pinhole10distortionERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8cugsplat7pinhole10distortionERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span id="cugsplat::pinhole::distortion__glm::fvec2CR.std::array:float.6:CR.std::array:float.2:CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="pinhole_8h_1aa1e394ca06131c3e4ffe0e8a8339a673"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">distortion</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">xy</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole10distortionERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the distortion: uv = icD * xy + delta. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xy</strong> – 2D point in normalized image coordinates </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of distorted 2D point and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole14distortion_jacERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8cugsplat7pinhole14distortion_jacERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8cugsplat7pinhole14distortion_jacERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span id="cugsplat::pinhole::distortion_jac__glm::fvec2CR.std::array:float.6:CR.std::array:float.2:CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="pinhole_8h_1ad9e020cc80cf2c414827037935ddf10d"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">distortion_jac</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">xy</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">tuple</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole14distortion_jacERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Jacobian of the distortion: J = d(uv) / d(xy) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xy</strong> – 2D point in normalized image coordinates </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple containing the 2x2 Jacobian matrix, radial distortion factor icD, squared radius r2, and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_6size_tEN8cugsplat7pinhole12undistortionENSt4pairIN3glm5fvec2EbEERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3I_6size_tEN8cugsplat7pinhole12undistortionERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2I_6size_tEN8cugsplat7pinhole12undistortionERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N_ITER</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="pinhole_8h_1a88f8fb7e8eda5917dfe9565390881e08"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">undistortion</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">uv</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I_6size_tEN8cugsplat7pinhole12undistortionENSt4pairIN3glm5fvec2EbEERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Inverse distortion: Solve xy such that uv = icD * xy + delta. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>N_ITER</strong> – Number of iterations for Newton’s method </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>uv</strong> – 2D point in distorted image coordinates </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pair of undistorted 2D point and convergence flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E">
+<span id="_CPPv3N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="_CPPv2N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="cugsplat::pinhole::project__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR"></span><span class="target" id="pinhole_8h_1ac344b225ed61527d5d4d0cbbe97299c5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E" title="Link to this definition"></a><br /></dt>
+<dd><p>Project a 3D point in camera space to 2D image space using pinhole projection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Projected 2D point in image space </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E">
+<span id="_CPPv3N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="_CPPv2N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="cugsplat::pinhole::project_jac__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR"></span><span class="target" id="pinhole_8h_1a6526e0e89b045e4682e14b779615bf80"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project_jac</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat3x2</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2E" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Jacobian of the pinhole projection: J = d(image_point) / d(camera_point) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3x2 Jacobian matrix </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span id="cugsplat::pinhole::project__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR.std::array:float.6:CR.std::array:float.2:CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="pinhole_8h_1aabab3b882928353b0008ad1ad2efbc61"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Project a 3D point in camera space to 2D image space using pinhole projection with lens distortion. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of projected 2D point and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span id="cugsplat::pinhole::project_jac__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR.std::array:float.6:CR.std::array:float.2:CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="pinhole_8h_1a558328b23d6490890d49d833bfc59eb4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project_jac</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat3x2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Jacobian of the pinhole projection with lens distortion: J = d(image_point) / d(camera_point) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of 3x2 Jacobian matrix and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2E">
+<span id="_CPPv3N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="_CPPv2N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2E"></span><span id="cugsplat::pinhole::unproject__glm::fvec2CR.glm::fvec2CR.glm::fvec2CR"></span><span class="target" id="pinhole_8h_1a308f1dbdaa7a3c0d33a8085f76885db5"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unproject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">image_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2E" title="Link to this definition"></a><br /></dt>
+<dd><p>Unproject a 2D point from image space to camera space using pinhole projection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_point</strong> – 2D point in image space </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>ray direction in camera space </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfX6EEERKNSt5arrayIfX2EEERKNSt5arrayIfX4EEERKfRKf"></span><span id="cugsplat::pinhole::unproject__glm::fvec2CR.glm::fvec2CR.glm::fvec2CR.std::array:float.6:CR.std::array:float.2:CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="pinhole_8h_1a8bbc1a80c1a7b35ecb477febd68d7168"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">cugsplat</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pinhole</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unproject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">image_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">6</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">tangential_coeffs</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">thin_prism_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MIN_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MIN_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MIN_RADIAL_DIST</span></span></a>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_radial_dist</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8cugsplat7pinhole23DEFAULT_MAX_RADIAL_DISTE" title="cugsplat::pinhole::DEFAULT_MAX_RADIAL_DIST"><span class="n"><span class="pre">DEFAULT_MAX_RADIAL_DIST</span></span></a><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8cugsplat7pinhole9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL6EEEERKNSt5arrayIfXL2EEEERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Unproject a 2D point from image space to camera space using pinhole projection with lens distortion. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_point</strong> – 2D point in image space </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4, k5, k6) </p></li>
+<li><p><strong>tangential_coeffs</strong> – Tangential distortion coefficients (p1, p2) </p></li>
+<li><p><strong>thin_prism_coeffs</strong> – Thin prism distortion coefficients (s1, s2, s3, s4) </p></li>
+<li><p><strong>min_radial_dist</strong> – Minimum radial distortion threshold for numerical stability. Default value is 0.8f. </p></li>
+<li><p><strong>max_radial_dist</strong> – Maximum radial distortion threshold for numerical stability. Default value is max float. </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of ray direction and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cugsplat_orthogonal.html" class="btn btn-neutral float-left" title="cugsplat::orthogonal" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cugsplat_shutter.html" class="btn btn-neutral float-right" title="cugsplat::shutter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ruilong Li.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
