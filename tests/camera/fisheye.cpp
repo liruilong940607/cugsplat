@@ -5,8 +5,8 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "camera/fisheye.h"
-#include "estimator/ghf.h"
+#include "cugsplat/camera/fisheye.h"
+#include "cugsplat/estimator/ghf.h"
 
 using namespace cugsplat::fisheye;
 

@@ -6,8 +6,8 @@
 #include <limits>
 #include <tuple>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/se3.h"
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/se3.h"
 
 namespace cugsplat::shutter {
 

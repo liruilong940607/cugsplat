@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "core/math.h"
+#include "cugsplat/core/math.h"
 
 using namespace cugsplat::math;
 

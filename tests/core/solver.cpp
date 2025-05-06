@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "core/solver.h"
+#include "cugsplat/core/solver.h"
 
 using namespace cugsplat::solver;
 

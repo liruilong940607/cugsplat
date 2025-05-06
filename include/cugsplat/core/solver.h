@@ -6,8 +6,8 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/math.h"
 
 namespace cugsplat::solver {
 

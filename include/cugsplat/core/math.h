@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "core/macros.h"
+#include "cugsplat/core/macros.h"
 
 namespace cugsplat::math {
 

@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "core/se3.h"
+#include "cugsplat/core/se3.h"
 
 using namespace cugsplat::se3;
 

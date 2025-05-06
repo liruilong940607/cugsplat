@@ -6,9 +6,9 @@
 #include <limits>
 #include <tuple>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"
-#include "core/solver.h"
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/math.h"
+#include "cugsplat/core/solver.h"
 
 namespace cugsplat::pinhhole {
 

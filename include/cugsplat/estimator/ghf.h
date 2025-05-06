@@ -11,8 +11,8 @@
 #include <functional>
 #include <glm/glm.hpp>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "estimator/hermgauss.h"
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/estimator/hermgauss.h"
 
 namespace cugsplat::ghf {
 

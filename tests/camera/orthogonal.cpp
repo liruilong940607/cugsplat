@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "camera/orthogonal.h"
+#include "cugsplat/camera/orthogonal.h"
 
 using namespace cugsplat::orthogonal;
 

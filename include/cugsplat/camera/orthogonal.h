@@ -6,7 +6,7 @@
 #include <limits>
 #include <tuple>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace cugsplat::orthogonal {
 

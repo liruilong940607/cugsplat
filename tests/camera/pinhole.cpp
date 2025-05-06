@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "camera/pinhole.h"
+#include "cugsplat/camera/pinhole.h"
 
 using namespace cugsplat::pinhhole;
 

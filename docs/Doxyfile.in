@@ -4,11 +4,11 @@ PROJECT_BRIEF          = "CUDA-accelerated Gaussian splatting library"
 OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIR@
 
 # Input configuration
-INPUT                  = @CMAKE_SOURCE_DIR@/cugsplat/include/camera/fisheye.h \
-                         @CMAKE_SOURCE_DIR@/cugsplat/include/camera/pinhole.h \
-                         @CMAKE_SOURCE_DIR@/cugsplat/include/camera/orthogonal.h \
-                         @CMAKE_SOURCE_DIR@/cugsplat/include/camera/shutter.h \
-                         @CMAKE_SOURCE_DIR@/cugsplat/include/estimator/ghf.h
+INPUT                  = @CMAKE_SOURCE_DIR@/include/cugsplat/camera/fisheye.h \
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/pinhole.h \
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/orthogonal.h \
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/shutter.h \
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ghf.h
 
 # Basic documentation settings
 EXTRACT_ALL            = NO

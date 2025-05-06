@@ -3,9 +3,9 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "core/cholesky3x3.h"
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "core/math.h"
+#include "cugsplat/core/cholesky3x3.h"
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/math.h"
 
 namespace cugsplat::gaussian {
 

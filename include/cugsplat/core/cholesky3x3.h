@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace cugsplat::cholesky3x3 {
 

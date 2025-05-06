@@ -6,7 +6,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp> // glm slerp
 
-#include "core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace cugsplat::se3 {
 

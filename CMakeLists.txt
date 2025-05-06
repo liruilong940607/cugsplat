@@ -26,7 +26,7 @@ endif()
 # Header-only core
 add_library(cugsplat INTERFACE)
 target_include_directories(cugsplat INTERFACE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/cugsplat/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
 

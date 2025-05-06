@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "estimator/ghf.h"
+#include "cugsplat/estimator/ghf.h"
 
 using namespace cugsplat::ghf;
 

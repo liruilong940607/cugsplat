@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "camera/shutter.h"
+#include "cugsplat/camera/shutter.h"
 
 using namespace cugsplat::shutter;
 
