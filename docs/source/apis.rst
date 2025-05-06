@@ -7,4 +7,5 @@ API Documentation
 
    api/cugsplat_fisheye
    api/cugsplat_ghf
+   api/cugsplat_pinhhole
    api/cugsplat_shutter

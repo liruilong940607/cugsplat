@@ -15,6 +15,7 @@ namespace cugsplat::pinhhole {
 constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
 constexpr float DEFAULT_MAX_RADIAL_DIST = std::numeric_limits<float>::max();
 
+/// @private
 // Compute the radial distortion factor icD = icD_num / icD_den
 // Where:
 //      icD_num = 1 + k1 * r2 + k2 * r4 + k3 * r6
@@ -28,6 +29,7 @@ GSPLAT_HOST_DEVICE inline auto compute_icD(
     return {icD_num, icD_den};
 }
 
+/// @private
 // Compute the gradient of the radial distortion factor icD w.r.t. r2
 // Where:
 //      r2 = x^2 + y^2
@@ -47,6 +49,7 @@ GSPLAT_HOST_DEVICE inline auto gradient_icD(
     return d_icD_dr2; // d(icD) / d(r2)
 }
 
+/// @private
 // Compute the shifting in the distortion: delta.
 GSPLAT_HOST_DEVICE inline auto compute_delta(
     const glm::fvec2 xy,
@@ -64,6 +67,7 @@ GSPLAT_HOST_DEVICE inline auto compute_delta(
     return glm::fvec2{delta_x, delta_y};
 }
 
+/// @private
 // Compute the Jacobian of the shifting distortion: d(delta) / d(xy)
 GSPLAT_HOST_DEVICE inline auto jacobian_delta(
     const glm::fvec2 xy,
