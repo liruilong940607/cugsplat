@@ -10,7 +10,7 @@
 #include "cugsplat/core/math.h"
 #include "cugsplat/core/solver.h"
 
-namespace cugsplat::pinhhole {
+namespace cugsplat::pinhole {
 
 constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
 constexpr float DEFAULT_MAX_RADIAL_DIST = std::numeric_limits<float>::max();
@@ -393,4 +393,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {glm::normalize(dir), true};
 }
 
-} // namespace cugsplat::pinhhole
+} // namespace cugsplat::pinhole

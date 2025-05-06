@@ -7,7 +7,7 @@
 #include "../helpers.h"
 #include "cugsplat/camera/pinhole.h"
 
-using namespace cugsplat::pinhhole;
+using namespace cugsplat::pinhole;
 
 // Test project function (distorted pinhole)
 auto test_project_distorted() -> int {

@@ -1,7 +1,7 @@
-cugsplat::pinhhole
+cugsplat::pinhole
 ==================
 
-.. doxygennamespace:: cugsplat::pinhhole
+.. doxygennamespace:: cugsplat::pinhole
    :project: cugsplat
    :members:
    :undoc-members:
