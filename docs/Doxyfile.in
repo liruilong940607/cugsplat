@@ -8,7 +8,8 @@ INPUT                  = @CMAKE_SOURCE_DIR@/include/cugsplat/camera/fisheye.h \
                          @CMAKE_SOURCE_DIR@/include/cugsplat/camera/pinhole.h \
                          @CMAKE_SOURCE_DIR@/include/cugsplat/camera/orthogonal.h \
                          @CMAKE_SOURCE_DIR@/include/cugsplat/camera/shutter.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ghq.h
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ghq.h \
+                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ut.h
 
 # Basic documentation settings
 EXTRACT_ALL            = NO
