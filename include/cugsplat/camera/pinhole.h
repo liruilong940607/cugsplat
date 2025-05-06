@@ -12,8 +12,9 @@
 
 namespace cugsplat::pinhole {
 
-constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
-constexpr float DEFAULT_MAX_RADIAL_DIST = std::numeric_limits<float>::max();
+GSPLAT_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
+GSPLAT_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
+    std::numeric_limits<float>::max();
 
 /// @private
 // Compute the radial distortion factor icD = icD_num / icD_den
