@@ -2,11 +2,12 @@
 
 #pragma once
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 #include <array>
 #include <functional>
 #include <glm/glm.hpp>
 #include <tuple>
+
+#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
 
 namespace cugsplat::ut {
 
