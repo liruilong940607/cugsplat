@@ -122,12 +122,14 @@ GSPLAT_HOST_DEVICE inline auto project(
 }
 
 /// \brief Project a 3D point in camera space to 2D image space using fisheye projection
-/// with radial distortion \param camera_point 3D point in camera space (x, y, z) \param
-/// focal_length Focal length in pixels (fx, fy) \param principal_point Principal point
-/// in pixels (cx, cy) \param radial_coeffs Radial distortion coefficients (k1, k2, k3,
-/// k4) \param min_2d_norm Minimum 2D norm threshold for numerical stability \param
-/// max_theta Maximum theta angle for valid projection \return Pair of projected 2D
-/// point and validity flag
+/// with radial distortion
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param principal_point Principal point in pixels (cx, cy)
+/// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
+/// \param min_2d_norm Minimum 2D norm threshold for numerical stability
+/// \param max_theta Maximum theta angle for valid projection
+/// \return Pair of projected 2D point and validity flag
 GSPLAT_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
