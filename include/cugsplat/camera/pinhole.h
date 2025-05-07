@@ -225,12 +225,9 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// J = d(image_point) / d(camera_point)
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
-/// \param principal_point Principal point in pixels (cx, cy)
 /// \return 3x2 Jacobian matrix
 GSPLAT_HOST_DEVICE inline auto project_jac(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point
+    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> glm::fmat3x2 {
     auto const rz = 1.0f / camera_point.z;
     auto const xy = glm::fvec2(camera_point) * rz;
@@ -287,7 +284,6 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// J = d(image_point) / d(camera_point)
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
-/// \param principal_point Principal point in pixels (cx, cy)
 /// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4, k5, k6)
 /// \param tangential_coeffs Tangential distortion coefficients (p1, p2)
 /// \param thin_prism_coeffs Thin prism distortion coefficients (s1, s2, s3, s4)
@@ -299,7 +295,6 @@ GSPLAT_HOST_DEVICE inline auto project(
 GSPLAT_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
     std::array<float, 6> const &radial_coeffs,
     std::array<float, 2> const &tangential_coeffs,
     std::array<float, 4> const &thin_prism_coeffs,

@@ -1,5 +1,6 @@
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
+#include <cmath>
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
@@ -11,7 +12,7 @@ using namespace cugsplat::impl;
 using namespace cugsplat::shutter;
 
 // Test projection with perfect camera shutter
-auto test_projection_perfect_camera_shutter() -> int {
+auto test_projection() -> int {
     int fails = 0;
 
     // Test parameters
@@ -94,21 +95,20 @@ auto test_projection_perfect_camera_shutter() -> int {
 
     for (const auto &shutter_type : shutter_types) {
         // Test projection
-        auto [image_point, depth, cov2d, valid] =
-            projection_perfect_camera_shutter<CameraType::PERFECT_PINHOLE>(
-                Ks,
-                near_plane,
-                far_plane,
-                viewmats0,
-                viewmats1,
-                shutter_type,
-                width,
-                height,
-                means,
-                quats,
-                scales,
-                margin_factor
-            );
+        auto [image_point, depth, cov2d, valid] = projection<CameraType::PINHOLE>(
+            Ks,
+            near_plane,
+            far_plane,
+            viewmats0,
+            viewmats1,
+            shutter_type,
+            width,
+            height,
+            means,
+            quats,
+            scales,
+            margin_factor
+        );
 
         // Verify results
         if (!valid) {
@@ -127,7 +127,7 @@ auto test_projection_perfect_camera_shutter() -> int {
 
 auto main() -> int {
     int fails = 0;
-    fails += test_projection_perfect_camera_shutter();
+    fails += test_projection();
 
     if (fails == 0) {
         printf("\nAll tests passed!\n");

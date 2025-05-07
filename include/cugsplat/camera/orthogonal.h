@@ -29,12 +29,9 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \brief Compute the Jacobian of the projection function.
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
-/// \param principal_point Principal point in pixels (cx, cy)
 /// \return Jacobian of the projection function
 GSPLAT_HOST_DEVICE inline auto project_jac(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point
+    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> glm::fmat3x2 {
     auto const J = glm::fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};
     return J;

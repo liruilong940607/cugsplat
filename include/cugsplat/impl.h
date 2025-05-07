@@ -17,10 +17,35 @@
 
 namespace cugsplat::impl {
 
-enum struct CameraType { PERFECT_PINHOLE, PERFECT_FISHEYE, ORTHO };
+template <size_t N, typename T>
+inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
+    std::array<T, N> arr{}; // zero-initialize
+    if (!ptr) {
+        return arr;
+    }
+#pragma unroll
+    for (std::size_t i = 0; i < N; ++i) {
+        arr[i] = ptr[offset + i];
+    }
+    return arr;
+}
+
+enum struct CameraType { PERFECT_PINHOLE, PINHOLE, PERFECT_FISHEYE, FISHEYE, ORTHO };
+
+template <CameraType CAMERA_TYPE> struct DistortionParameters {};
+
+template <> struct DistortionParameters<CameraType::PINHOLE> {
+    float *radial_coeffs = nullptr;
+    float *tangential_coeffs = nullptr;
+    float *thin_prism_coeffs = nullptr;
+};
+
+template <> struct DistortionParameters<CameraType::FISHEYE> {
+    float *radial_coeffs = nullptr;
+};
 
 template <CameraType CAMERA_TYPE>
-GSPLAT_HOST_DEVICE inline auto projection_perfect_camera_shutter(
+GSPLAT_HOST_DEVICE inline auto projection(
     const float *Ks, // [3, 3]
     const float near_plane,
     const float far_plane,
@@ -32,7 +57,8 @@ GSPLAT_HOST_DEVICE inline auto projection_perfect_camera_shutter(
     const float *means,  // [3]
     const float *quats,  // [4]
     const float *scales, // [3]
-    const float margin_factor = 0.15f
+    const float margin_factor = 0.15f,
+    const DistortionParameters<CAMERA_TYPE> &dist_params = {}
 ) -> std::tuple<glm::fvec2, float, glm::fmat2, bool> {
 
     glm::fvec2 means2d;
@@ -96,24 +122,55 @@ GSPLAT_HOST_DEVICE inline auto projection_perfect_camera_shutter(
         auto const focal_length = glm::fvec2(Ks[0], Ks[4]);
         auto const principal_point = glm::fvec2(Ks[2], Ks[5]);
 
-        auto const point_camera_to_image_fn =
-            [&focal_length, &principal_point, &width, &height, &margin_factor](
-                const glm::fvec3 &camera_point
-            ) -> std::pair<glm::fvec2, bool> {
+        auto const point_camera_to_image_fn = [&focal_length,
+                                               &principal_point,
+                                               &width,
+                                               &height,
+                                               &margin_factor,
+                                               &dist_params](
+                                                  const glm::fvec3 &camera_point
+                                              ) -> std::pair<glm::fvec2, bool> {
             // camera to image plane
             glm::fvec2 image_point;
+            bool valid_flag;
             if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
                 image_point = cugsplat::fisheye::project(
                     camera_point, focal_length, principal_point
                 );
+                valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
                 image_point = cugsplat::pinhole::project(
                     camera_point, focal_length, principal_point
                 );
+                valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
                 image_point = cugsplat::orthogonal::project(
                     camera_point, focal_length, principal_point
                 );
+                valid_flag = true;
+            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+                auto const &[image_point_, valid_flag_] = cugsplat::pinhole::project(
+                    camera_point,
+                    focal_length,
+                    principal_point,
+                    make_array<6>(dist_params.radial_coeffs),
+                    make_array<2>(dist_params.tangential_coeffs),
+                    make_array<4>(dist_params.thin_prism_coeffs)
+                );
+                image_point = image_point_;
+                valid_flag = valid_flag_;
+            } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+                auto const &[image_point_, valid_flag_] = cugsplat::fisheye::project(
+                    camera_point,
+                    focal_length,
+                    principal_point,
+                    make_array<4>(dist_params.radial_coeffs)
+                );
+                image_point = image_point_;
+                valid_flag = valid_flag_;
+            }
+            if (!valid_flag) {
+                return {glm::fvec2{}, false};
             }
             // check if in image (with a margin)
             auto const uv = image_point / glm::fvec2(width, height);
@@ -148,8 +205,44 @@ GSPLAT_HOST_DEVICE inline auto projection_perfect_camera_shutter(
         auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
         auto const covar = cugsplat::gaussian::quat_scale_to_covar(quat, scale);
 
-        // project covariance
-        covar2d = cugsplat::se3::transform_covar(world_to_camera_R, covar);
+        // transform covariance to camera space
+        auto const covar_c = cugsplat::se3::transform_covar(world_to_camera_R, covar);
+
+        // project covariance from camera space to image space
+        glm::fmat3x2 J;
+        if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
+            J = cugsplat::fisheye::project_jac(result.camera_point, focal_length);
+        } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
+            J = cugsplat::pinhole::project_jac(result.camera_point, focal_length);
+        } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
+            J = cugsplat::orthogonal::project_jac(result.camera_point, focal_length);
+        } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+            auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
+                result.camera_point,
+                focal_length,
+                make_array<6>(dist_params.radial_coeffs),
+                make_array<2>(dist_params.tangential_coeffs),
+                make_array<4>(dist_params.thin_prism_coeffs)
+            );
+            if (!valid_flag_) {
+                break;
+            }
+            J = J_;
+        } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+            // auto const &[J_, valid_flag_] = cugsplat::fisheye::project_jac(
+            //     result.camera_point, focal_length,
+            //     make_array<4>(dist_params.radial_coeffs)
+            // );
+            // if (!valid_flag_) {
+            //     break;
+            // }
+            // J = J_;
+            // TODO: implement
+        }
+
+        covar2d = J * covar_c * glm::transpose(J);
+
+        // reach here means valid
         valid_flag = true;
     } while (false);
 
