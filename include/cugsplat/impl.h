@@ -122,6 +122,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
         auto const focal_length = glm::fvec2(Ks[0], Ks[4]);
         auto const principal_point = glm::fvec2(Ks[2], Ks[5]);
 
+        // define function to project a camera point to an image point
         auto const point_camera_to_image_fn = [&focal_length,
                                                &principal_point,
                                                &width,
@@ -182,35 +183,57 @@ GSPLAT_HOST_DEVICE inline auto projection(
             }
         };
 
-        // world to image plane
-        auto const result = cugsplat::shutter::point_world_to_image(
-            point_camera_to_image_fn,
-            {width, height},
-            mu,
-            world_to_camera_R0,
-            world_to_camera_t0,
-            world_to_camera_R1,
-            world_to_camera_t1,
-            shutter_type
-        );
-        if (!result.valid_flag) {
+        // define function to project a world point to an image point
+        using AuxData = std::pair<glm::fvec3, glm::fmat3>;
+        auto const point_world_to_image_fn =
+            [&point_camera_to_image_fn,
+             &width,
+             &height,
+             &world_to_camera_R0,
+             &world_to_camera_t0,
+             &world_to_camera_R1,
+             &world_to_camera_t1,
+             &shutter_type](const glm::fvec3 &world_point
+            ) -> std::tuple<glm::fvec2, bool, AuxData> {
+            auto const result = cugsplat::shutter::point_world_to_image(
+                point_camera_to_image_fn,
+                {width, height},
+                world_point,
+                world_to_camera_R0,
+                world_to_camera_t0,
+                world_to_camera_R1,
+                world_to_camera_t1,
+                shutter_type
+            );
+            return {
+                result.image_point,
+                result.valid_flag,
+                AuxData{result.camera_point, result.pose_r}
+            };
+        };
+
+        // execute the function
+        auto const [image_point, image_point_valid_flag, aux] =
+            point_world_to_image_fn(mu);
+        if (!image_point_valid_flag) {
             break;
         }
-        means2d = result.image_point;
-        depth = result.camera_point.z;
-        auto const world_to_camera_R = result.pose_r;
+        means2d = image_point;
+        auto const camera_point = std::get<0>(aux);
+        depth = camera_point.z;
+        auto const world_to_camera_R = std::get<1>(aux);
 
         // project covariance from camera space to image space
         glm::fmat3x2 J;
         if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
-            J = cugsplat::fisheye::project_jac(result.camera_point, focal_length);
+            J = cugsplat::fisheye::project_jac(camera_point, focal_length);
         } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
-            J = cugsplat::pinhole::project_jac(result.camera_point, focal_length);
+            J = cugsplat::pinhole::project_jac(camera_point, focal_length);
         } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-            J = cugsplat::orthogonal::project_jac(result.camera_point, focal_length);
+            J = cugsplat::orthogonal::project_jac(camera_point, focal_length);
         } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
             auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
-                result.camera_point,
+                camera_point,
                 focal_length,
                 make_array<6>(dist_params.radial_coeffs),
                 make_array<2>(dist_params.tangential_coeffs),
@@ -222,7 +245,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
             J = J_;
         } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
             // auto const &[J_, valid_flag_] = cugsplat::fisheye::project_jac(
-            //     result.camera_point, focal_length,
+            //     camera_point, focal_length,
             //     make_array<4>(dist_params.radial_coeffs)
             // );
             // if (!valid_flag_) {
