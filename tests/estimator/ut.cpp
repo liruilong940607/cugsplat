@@ -9,6 +9,8 @@
 
 using namespace cugsplat::ut;
 
+struct AuxData {};
+
 // Test function that performs a simple linear transformation
 template <int N, int M> struct LinearTransform {
     glm::mat<N, M, float>
@@ -19,8 +21,8 @@ template <int N, int M> struct LinearTransform {
         : A(A), b(b) {}
 
     GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
-    ) const -> std::tuple<glm::vec<M, float>, bool> {
-        return {A * x + b, true};
+    ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
+        return {A * x + b, true, AuxData{}};
     }
 };
 
@@ -37,12 +39,12 @@ template <int N, int M> struct QuadraticTransform {
         : A(A), b(b), scale(scale) {}
 
     GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
-    ) const -> std::tuple<glm::vec<M, float>, bool> {
+    ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
         auto y = A * x + b;
         for (int i = 0; i < M; i++) {
             y[i] += scale * x[i] * x[i];
         }
-        return {y, true};
+        return {y, true, AuxData{}};
     }
 };
 
@@ -59,14 +61,14 @@ template <int N, int M> struct FailingTransform {
         : A(A), b(b), threshold(threshold) {}
 
     GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
-    ) const -> std::tuple<glm::vec<M, float>, bool> {
+    ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
         // Fail if any component of x is above threshold
         for (int i = 0; i < N; i++) {
             if (std::abs(x[i]) > threshold) {
-                return {glm::vec<M, float>{}, false};
+                return {glm::vec<M, float>{}, false, AuxData{}};
             }
         }
-        return {A * x + b, true};
+        return {A * x + b, true, AuxData{}};
     }
 };
 
@@ -82,7 +84,8 @@ int test_linear_transform() {
         auto mu = glm::vec2(0.0f, 0.0f);
         auto sqrt_covar = glm::mat2x2(1.0f, 0.0f, 0.0f, 1.0f);
 
-        auto [mu_ut, covar_ut, success] = transform<2, 2>(f, mu, sqrt_covar);
+        auto [mu_ut, covar_ut, success, aux] =
+            transform<2, 2, AuxData>(f, mu, sqrt_covar);
 
         if (!success) {
             printf("Linear transform test 1 failed: transform returned false\n");
@@ -116,7 +119,8 @@ int test_linear_transform() {
         auto mu = glm::vec3(0.0f, 0.0f, 0.0f);
         auto sqrt_covar = glm::mat3x3(1.0f);
 
-        auto [mu_ut, covar_ut, success] = transform<3, 2>(f, mu, sqrt_covar);
+        auto [mu_ut, covar_ut, success, aux] =
+            transform<3, 2, AuxData>(f, mu, sqrt_covar);
 
         if (!success) {
             printf("Linear transform test 2 failed: transform returned false\n");
@@ -170,7 +174,8 @@ int test_quadratic_transform() {
         auto mu = glm::vec2(0.0f, 0.0f);
         auto sqrt_covar = glm::mat2x2(1.0f, 0.0f, 0.0f, 1.0f);
 
-        auto [mu_ut, covar_ut, success] = transform<2, 2>(f, mu, sqrt_covar);
+        auto [mu_ut, covar_ut, success, aux] =
+            transform<2, 2, AuxData>(f, mu, sqrt_covar);
 
         if (!success) {
             printf("Quadratic transform test 1 failed: transform returned false\n");
@@ -207,7 +212,8 @@ int test_failing_transform() {
         auto mu = glm::vec2(0.0f, 0.0f);
         auto sqrt_covar = glm::mat2x2(1.0f, 0.0f, 0.0f, 1.0f);
 
-        auto [mu_ut, covar_ut, success] = transform<2, 2>(f, mu, sqrt_covar);
+        auto [mu_ut, covar_ut, success, aux] =
+            transform<2, 2, AuxData>(f, mu, sqrt_covar);
 
         if (!success) {
             printf("Failing transform test 1 failed: transform should succeed for "
@@ -225,7 +231,8 @@ int test_failing_transform() {
         auto mu = glm::vec2(0.0f, 3.0f);
         auto sqrt_covar = glm::mat2x2(2.0f, 0.0f, 0.0f, 2.0f); // Larger covariance
 
-        auto [mu_ut, covar_ut, success] = transform<2, 2>(f, mu, sqrt_covar);
+        auto [mu_ut, covar_ut, success, aux] =
+            transform<2, 2, AuxData>(f, mu, sqrt_covar);
 
         if (success) {
             printf("Failing transform test 2 failed: transform should fail for large "

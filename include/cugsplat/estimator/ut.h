@@ -13,13 +13,15 @@ namespace cugsplat::ut {
 
 /// \brief Structure that holds the result of the Unscented Transform
 /// \tparam M Output dimension of the function
-template <int M> struct UnscentedTransformResult {
+template <int M, typename Aux> struct UnscentedTransformResult {
     /// \brief Mean of the transformed distribution
     glm::vec<M, float> mean;
     /// \brief Covariance of the transformed distribution
     glm::mat<M, M, float> covar;
     /// \brief Success flag
     bool valid_flag;
+    /// \brief Auxiliary data
+    Aux aux;
 };
 
 /**
@@ -35,7 +37,8 @@ template <int M> struct UnscentedTransformResult {
  * @tparam Func Function type that takes a glm::vec<N, float> and returns a tuple of
  * (glm::vec<M, float>, bool)
  *
- * @param f The nonlinear function to transform
+ * @param f The nonlinear function to transform. Must return a tuple of
+ *     (transformed_point, valid_flag, aux_data)
  * @param mu Mean of the input distribution
  * @param sqrt_covar Square root of the input covariance matrix
  * @param alpha Spread of the sigma points (default: 0.1)
@@ -48,7 +51,7 @@ template <int M> struct UnscentedTransformResult {
  * valid_flag indicates if the transformation was successful. If any sigma point
  * transformation fails, the entire transform will return false.
  */
-template <int N, int M, typename Func>
+template <int N, int M, typename Aux, typename Func>
 GSPLAT_HOST_DEVICE inline auto transform(
     Func const &f,
     glm::vec<N, float> const &mu,
@@ -56,7 +59,7 @@ GSPLAT_HOST_DEVICE inline auto transform(
     const float &alpha = 0.1f,
     const float &beta = 2.0f,
     const float &kappa = 0.0f
-) -> UnscentedTransformResult<M> {
+) -> UnscentedTransformResult<M, Aux> {
     auto mu_ut = glm::vec<M, float>{};
     auto covar_ut = glm::mat<M, M, float>{};
 
@@ -88,13 +91,18 @@ GSPLAT_HOST_DEVICE inline auto transform(
 
     // Calculate the transformed sigma points
     glm::vec<M, float> transformed_points[num_sigma];
+    Aux center_aux;
 #pragma unroll
     for (int i = 0; i < num_sigma; i++) {
-        auto const &[point, valid_flag] = f(sigma_points[i]);
+        auto const &[point, valid_flag, aux] = f(sigma_points[i]);
         if (!valid_flag) {
-            return {mu_ut, covar_ut, false};
+            return {mu_ut, covar_ut, false, center_aux};
         }
         transformed_points[i] = point;
+        if (i == 0) {
+            // store the auxiliary data for the center sigma point
+            center_aux = aux;
+        }
     }
 
     // Calculate the unscented transform mean
@@ -110,7 +118,7 @@ GSPLAT_HOST_DEVICE inline auto transform(
         covar_ut += weights_covar[i] * glm::outerProduct(diff, diff);
     }
 
-    return {mu_ut, covar_ut, true};
+    return {mu_ut, covar_ut, true, center_aux};
 }
 
 } // namespace cugsplat::ut
