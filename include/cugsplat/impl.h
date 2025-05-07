@@ -200,14 +200,6 @@ GSPLAT_HOST_DEVICE inline auto projection(
         depth = result.camera_point.z;
         auto const world_to_camera_R = result.pose_r;
 
-        // load covariance
-        auto const quat = glm::fvec4(quats[0], quats[1], quats[2], quats[3]);
-        auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
-        auto const covar = cugsplat::gaussian::quat_scale_to_covar(quat, scale);
-
-        // transform covariance to camera space
-        auto const covar_c = cugsplat::se3::transform_covar(world_to_camera_R, covar);
-
         // project covariance from camera space to image space
         glm::fmat3x2 J;
         if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
@@ -241,6 +233,12 @@ GSPLAT_HOST_DEVICE inline auto projection(
             // static_assert(false, "Fisheye projection Jacobian not implemented");
         }
 
+        // load covariance
+        auto const quat = glm::fvec4(quats[0], quats[1], quats[2], quats[3]);
+        auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
+        auto const covar = cugsplat::gaussian::quat_scale_to_covar(quat, scale);
+        // transform covariance to camera space, then to image space
+        auto const covar_c = cugsplat::se3::transform_covar(world_to_camera_R, covar);
         covar2d = J * covar_c * glm::transpose(J);
 
         // reach here means valid
