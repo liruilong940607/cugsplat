@@ -122,13 +122,32 @@ GSPLAT_HOST_DEVICE inline auto projection(
         auto const focal_length = glm::fvec2(Ks[0], Ks[4]);
         auto const principal_point = glm::fvec2(Ks[2], Ks[5]);
 
+        // load distortion coefficients
+        std::conditional_t<
+            CAMERA_TYPE == CameraType::PINHOLE ||
+                CAMERA_TYPE == CameraType::PERFECT_PINHOLE,
+            std::array<float, 6>,
+            std::array<float, 4>>
+            radial_coeffs;
+        std::array<float, 2> tangential_coeffs;
+        std::array<float, 4> thin_prism_coeffs;
+        if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+            radial_coeffs = make_array<6>(dist_params.radial_coeffs);
+            tangential_coeffs = make_array<2>(dist_params.tangential_coeffs);
+            thin_prism_coeffs = make_array<4>(dist_params.thin_prism_coeffs);
+        } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+            radial_coeffs = make_array<4>(dist_params.radial_coeffs);
+        }
+
         // define function to project a camera point to an image point
         auto const point_camera_to_image_fn = [&focal_length,
                                                &principal_point,
                                                &width,
                                                &height,
                                                &margin_factor,
-                                               &dist_params](
+                                               &radial_coeffs,
+                                               &tangential_coeffs,
+                                               &thin_prism_coeffs](
                                                   const glm::fvec3 &camera_point
                                               ) -> std::pair<glm::fvec2, bool> {
             // camera to image plane
@@ -154,18 +173,15 @@ GSPLAT_HOST_DEVICE inline auto projection(
                     camera_point,
                     focal_length,
                     principal_point,
-                    make_array<6>(dist_params.radial_coeffs),
-                    make_array<2>(dist_params.tangential_coeffs),
-                    make_array<4>(dist_params.thin_prism_coeffs)
+                    radial_coeffs,
+                    tangential_coeffs,
+                    thin_prism_coeffs
                 );
                 image_point = image_point_;
                 valid_flag = valid_flag_;
             } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
                 auto const &[image_point_, valid_flag_] = cugsplat::fisheye::project(
-                    camera_point,
-                    focal_length,
-                    principal_point,
-                    make_array<4>(dist_params.radial_coeffs)
+                    camera_point, focal_length, principal_point, radial_coeffs
                 );
                 image_point = image_point_;
                 valid_flag = valid_flag_;
@@ -255,9 +271,9 @@ GSPLAT_HOST_DEVICE inline auto projection(
                 auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
                     camera_point,
                     focal_length,
-                    make_array<6>(dist_params.radial_coeffs),
-                    make_array<2>(dist_params.tangential_coeffs),
-                    make_array<4>(dist_params.thin_prism_coeffs)
+                    radial_coeffs,
+                    tangential_coeffs,
+                    thin_prism_coeffs
                 );
                 if (!valid_flag_) {
                     break;
