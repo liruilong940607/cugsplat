@@ -268,7 +268,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
             // project covariance from camera space to image space
             glm::fmat3x2 J;
             static_assert(
-                CAMERA_TYPE != CameraType::FISHEYE,
+                CAMERA_TYPE != CameraType::DISTORTED_FISHEYE,
                 "Jacobian for distorted fisheye is not implemented"
             );
             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
