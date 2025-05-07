@@ -261,6 +261,10 @@ GSPLAT_HOST_DEVICE inline auto projection(
 
             // project covariance from camera space to image space
             glm::fmat3x2 J;
+            static_assert(
+                CAMERA_TYPE != CameraType::FISHEYE,
+                "Jacobian for distorted fisheye is not implemented"
+            );
             if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
                 J = cugsplat::fisheye::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
@@ -280,16 +284,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
                 }
                 J = J_;
             } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-                // auto const &[J_, valid_flag_] = cugsplat::fisheye::project_jac(
-                //     camera_point, focal_length,
-                //     make_array<4>(dist_params.radial_coeffs)
-                // );
-                // if (!valid_flag_) {
-                //     break;
-                // }
-                // J = J_;
                 // TODO: implement
-                // static_assert(false, "Fisheye projection Jacobian not implemented");
             }
 
             // load covariance
