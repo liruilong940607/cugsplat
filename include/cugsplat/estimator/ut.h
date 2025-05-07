@@ -11,6 +11,17 @@
 
 namespace cugsplat::ut {
 
+/// \brief Structure that holds the result of the Unscented Transform
+/// \tparam M Output dimension of the function
+template <int M> struct UnscentedTransformResult {
+    /// \brief Mean of the transformed distribution
+    glm::vec<M, float> mean;
+    /// \brief Covariance of the transformed distribution
+    glm::mat<M, M, float> covar;
+    /// \brief Success flag
+    bool valid_flag;
+};
+
 /**
  * @brief Performs the Unscented Transform (UT) on a nonlinear function.
  *
@@ -31,10 +42,7 @@ namespace cugsplat::ut {
  * @param beta Prior knowledge parameter (default: 2.0)
  * @param kappa Secondary scaling parameter (default: 0.0)
  *
- * @return A tuple containing:
- *         - Transformed mean (glm::vec<M, float>)
- *         - Transformed covariance matrix (glm::mat<M, M, float>)
- *         - Success flag (bool)
+ * @return a UnscentedTransformResult structure
  *
  * @note The function f must return a tuple of (transformed_point, valid_flag) where
  * valid_flag indicates if the transformation was successful. If any sigma point
@@ -48,7 +56,7 @@ GSPLAT_HOST_DEVICE inline auto transform(
     const float &alpha = 0.1f,
     const float &beta = 2.0f,
     const float &kappa = 0.0f
-) -> std::tuple<glm::vec<M, float>, glm::mat<M, M, float>, bool> {
+) -> UnscentedTransformResult<M> {
     auto mu_ut = glm::vec<M, float>{};
     auto covar_ut = glm::mat<M, M, float>{};
 
