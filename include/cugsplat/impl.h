@@ -238,7 +238,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
             // }
             // J = J_;
             // TODO: implement
-            static_assert(false, "Fisheye projection Jacobian not implemented");
+            // static_assert(false, "Fisheye projection Jacobian not implemented");
         }
 
         covar2d = J * covar_c * glm::transpose(J);
