@@ -38,9 +38,9 @@ auto test_point_world_to_image_quat() -> int {
             Type::GLOBAL
         );
 
-        if (result.valid_flag) {
+        if (!result.valid_flag) {
             printf("\n=== Testing point_world_to_image (quaternion) ===\n");
-            printf("\n[FAIL] Test 1: Global shutter should not be valid\n");
+            printf("\n[FAIL] Test 1: Global shutter should be valid\n");
             fails += 1;
         }
     }
@@ -129,9 +129,9 @@ auto test_point_world_to_image_mat() -> int {
             Type::GLOBAL
         );
 
-        if (result.valid_flag) {
+        if (!result.valid_flag) {
             printf("\n=== Testing point_world_to_image (matrix) ===\n");
-            printf("\n[FAIL] Test 1: Global shutter should not be valid\n");
+            printf("\n[FAIL] Test 1: Global shutter should be valid\n");
             fails += 1;
         }
     }
