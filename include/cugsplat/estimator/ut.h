@@ -15,7 +15,7 @@ namespace cugsplat::ut {
 /// \tparam M Output dimension of the function
 template <int M, typename Aux> struct UnscentedTransformResult {
     /// \brief Mean of the transformed distribution
-    glm::vec<M, float> mean;
+    glm::vec<M, float> mu;
     /// \brief Covariance of the transformed distribution
     glm::mat<M, M, float> covar;
     /// \brief Success flag

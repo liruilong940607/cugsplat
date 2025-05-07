@@ -95,28 +95,57 @@ auto test_projection() -> int {
 
     for (const auto &shutter_type : shutter_types) {
         // Test projection
-        auto [image_point, depth, cov2d, valid] = projection<CameraType::PINHOLE>(
-            Ks,
-            near_plane,
-            far_plane,
-            viewmats0,
-            viewmats1,
-            shutter_type,
-            width,
-            height,
-            means,
-            quats,
-            scales,
-            margin_factor
-        );
+        auto [image_point_ut, depth_ut, cov2d_ut, valid_ut] =
+            projection<CameraType::PINHOLE, true>(
+                Ks,
+                near_plane,
+                far_plane,
+                viewmats0,
+                viewmats1,
+                shutter_type,
+                width,
+                height,
+                means,
+                quats,
+                scales,
+                margin_factor
+            );
 
-        // Verify results
-        if (!valid) {
-            printf("\n=== Testing projection_perfect_camera_shutter ===\n");
+        auto [image_point, depth, cov2d, valid] =
+            projection<CameraType::PINHOLE, false>(
+                Ks,
+                near_plane,
+                far_plane,
+                viewmats0,
+                viewmats1,
+                shutter_type,
+                width,
+                height,
+                means,
+                quats,
+                scales,
+                margin_factor
+            );
+
+        bool success = valid_ut && valid;
+        success &= is_close(image_point_ut, image_point, 1e-1f, 1e-1f);
+        success &= is_close(depth_ut, depth, 1e-1f, 1e-1f);
+        // success &= is_close(cov2d_ut, cov2d, 1e-1f, 1e-1f); // covariance can be very
+        // different
+        if (!success) {
+            printf("\n=== Testing projection ===\n");
             printf(
                 "\n[FAIL] Test for shutter type %d:\n", static_cast<int>(shutter_type)
             );
-            printf("  Projection failed\n");
+
+            printf("image_point_ut: %s\n", glm::to_string(image_point_ut).c_str());
+            printf("image_point: %s\n", glm::to_string(image_point).c_str());
+
+            printf("depth_ut: %f\n", depth_ut);
+            printf("depth: %f\n", depth);
+
+            printf("cov2d_ut: %s\n", glm::to_string(cov2d_ut).c_str());
+            printf("cov2d: %s\n", glm::to_string(cov2d).c_str());
             fails += 1;
             continue;
         }

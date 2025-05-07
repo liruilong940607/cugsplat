@@ -44,7 +44,7 @@ template <> struct DistortionParameters<CameraType::FISHEYE> {
     float *radial_coeffs = nullptr;
 };
 
-template <CameraType CAMERA_TYPE>
+template <CameraType CAMERA_TYPE, bool USE_UT = false>
 GSPLAT_HOST_DEVICE inline auto projection(
     const float *Ks, // [3, 3]
     const float near_plane,
@@ -212,57 +212,79 @@ GSPLAT_HOST_DEVICE inline auto projection(
             };
         };
 
-        // execute the function
-        auto const [image_point, image_point_valid_flag, aux] =
-            point_world_to_image_fn(mu);
-        if (!image_point_valid_flag) {
-            break;
-        }
-        means2d = image_point;
-        auto const camera_point = std::get<0>(aux);
-        depth = camera_point.z;
-        auto const world_to_camera_R = std::get<1>(aux);
+        if constexpr (USE_UT) {
+            // load covariance
+            auto const quat = glm::fvec4(quats[0], quats[1], quats[2], quats[3]);
+            auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
+            auto const sqrt_covar =
+                cugsplat::gaussian::quat_scale_to_scaled_rotmat(quat, scale);
 
-        // project covariance from camera space to image space
-        glm::fmat3x2 J;
-        if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
-            J = cugsplat::fisheye::project_jac(camera_point, focal_length);
-        } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
-            J = cugsplat::pinhole::project_jac(camera_point, focal_length);
-        } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-            J = cugsplat::orthogonal::project_jac(camera_point, focal_length);
-        } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-            auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
-                camera_point,
-                focal_length,
-                make_array<6>(dist_params.radial_coeffs),
-                make_array<2>(dist_params.tangential_coeffs),
-                make_array<4>(dist_params.thin_prism_coeffs)
+            // execute the function using unscented transform
+            auto const result = cugsplat::ut::transform<3, 2, AuxData>(
+                point_world_to_image_fn, mu, sqrt_covar
             );
-            if (!valid_flag_) {
+            if (!result.valid_flag) {
                 break;
             }
-            J = J_;
-        } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-            // auto const &[J_, valid_flag_] = cugsplat::fisheye::project_jac(
-            //     camera_point, focal_length,
-            //     make_array<4>(dist_params.radial_coeffs)
-            // );
-            // if (!valid_flag_) {
-            //     break;
-            // }
-            // J = J_;
-            // TODO: implement
-            // static_assert(false, "Fisheye projection Jacobian not implemented");
-        }
+            means2d = result.mu;
+            covar2d = result.covar;
+            auto const camera_point = result.aux.first;
+            depth = camera_point.z;
 
-        // load covariance
-        auto const quat = glm::fvec4(quats[0], quats[1], quats[2], quats[3]);
-        auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
-        auto const covar = cugsplat::gaussian::quat_scale_to_covar(quat, scale);
-        // transform covariance to camera space, then to image space
-        auto const covar_c = cugsplat::se3::transform_covar(world_to_camera_R, covar);
-        covar2d = J * covar_c * glm::transpose(J);
+        } else {
+            // execute the function
+            auto const [image_point, image_point_valid_flag, aux] =
+                point_world_to_image_fn(mu);
+            if (!image_point_valid_flag) {
+                break;
+            }
+            means2d = image_point;
+            auto const camera_point = std::get<0>(aux);
+            depth = camera_point.z;
+            auto const world_to_camera_R = std::get<1>(aux);
+
+            // project covariance from camera space to image space
+            glm::fmat3x2 J;
+            if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
+                J = cugsplat::fisheye::project_jac(camera_point, focal_length);
+            } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
+                J = cugsplat::pinhole::project_jac(camera_point, focal_length);
+            } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
+                J = cugsplat::orthogonal::project_jac(camera_point, focal_length);
+            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+                auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
+                    camera_point,
+                    focal_length,
+                    make_array<6>(dist_params.radial_coeffs),
+                    make_array<2>(dist_params.tangential_coeffs),
+                    make_array<4>(dist_params.thin_prism_coeffs)
+                );
+                if (!valid_flag_) {
+                    break;
+                }
+                J = J_;
+            } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+                // auto const &[J_, valid_flag_] = cugsplat::fisheye::project_jac(
+                //     camera_point, focal_length,
+                //     make_array<4>(dist_params.radial_coeffs)
+                // );
+                // if (!valid_flag_) {
+                //     break;
+                // }
+                // J = J_;
+                // TODO: implement
+                // static_assert(false, "Fisheye projection Jacobian not implemented");
+            }
+
+            // load covariance
+            auto const quat = glm::fvec4(quats[0], quats[1], quats[2], quats[3]);
+            auto const scale = glm::fvec3(scales[0], scales[1], scales[2]);
+            auto const covar = cugsplat::gaussian::quat_scale_to_covar(quat, scale);
+            // transform covariance to camera space, then to image space
+            auto const covar_c =
+                cugsplat::se3::transform_covar(world_to_camera_R, covar);
+            covar2d = J * covar_c * glm::transpose(J);
+        }
 
         // reach here means valid
         valid_flag = true;
