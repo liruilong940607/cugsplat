@@ -100,6 +100,9 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
         cugsplat::se3::transform_point(pose_r_start, pose_t_start, world_point);
     auto const &[image_point_start, valid_flag_start] = project_fn(camera_point_start);
     if (shutter_type == Type::GLOBAL) {
+        if (!valid_flag_start) {
+            return PointWorldToImageResult<RotationType>{};
+        }
         return PointWorldToImageResult<RotationType>{
             image_point_start, camera_point_start, pose_r_start, pose_t_start, true
         };

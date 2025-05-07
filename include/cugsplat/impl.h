@@ -30,7 +30,13 @@ inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offse
     return arr;
 }
 
-enum struct CameraType { PERFECT_PINHOLE, PINHOLE, PERFECT_FISHEYE, FISHEYE, ORTHO };
+enum struct CameraType {
+    PINHOLE,
+    FISHEYE,
+    ORTHO,
+    DISTORTED_PINHOLE,
+    DISTORTED_FISHEYE
+};
 
 template <CameraType CAMERA_TYPE> struct DistortionParameters {};
 
@@ -125,7 +131,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
         // load distortion coefficients
         std::conditional_t<
             CAMERA_TYPE == CameraType::PINHOLE ||
-                CAMERA_TYPE == CameraType::PERFECT_PINHOLE,
+                CAMERA_TYPE == CameraType::DISTORTED_PINHOLE,
             std::array<float, 6>,
             std::array<float, 4>>
             radial_coeffs;
@@ -153,12 +159,12 @@ GSPLAT_HOST_DEVICE inline auto projection(
             // camera to image plane
             glm::fvec2 image_point;
             bool valid_flag;
-            if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
+            if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
                 image_point = cugsplat::fisheye::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
-            } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
                 image_point = cugsplat::pinhole::project(
                     camera_point, focal_length, principal_point
                 );
@@ -168,7 +174,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
-            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
                 auto const &[image_point_, valid_flag_] = cugsplat::pinhole::project(
                     camera_point,
                     focal_length,
@@ -179,7 +185,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
                 );
                 image_point = image_point_;
                 valid_flag = valid_flag_;
-            } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
                 auto const &[image_point_, valid_flag_] = cugsplat::fisheye::project(
                     camera_point, focal_length, principal_point, radial_coeffs
                 );
@@ -265,13 +271,13 @@ GSPLAT_HOST_DEVICE inline auto projection(
                 CAMERA_TYPE != CameraType::FISHEYE,
                 "Jacobian for distorted fisheye is not implemented"
             );
-            if constexpr (CAMERA_TYPE == CameraType::PERFECT_FISHEYE) {
+            if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
                 J = cugsplat::fisheye::project_jac(camera_point, focal_length);
-            } else if constexpr (CAMERA_TYPE == CameraType::PERFECT_PINHOLE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
                 J = cugsplat::pinhole::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
                 J = cugsplat::orthogonal::project_jac(camera_point, focal_length);
-            } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
                 auto const &[J_, valid_flag_] = cugsplat::pinhole::project_jac(
                     camera_point,
                     focal_length,
@@ -283,7 +289,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
                     break;
                 }
                 J = J_;
-            } else if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
+            } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
                 // TODO: implement
             }
 
