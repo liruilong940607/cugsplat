@@ -221,25 +221,22 @@ GSPLAT_HOST_DEVICE inline auto project(
     return image_point;
 }
 
-/// \brief Compute the Jacobian of the pinhole projection:
-/// J = d(image_point) / d(camera_point)
-/// \param camera_point 3D point in camera space (x, y, z)
-/// \param focal_length Focal length in pixels (fx, fy)
-/// \return 3x2 Jacobian matrix
-GSPLAT_HOST_DEVICE inline auto project_jac(
-    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
-) -> glm::fmat3x2 {
+/// \brief Compute vector-Jacobian product: dl/d(input) = dl/d(output) * J
+GSPLAT_HOST_DEVICE inline auto project_vjp(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fvec2 const &v_image_point
+) -> glm::fvec3 {
     auto const rz = 1.0f / camera_point.z;
     auto const xy = glm::fvec2(camera_point) * rz;
-    auto const J = glm::fmat3x2{
-        focal_length[0] * rz,
-        0.f,
-        0.f,
-        focal_length[1] * rz,
-        -focal_length[0] * xy[0] * rz,
-        -focal_length[1] * xy[1] * rz,
+    auto const v_xy = v_image_point * focal_length;
+    auto const v_xy_rz = v_xy * rz;
+    auto const v_camera_point = glm::fvec3{
+        v_xy_rz[0],
+        v_xy_rz[1],
+        -v_xy_rz[0] * xy[0] - v_xy_rz[1] * xy[1],
     };
-    return J;
+    return v_camera_point;
 }
 
 /// \brief Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
@@ -261,6 +258,50 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
     auto const H2 =
         glm::fmat3x3{0.f, 0.f, 0.f, 0.f, 0.f, -fyrz2, 0.f, -fyrz2, 2.f * fyrz2 * xy[1]};
     return {H1, H2};
+}
+
+/// \brief Compute the Jacobian of the pinhole projection:
+/// J = d(image_point) / d(camera_point)
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \return 3x2 Jacobian matrix
+GSPLAT_HOST_DEVICE inline auto project_jac(
+    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
+) -> glm::fmat3x2 {
+    auto const rz = 1.0f / camera_point.z;
+    auto const xy = glm::fvec2(camera_point) * rz;
+    auto const focal_length_rz = focal_length * rz;
+    auto const J = glm::fmat3x2{
+        focal_length_rz[0],
+        0.f,
+        0.f,
+        focal_length_rz[1],
+        -focal_length_rz[0] * xy[0],
+        -focal_length_rz[1] * xy[1],
+    };
+    return J;
+}
+
+/// \brief Compute vector-Jacobian product for dl/d(J): dl/d(input) = dl/d(J) * H
+GSPLAT_HOST_DEVICE inline auto project_jac_vjp(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    glm::fmat3x2 const &v_J
+) -> glm::fvec3 {
+    auto const rz = 1.f / camera_point.z;
+    auto const rz2 = rz * rz;
+    auto const xy = glm::fvec2(camera_point) * rz;
+
+    auto const fxrz2 = focal_length[0] * rz2;
+    auto const fyrz2 = focal_length[1] * rz2;
+
+    auto const v_camera_point = glm::fvec3{
+        -fxrz2 * v_J[2][0],
+        -fyrz2 * v_J[2][1],
+        -fxrz2 * v_J[0][0] - fyrz2 * v_J[1][1] + 2.f * fxrz2 * xy[0] * v_J[2][0] +
+            2.f * fyrz2 * xy[1] * v_J[2][1],
+    };
+    return v_camera_point;
 }
 
 /// \brief Project a 3D point in camera space to 2D image space using pinhole
