@@ -67,6 +67,7 @@ GSPLAT_HOST_DEVICE inline auto projection(
     const DistortionParameters<CAMERA_TYPE> &dist_params = {}
 ) -> std::tuple<glm::fvec2, float, glm::fmat2, bool> {
 
+    // prepare outputs
     glm::fvec2 means2d;
     float depth;
     glm::fmat2 covar2d;
