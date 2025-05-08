@@ -111,7 +111,7 @@ auto test_projection() -> int {
                 margin_factor
             );
 
-        auto [image_point, depth, cov2d, valid] =
+        auto const &[image_point, depth, cov2d, valid] =
             projection_forward<CameraType::PINHOLE, false>(
                 Ks,
                 near_plane,
