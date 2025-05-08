@@ -202,6 +202,130 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     return J;
 }
 
+// This version is slower than the one below.
+GSPLAT_HOST_DEVICE inline auto _project_hess(
+    glm::fvec3 const &camera_point,
+    glm::fvec2 const &focal_length,
+    float const &min_2d_norm = 1e-6f
+) -> std::array<glm::fmat3x3, 2> {
+    // forward:
+    auto const invz = 1.0f / camera_point.z;
+    auto const invz2 = invz * invz;
+    auto const xy = glm::fvec2(camera_point) * invz;
+    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+
+    glm::fmat2 J_uv_xy;
+    glm::fmat2 d_J_uv_xy_d_x, d_J_uv_xy_d_y;
+    if (r < min_2d_norm) {
+        // For points at the image center, J_uv_xy = I
+        d_J_uv_xy_d_x = glm::fmat2(0.0f);
+        d_J_uv_xy_d_y = glm::fmat2(0.0f);
+    } else {
+        auto const invr = 1.0f / r;
+        auto const invr2 = invr * invr;
+        auto const theta = std::atan(r);
+        auto const s = theta * invr;
+        // auto const uv = s * xy;
+        // auto const image_point = focal_length * uv + principal_point;
+
+        // backward:
+        // Note: this can be slightly optimized by fusing the matrix multiplications.
+        auto const J_theta_r = 1.0f / (1.0f + r * r);
+        auto const tmp = (J_theta_r - s) * invr * invr;
+        auto const xy_outer = glm::outerProduct(xy, xy);
+        J_uv_xy = s * glm::fmat2(1.0f) + tmp * xy_outer;
+
+        auto const d_r_d_xy = xy * invr;
+        auto const d_s_d_r = J_theta_r * invr - theta * invr2;
+        auto const d_tmp_d_r =
+            invr2 * (-2.0f * J_theta_r * J_theta_r * r - 3.0f * d_s_d_r);
+
+        auto const d_s_d_xy = d_s_d_r * d_r_d_xy;
+        auto const d_tmp_d_xy = d_tmp_d_r * d_r_d_xy;
+
+        d_J_uv_xy_d_x = d_s_d_xy[0] * glm::fmat2(1.0f) + d_tmp_d_xy[0] * xy_outer +
+                        tmp * glm::fmat2(2.0f * xy[0], xy[1], xy[1], 0.0f);
+
+        d_J_uv_xy_d_y = d_s_d_xy[1] * glm::fmat2(1.0f) + d_tmp_d_xy[1] * xy_outer +
+                        tmp * glm::fmat2(0.0f, xy[0], xy[0], 2.0f * xy[1]);
+    }
+
+    auto const J_im_xy = glm::fmat2x2(
+        focal_length[0] * J_uv_xy[0][0],
+        focal_length[1] * J_uv_xy[0][1],
+        focal_length[0] * J_uv_xy[1][0],
+        focal_length[1] * J_uv_xy[1][1]
+    );
+    // auto const J_xy_cam =
+    //     glm::fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
+    // auto const J = J_im_xy * J_xy_cam;
+
+    auto const d_J_im_xy_d_x = glm::fmat2x2(
+        focal_length[0] * d_J_uv_xy_d_x[0][0],
+        focal_length[1] * d_J_uv_xy_d_x[0][1],
+        focal_length[0] * d_J_uv_xy_d_x[1][0],
+        focal_length[1] * d_J_uv_xy_d_x[1][1]
+    );
+
+    auto const d_J_im_xy_d_y = glm::fmat2x2(
+        focal_length[0] * d_J_uv_xy_d_y[0][0],
+        focal_length[1] * d_J_uv_xy_d_y[0][1],
+        focal_length[0] * d_J_uv_xy_d_y[1][0],
+        focal_length[1] * d_J_uv_xy_d_y[1][1]
+    );
+
+    auto const d_J_d_cam_x =
+        invz2 *
+        glm::fmat3x2(
+            d_J_im_xy_d_x[0][0],
+            d_J_im_xy_d_x[0][1],
+            d_J_im_xy_d_x[1][0],
+            d_J_im_xy_d_x[1][1],
+            -d_J_im_xy_d_x[0][0] * xy[0] - d_J_im_xy_d_x[1][0] * xy[1] - J_im_xy[0][0],
+            -d_J_im_xy_d_x[0][1] * xy[0] - d_J_im_xy_d_x[1][1] * xy[1] - J_im_xy[0][1]
+        );
+    auto const d_J_d_cam_y =
+        invz2 *
+        glm::fmat3x2(
+            d_J_im_xy_d_y[0][0],
+            d_J_im_xy_d_y[0][1],
+            d_J_im_xy_d_y[1][0],
+            d_J_im_xy_d_y[1][1],
+            -d_J_im_xy_d_y[0][0] * xy[0] - d_J_im_xy_d_y[1][0] * xy[1] - J_im_xy[1][0],
+            -d_J_im_xy_d_y[0][1] * xy[0] - d_J_im_xy_d_y[1][1] * xy[1] - J_im_xy[1][1]
+        );
+
+    auto const d_J_xy_cam_d_z_direct =
+        glm::fmat3x2(-invz2, 0.0f, 0.0f, -invz2, xy[0] * invz2, xy[1] * invz2);
+    auto const d_J_d_cam_z =
+        -d_J_d_cam_x * xy[0] - d_J_d_cam_y * xy[1] + J_im_xy * d_J_xy_cam_d_z_direct;
+
+    auto const H1 = glm::fmat3x3(
+        d_J_d_cam_x[0][0],
+        d_J_d_cam_x[1][0],
+        d_J_d_cam_x[2][0],
+        d_J_d_cam_y[0][0],
+        d_J_d_cam_y[1][0],
+        d_J_d_cam_y[2][0],
+        d_J_d_cam_z[0][0],
+        d_J_d_cam_z[1][0],
+        d_J_d_cam_z[2][0]
+    );
+
+    auto const H2 = glm::fmat3x3(
+        d_J_d_cam_x[0][1],
+        d_J_d_cam_x[1][1],
+        d_J_d_cam_x[2][1],
+        d_J_d_cam_y[0][1],
+        d_J_d_cam_y[1][1],
+        d_J_d_cam_y[2][1],
+        d_J_d_cam_z[0][1],
+        d_J_d_cam_z[1][1],
+        d_J_d_cam_z[2][1]
+    );
+    return {H1, H2};
+}
+
 /// \brief Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
