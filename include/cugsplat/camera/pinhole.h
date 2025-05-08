@@ -222,6 +222,10 @@ GSPLAT_HOST_DEVICE inline auto project(
 }
 
 /// \brief Compute vector-Jacobian product: dl/d(input) = dl/d(output) * J
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param v_image_point gradient of the image point dl/d(image_point)
+/// \return The gradient of the camera point dl/d(camera_point)
 GSPLAT_HOST_DEVICE inline auto project_vjp(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
@@ -283,6 +287,10 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
 }
 
 /// \brief Compute vector-Jacobian product for dl/d(J): dl/d(input) = dl/d(J) * H
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \param v_J gradient of the Jacobian matrix dl/d(J)
+/// \return The gradient of the camera point dl/d(camera_point)
 GSPLAT_HOST_DEVICE inline auto project_jac_vjp(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
