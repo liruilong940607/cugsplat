@@ -96,7 +96,7 @@ auto test_projection() -> int {
     for (const auto &shutter_type : shutter_types) {
         // Test projection
         auto [image_point_ut, depth_ut, cov2d_ut, valid_ut] =
-            projection<CameraType::PINHOLE, true>(
+            projection_forward<CameraType::PINHOLE, true>(
                 Ks,
                 near_plane,
                 far_plane,
@@ -112,7 +112,7 @@ auto test_projection() -> int {
             );
 
         auto [image_point, depth, cov2d, valid] =
-            projection<CameraType::PINHOLE, false>(
+            projection_forward<CameraType::PINHOLE, false>(
                 Ks,
                 near_plane,
                 far_plane,

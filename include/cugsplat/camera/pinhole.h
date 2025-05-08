@@ -242,6 +242,27 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     return J;
 }
 
+/// \brief Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
+GSPLAT_HOST_DEVICE inline auto project_hess(
+    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
+) -> std::array<glm::fmat3x3, 2> {
+    auto const rz = 1.f / camera_point.z;
+    auto const rz2 = rz * rz;
+    auto const xy = glm::fvec2(camera_point) * rz;
+
+    auto const fxrz2 = focal_length[0] * rz2;
+    auto const fyrz2 = focal_length[1] * rz2;
+
+    auto const H1 =
+        glm::fmat3x3{0.f, 0.f, -fxrz2, 0.f, 0.f, 0.f, -fxrz2, 0.f, 2.f * fxrz2 * xy[0]};
+    auto const H2 =
+        glm::fmat3x3{0.f, 0.f, 0.f, 0.f, 0.f, -fyrz2, 0.f, -fyrz2, 2.f * fyrz2 * xy[1]};
+    return {H1, H2};
+}
+
 /// \brief Project a 3D point in camera space to 2D image space using pinhole
 /// projection with lens distortion
 /// \param camera_point 3D point in camera space (x, y, z)

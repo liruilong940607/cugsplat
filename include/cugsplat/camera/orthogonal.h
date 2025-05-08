@@ -37,6 +37,17 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     return J;
 }
 
+/// \brief Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)²
+/// \param camera_point 3D point in camera space (x, y, z)
+/// \param focal_length Focal length in pixels (fx, fy)
+/// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
+GSPLAT_HOST_DEVICE inline auto project_hess(
+    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
+) -> std::array<glm::fmat3x3, 2> {
+    // Hessian is zero for orthogonal projection
+    return {glm::fmat3x3{}, glm::fmat3x3{}};
+}
+
 /// \brief Unproject a 2D image point to a ray in camera space.
 /// \param image_point 2D point in image space
 /// \param focal_length Focal length in pixels (fx, fy)
