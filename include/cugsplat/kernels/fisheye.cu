@@ -4,14 +4,13 @@
 
 namespace cugsplat::fisheye {
 
-template <bool USE_CUDA>
-void project_kernel_launcher(
-    const size_t n_elements,
-    const glm::fvec3 *__restrict__ camera_points,
-    const glm::fvec2 *__restrict__ focal_lengths,
-    const glm::fvec2 *__restrict__ principal_points,
-    glm::fvec2 *__restrict__ image_points
-) {
+#define FISHEYE_PROJECT_SIGNATURE                                                      \
+    const size_t n_elements, const glm::fvec3 *__restrict__ camera_points,             \
+        const glm::fvec2 *__restrict__ focal_lengths,                                  \
+        const glm::fvec2 *__restrict__ principal_points,                               \
+        glm::fvec2 *__restrict__ image_points
+
+template <bool USE_CUDA> void project_kernel_launcher(FISHEYE_PROJECT_SIGNATURE) {
     cugsplat::launch_linear_kernel<USE_CUDA>(
         n_elements,
         [camera_points,
@@ -25,20 +24,7 @@ void project_kernel_launcher(
     );
 }
 
-template void project_kernel_launcher<true>(
-    const size_t n_elements,
-    const glm::fvec3 *__restrict__ camera_points,
-    const glm::fvec2 *__restrict__ focal_lengths,
-    const glm::fvec2 *__restrict__ principal_points,
-    glm::fvec2 *__restrict__ image_points
-);
-
-template void project_kernel_launcher<false>(
-    const size_t n_elements,
-    const glm::fvec3 *__restrict__ camera_points,
-    const glm::fvec2 *__restrict__ focal_lengths,
-    const glm::fvec2 *__restrict__ principal_points,
-    glm::fvec2 *__restrict__ image_points
-);
+template void project_kernel_launcher<true>(FISHEYE_PROJECT_SIGNATURE);
+template void project_kernel_launcher<false>(FISHEYE_PROJECT_SIGNATURE);
 
 } // namespace cugsplat::fisheye
