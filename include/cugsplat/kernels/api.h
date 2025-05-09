@@ -4,6 +4,7 @@
 
 namespace cugsplat::fisheye {
 
+template <bool USE_CUDA>
 void project_kernel_launcher(
     const size_t n_elements,
     const glm::fvec3 *__restrict__ camera_points,
