@@ -11,25 +11,23 @@ torch::Tensor fisheye_project(
 ) {
     auto n_elements = camera_points.size(0);
     auto image_points = torch::empty_like(focal_lengths);
+    
+    #define LAUNCH_KERNEL(USE_CUDA) \
+        cugsplat::fisheye::project_kernel_launcher<USE_CUDA>( \
+            n_elements, \
+            reinterpret_cast<const glm::fvec3*>(camera_points.data_ptr<float>()), \
+            reinterpret_cast<const glm::fvec2*>(focal_lengths.data_ptr<float>()), \
+            reinterpret_cast<const glm::fvec2*>(principal_points.data_ptr<float>()), \
+            reinterpret_cast<glm::fvec2*>(image_points.data_ptr<float>()))
 
     if (camera_points.device().is_cuda()) {
         const at::cuda::OptionalCUDAGuard device_guard(camera_points.device());
-        cugsplat::fisheye::project_kernel_launcher<true>(
-            n_elements,
-            reinterpret_cast<const glm::fvec3*>(camera_points.data_ptr<float>()),
-            reinterpret_cast<const glm::fvec2*>(focal_lengths.data_ptr<float>()),
-            reinterpret_cast<const glm::fvec2*>(principal_points.data_ptr<float>()),
-            reinterpret_cast<glm::fvec2*>(image_points.data_ptr<float>())
-        );
+        LAUNCH_KERNEL(true);
     } else {
-        cugsplat::fisheye::project_kernel_launcher<false>(
-            n_elements,
-            reinterpret_cast<const glm::fvec3*>(camera_points.data_ptr<float>()),
-            reinterpret_cast<const glm::fvec2*>(focal_lengths.data_ptr<float>()),
-            reinterpret_cast<const glm::fvec2*>(principal_points.data_ptr<float>()),
-            reinterpret_cast<glm::fvec2*>(image_points.data_ptr<float>())
-        );
+        LAUNCH_KERNEL(false);
     }
+
+    #undef LAUNCH_KERNEL
     return image_points;
 }
 
