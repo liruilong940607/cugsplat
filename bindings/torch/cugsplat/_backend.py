@@ -1,14 +1,14 @@
 import os
 import glob
 
-import torch
 from torch.utils.cpp_extension import load
 
 def build_extension():
-    REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+    REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR)))
 
     sources = [
-        os.path.join(REPO_ROOT, "examples", "bindings.cpp")
+        os.path.join(CURRENT_DIR, "bindings.cpp")
     ] + list(glob.glob(os.path.join(REPO_ROOT, "include", "cugsplat", "kernels", "*.cu")))
     extra_include_paths = [
         os.path.join(REPO_ROOT, "include"),
@@ -27,9 +27,3 @@ def build_extension():
     )
 
 _C = build_extension()
-
-camera_points = torch.randn(1, 3)
-focal_lengths = torch.randn(1, 2)
-principal_points = torch.randn(1, 2)
-image_points = _C.fisheye_project(camera_points, focal_lengths, principal_points)
-print (image_points)
