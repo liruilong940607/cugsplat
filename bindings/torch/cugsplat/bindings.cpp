@@ -9,7 +9,7 @@ torch::Tensor fisheye_project(
     torch::Tensor focal_lengths,
     torch::Tensor principal_points
 ) {
-    auto n_elements = camera_points.size(0);
+    auto n_elements = camera_points.numel() / camera_points.size(-1);
     auto image_points = torch::empty_like(focal_lengths);
     
     #define LAUNCH_KERNEL(USE_CUDA) \
