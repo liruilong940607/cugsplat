@@ -7,7 +7,7 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace cugsplat {
+namespace curend {
 
 template <typename T> struct Maybe {
     bool _has_value = false;
@@ -278,4 +278,4 @@ template <typename T, bool RequiresGrad = false> struct Tensor {
 
 // };
 
-} // namespace cugsplat
+} // namespace curend

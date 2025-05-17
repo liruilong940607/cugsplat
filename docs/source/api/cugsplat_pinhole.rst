@@ -1,8 +1,8 @@
-cugsplat::pinhole
+curend::pinhole
 =================
 
-.. doxygennamespace:: cugsplat::pinhole
-   :project: cugsplat
+.. doxygennamespace:: curend::pinhole
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

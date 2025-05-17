@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "cugsplat/core/macros.h"
+#include "curend/core/macros.h"
 
-namespace cugsplat::math {
+namespace curend::math {
 
 inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
 #ifdef __CUDACC__
@@ -76,4 +76,4 @@ safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &
     return v_out;
 }
 
-} // namespace cugsplat::math
+} // namespace curend::math

@@ -1,8 +1,8 @@
-cugsplat::ghq
+curend::ghq
 =============
 
-.. doxygennamespace:: cugsplat::ghq
-   :project: cugsplat
+.. doxygennamespace:: curend::ghq
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

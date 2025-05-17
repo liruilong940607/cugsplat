@@ -1,4 +1,4 @@
-cugsplat
+curend
 ============
 
 This repository contains a collection of meta functions useful for Gaussian Splatting, or

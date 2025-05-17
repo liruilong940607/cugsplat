@@ -7,7 +7,7 @@
 #include "../helpers.h"
 #include "gaussian/utils.h"
 
-using namespace cugsplat;
+using namespace curend;
 
 int test_quat_to_rotmat_vjp() {
     int fails = 0;

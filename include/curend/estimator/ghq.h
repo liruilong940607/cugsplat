@@ -11,10 +11,10 @@
 #include <functional>
 #include <glm/glm.hpp>
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "cugsplat/estimator/hermgauss.h"
+#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "curend/estimator/hermgauss.h"
 
-namespace cugsplat::ghq {
+namespace curend::ghq {
 
 /// @private
 // Helper function to compute number of quadratic features
@@ -361,4 +361,4 @@ GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     return {J, H};
 }
 
-} // namespace cugsplat::ghq
+} // namespace curend::ghq

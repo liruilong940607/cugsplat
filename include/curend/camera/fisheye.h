@@ -6,11 +6,11 @@
 #include <limits>
 #include <tuple>
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "cugsplat/core/math.h"
-#include "cugsplat/core/solver.h"
+#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "curend/core/math.h"
+#include "curend/core/solver.h"
 
-namespace cugsplat::fisheye {
+namespace curend::fisheye {
 
 /// \brief Compute the radial distortion: theta -> theta_d
 /// \param theta Angle in radians
@@ -20,7 +20,7 @@ GSPLAT_HOST_DEVICE inline auto
 distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return theta * cugsplat::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
+    return theta * curend::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
 }
 
 /// \brief Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
@@ -31,7 +31,7 @@ GSPLAT_HOST_DEVICE inline auto
 distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return cugsplat::math::eval_poly_horner<5>(
+    return curend::math::eval_poly_horner<5>(
         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, theta2
     );
 }
@@ -60,7 +60,7 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
     };
     // solve the equation
     auto const &[theta, converged] =
-        cugsplat::solver::newton<1, N_ITER>(func, theta_d, 1e-6f);
+        curend::solver::newton<1, N_ITER>(func, theta_d, 1e-6f);
     return {theta, converged};
 }
 
@@ -86,7 +86,7 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
     //   0 = 1 + 3*k1*x + 5*k2*x^2 + 7*k3*x^3 + 9*k4*x^4
     auto const &[k1, k2, k3, k4] = radial_coeffs;
     constexpr float INF = std::numeric_limits<float>::max();
-    auto const x2 = cugsplat::solver::poly_minimal_positive<N_ITER>(
+    auto const x2 = curend::solver::poly_minimal_positive<N_ITER>(
         std::array<float, 5>{1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4},
         0.f,
         guess,
@@ -108,7 +108,7 @@ GSPLAT_HOST_DEVICE inline auto project(
     float const &min_2d_norm = 1e-6f
 ) -> glm::fvec2 {
     auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = curend::math::numerically_stable_norm2(xy[0], xy[1]);
     glm::fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion
@@ -139,7 +139,7 @@ GSPLAT_HOST_DEVICE inline auto project(
     float const &max_theta = std::numeric_limits<float>::max()
 ) -> std::pair<glm::fvec2, bool> {
     auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = curend::math::numerically_stable_norm2(xy[0], xy[1]);
     glm::fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion
@@ -170,7 +170,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
     // forward:
     auto const invz = 1.0f / camera_point.z;
     auto const xy = glm::fvec2(camera_point) * invz;
-    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = curend::math::numerically_stable_norm2(xy[0], xy[1]);
 
     glm::fmat2 J_uv_xy;
     if (r < min_2d_norm) {
@@ -212,7 +212,7 @@ GSPLAT_HOST_DEVICE inline auto _project_hess(
     auto const invz = 1.0f / camera_point.z;
     auto const invz2 = invz * invz;
     auto const xy = glm::fvec2(camera_point) * invz;
-    auto const r = cugsplat::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const r = curend::math::numerically_stable_norm2(xy[0], xy[1]);
 
     glm::fmat2 J_uv_xy;
     glm::fmat2 d_J_uv_xy_d_x, d_J_uv_xy_d_y;
@@ -341,7 +341,7 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
     const float x_ = camera_point.x * invz;
     const float y_ = camera_point.y * invz;
     const float r2 = x_ * x_ + y_ * y_;
-    const float r = cugsplat::math::numerically_stable_norm2(x_, y_);
+    const float r = curend::math::numerically_stable_norm2(x_, y_);
     const float invr = (r > 0.f) ? 1.f / r : 0.f;
 
     // ‑‑‑ stage‑1 : s(r) and radial derivatives
@@ -480,4 +480,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {dir, true};
 }
 
-} // namespace cugsplat::fisheye
+} // namespace curend::fisheye

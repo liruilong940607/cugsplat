@@ -4,7 +4,7 @@
 #include <cooperative_groups/reduce.h>
 #include <glm/glm.hpp>
 
-namespace cugsplat {
+namespace curend {
 
 namespace cg = cooperative_groups;
 
@@ -60,4 +60,4 @@ template <class WarpT> inline __device__ void warpMax(float &val, WarpT &warp) {
     val = cg::reduce(warp, val, cg::greater<float>());
 }
 
-} // namespace cugsplat
+} // namespace curend

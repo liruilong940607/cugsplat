@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, os.path.abspath('..'))
 
 # Project information
-project = 'cugsplat'
+project = 'curend'
 copyright = '2025, Ruilong Li'
 author = 'Ruilong Li'
 
@@ -16,9 +16,9 @@ extensions = [
 
 # Breathe configuration
 breathe_projects = {
-    "cugsplat": "../../build/docs/doxygen/xml"
+    "curend": "../../build/docs/doxygen/xml"
 }
-breathe_default_project = "cugsplat"
+breathe_default_project = "curend"
 
 # Theme
 html_theme = 'sphinx_rtd_theme'

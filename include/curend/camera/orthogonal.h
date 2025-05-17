@@ -6,9 +6,9 @@
 #include <limits>
 #include <tuple>
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace cugsplat::orthogonal {
+namespace curend::orthogonal {
 
 /// \brief Project a 3D point in camera space to 2D image space using
 /// orthogonal projection.
@@ -64,4 +64,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {origin, dir};
 }
 
-} // namespace cugsplat::orthogonal
+} // namespace curend::orthogonal

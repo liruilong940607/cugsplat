@@ -1,8 +1,8 @@
-cugsplat::orthogonal
+curend::orthogonal
 ====================
 
-.. doxygennamespace:: cugsplat::orthogonal
-   :project: cugsplat
+.. doxygennamespace:: curend::orthogonal
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

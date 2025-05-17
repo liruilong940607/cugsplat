@@ -4,4 +4,4 @@ find include/ tests/ \
   -exec clang-format -i {} \;
 
 # install via: pip install black==22.3.0
-# black . cugsplat/ tests/ examples/ profiling/
+# black . curend/ tests/ examples/ profiling/

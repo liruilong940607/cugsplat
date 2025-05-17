@@ -1,15 +1,15 @@
-PROJECT_NAME           = "cugsplat"
+PROJECT_NAME           = "curend"
 PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "CUDA-accelerated Gaussian splatting library"
 OUTPUT_DIRECTORY       = @DOXYGEN_OUTPUT_DIR@
 
 # Input configuration
-INPUT                  = @CMAKE_SOURCE_DIR@/include/cugsplat/camera/fisheye.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/pinhole.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/orthogonal.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/camera/shutter.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ghq.h \
-                         @CMAKE_SOURCE_DIR@/include/cugsplat/estimator/ut.h
+INPUT                  = @CMAKE_SOURCE_DIR@/include/curend/camera/fisheye.h \
+                         @CMAKE_SOURCE_DIR@/include/curend/camera/pinhole.h \
+                         @CMAKE_SOURCE_DIR@/include/curend/camera/orthogonal.h \
+                         @CMAKE_SOURCE_DIR@/include/curend/camera/shutter.h \
+                         @CMAKE_SOURCE_DIR@/include/curend/estimator/ghq.h \
+                         @CMAKE_SOURCE_DIR@/include/curend/estimator/ut.h
 
 # Basic documentation settings
 EXTRACT_ALL            = NO

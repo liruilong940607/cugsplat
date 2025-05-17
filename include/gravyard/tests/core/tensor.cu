@@ -4,7 +4,7 @@
 
 #include "core/tensor.h"
 
-using namespace cugsplat;
+using namespace curend;
 
 // Test kernel for MaybeCached with glm::fvec3
 __global__ void test_tensor_vec3(MaybeCached<glm::fvec3, true> tensor) {

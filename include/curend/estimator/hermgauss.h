@@ -8,9 +8,9 @@
 #include <array>
 #include <glm/glm.hpp>
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace cugsplat::ghq {
+namespace curend::ghq {
 
 // Constants for different orders
 constexpr int ORDER3 = 3;
@@ -120,4 +120,4 @@ GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_WEIGHTS_3D_ORDER5 =
 GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_POINTS_3D_ORDER5 =
     hermgauss_points<ORDER5>(HERMGAUSS_POINTS_1D_ORDER5);
 
-} // namespace cugsplat::ghq
+} // namespace curend::ghq

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace cugsplat {
+namespace curend {
 
 #ifdef __CUDACC__
 #define GSPLAT_HOST_DEVICE __host__ __device__
@@ -8,4 +8,4 @@ namespace cugsplat {
 #define GSPLAT_HOST_DEVICE
 #endif
 
-} // namespace cugsplat
+} // namespace curend

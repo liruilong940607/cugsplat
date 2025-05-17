@@ -4,12 +4,12 @@
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
-#include "cugsplat/camera/shutter.h"
-#include "cugsplat/impl.h"
+#include "curend/camera/shutter.h"
+#include "curend/impl.h"
 #include "helpers.h"
 
-using namespace cugsplat::impl;
-using namespace cugsplat::shutter;
+using namespace curend::impl;
+using namespace curend::shutter;
 
 // Test projection with perfect camera shutter
 auto test_projection() -> int {

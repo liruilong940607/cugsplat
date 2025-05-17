@@ -1,8 +1,8 @@
-cugsplat::shutter
+curend::shutter
 =================
 
-.. doxygennamespace:: cugsplat::shutter
-   :project: cugsplat
+.. doxygennamespace:: curend::shutter
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

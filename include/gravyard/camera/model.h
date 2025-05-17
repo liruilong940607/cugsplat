@@ -14,7 +14,7 @@
 #include "core/types.h"   // for ShutterType
 #include "utils/solver.h" // for solver_newton
 
-namespace cugsplat {
+namespace curend {
 
 // Check if the image points fall within the image with a margin
 inline GSPLAT_HOST_DEVICE auto image_point_in_image_bounds_margin(
@@ -429,4 +429,4 @@ struct CameraModel {
     }
 };
 
-} // namespace cugsplat
+} // namespace curend

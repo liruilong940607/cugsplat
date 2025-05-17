@@ -76,7 +76,7 @@ def generate_rst_files(doxygen_xml_dir, output_dir):
 {'=' * len(ns_name)}
 
 .. doxygennamespace:: {ns_name}
-   :project: cugsplat
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

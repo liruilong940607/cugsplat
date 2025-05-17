@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/core/math.h"
+#include "curend/core/math.h"
 
-using namespace cugsplat::math;
+using namespace curend::math;
 
 int test_rsqrtf() {
     int fails = 0;

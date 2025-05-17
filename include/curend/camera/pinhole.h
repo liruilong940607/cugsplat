@@ -6,11 +6,11 @@
 #include <limits>
 #include <tuple>
 
-#include "cugsplat/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "cugsplat/core/math.h"
-#include "cugsplat/core/solver.h"
+#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "curend/core/math.h"
+#include "curend/core/solver.h"
 
-namespace cugsplat::pinhole {
+namespace curend::pinhole {
 
 GSPLAT_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
 GSPLAT_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
@@ -25,8 +25,8 @@ GSPLAT_HOST_DEVICE inline auto compute_icD(
     const float r2, const std::array<float, 6> &radial_coeffs
 ) -> std::pair<float, float> {
     auto const &[k1, k2, k3, k4, k5, k6] = radial_coeffs;
-    auto const icD_num = cugsplat::math::eval_poly_horner<4>({1.f, k1, k2, k3}, r2);
-    auto const icD_den = cugsplat::math::eval_poly_horner<4>({1.f, k4, k5, k6}, r2);
+    auto const icD_num = curend::math::eval_poly_horner<4>({1.f, k1, k2, k3}, r2);
+    auto const icD_den = curend::math::eval_poly_horner<4>({1.f, k4, k5, k6}, r2);
     return {icD_num, icD_den};
 }
 
@@ -42,9 +42,9 @@ GSPLAT_HOST_DEVICE inline auto gradient_icD(
 ) -> float {
     auto const &[k1, k2, k3, k4, k5, k6] = radial_coeffs;
     auto const d_icD_num =
-        cugsplat::math::eval_poly_horner<3>({k1, 2.f * k2, 3.f * k3}, r2);
+        curend::math::eval_poly_horner<3>({k1, 2.f * k2, 3.f * k3}, r2);
     auto const d_icD_den =
-        cugsplat::math::eval_poly_horner<3>({k4, 2.f * k5, 3.f * k6}, r2);
+        curend::math::eval_poly_horner<3>({k4, 2.f * k5, 3.f * k6}, r2);
     auto const d_icD_dr2 =
         (d_icD_num * icD_den - icD_num * d_icD_den) / (icD_den * icD_den);
     return d_icD_dr2; // d(icD) / d(r2)
@@ -202,7 +202,7 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
         return {residual, J};
     };
 
-    auto const &[xy, converged] = cugsplat::solver::newton<2, N_ITER>(func, uv, 1e-6f);
+    auto const &[xy, converged] = curend::solver::newton<2, N_ITER>(func, uv, 1e-6f);
     return {xy, converged};
 }
 
@@ -459,4 +459,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {glm::normalize(dir), true};
 }
 
-} // namespace cugsplat::pinhole
+} // namespace curend::pinhole

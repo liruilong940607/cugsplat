@@ -7,7 +7,7 @@
 #include "core/types.h"
 #include "gaussian/utils.h"
 
-namespace cugsplat {
+namespace curend {
 
 struct DevicePrimitiveIn3DGS {
     const glm::fvec3 *mean_ptr;
@@ -120,4 +120,4 @@ struct PreprocessOperator3DGS {
     }
 };
 
-} // namespace cugsplat
+} // namespace curend

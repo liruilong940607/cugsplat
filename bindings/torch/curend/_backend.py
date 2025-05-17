@@ -9,7 +9,7 @@ def build_extension():
 
     sources = [
         os.path.join(CURRENT_DIR, "bindings.cpp")
-    ] + list(glob.glob(os.path.join(REPO_ROOT, "include", "cugsplat", "kernels", "*.cu")))
+    ] + list(glob.glob(os.path.join(REPO_ROOT, "include", "curend", "kernels", "*.cu")))
     extra_include_paths = [
         os.path.join(REPO_ROOT, "include"),
         os.path.join(REPO_ROOT, "third_party", "glm"),
@@ -18,7 +18,7 @@ def build_extension():
     extra_cuda_cflags = ["-O3", "-use_fast_math", "--extended-lambda"]
 
     return load(
-        name="cugsplat",
+        name="curend",
         sources=sources,
         extra_cflags=extra_cflags,
         extra_cuda_cflags=extra_cuda_cflags,

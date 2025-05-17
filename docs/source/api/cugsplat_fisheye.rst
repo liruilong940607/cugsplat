@@ -1,8 +1,8 @@
-cugsplat::fisheye
+curend::fisheye
 =================
 
-.. doxygennamespace:: cugsplat::fisheye
-   :project: cugsplat
+.. doxygennamespace:: curend::fisheye
+   :project: curend
    :members:
    :undoc-members:
    :content-only:

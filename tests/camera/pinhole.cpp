@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/camera/pinhole.h"
+#include "curend/camera/pinhole.h"
 
-using namespace cugsplat::pinhole;
+using namespace curend::pinhole;
 
 // Test project function (distorted pinhole)
 auto test_project_distorted() -> int {

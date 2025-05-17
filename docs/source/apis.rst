@@ -5,8 +5,8 @@ API Documentation
    :maxdepth: 2
    :caption: API Reference
 
-   api/cugsplat_fisheye
-   api/cugsplat_ghq
-   api/cugsplat_orthogonal
-   api/cugsplat_pinhole
-   api/cugsplat_shutter
+   api/curend_fisheye
+   api/curend_ghq
+   api/curend_orthogonal
+   api/curend_pinhole
+   api/curend_shutter

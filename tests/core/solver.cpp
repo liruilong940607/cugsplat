@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/core/solver.h"
+#include "curend/core/solver.h"
 
-using namespace cugsplat::solver;
+using namespace curend::solver;
 
 int test_newton_1d() {
     int fails = 0;

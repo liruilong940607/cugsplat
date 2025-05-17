@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/core/se3.h"
+#include "curend/core/se3.h"
 
-using namespace cugsplat::se3;
+using namespace curend::se3;
 
 int test_interpolate() {
     int fails = 0;

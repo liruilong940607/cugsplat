@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/estimator/ghq.h"
+#include "curend/estimator/ghq.h"
 
-using namespace cugsplat::ghq;
+using namespace curend::ghq;
 
 // Helper function to compute Frobenius norm of a matrix
 template <typename T> float frobenius_norm(T const &mat) {

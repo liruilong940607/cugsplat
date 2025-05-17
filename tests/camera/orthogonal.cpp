@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/camera/orthogonal.h"
+#include "curend/camera/orthogonal.h"
 
-using namespace cugsplat::orthogonal;
+using namespace curend::orthogonal;
 
 // Test project function
 auto test_project() -> int {

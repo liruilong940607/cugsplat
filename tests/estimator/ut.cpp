@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "cugsplat/estimator/ut.h"
+#include "curend/estimator/ut.h"
 
-using namespace cugsplat::ut;
+using namespace curend::ut;
 
 struct AuxData {};
 
