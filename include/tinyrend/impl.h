@@ -7,16 +7,16 @@
 #include <limits>
 #include <tuple>
 
-#include "curend/camera/fisheye.h"
-#include "curend/camera/orthogonal.h"
-#include "curend/camera/pinhole.h"
-#include "curend/camera/shutter.h"
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "curend/core/se3.h"
-#include "curend/estimator/ut.h"
-#include "curend/gaussian.h"
+#include "tinyrend/camera/fisheye.h"
+#include "tinyrend/camera/orthogonal.h"
+#include "tinyrend/camera/pinhole.h"
+#include "tinyrend/camera/shutter.h"
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/se3.h"
+#include "tinyrend/estimator/ut.h"
+#include "tinyrend/gaussian.h"
 
-namespace curend::impl {
+namespace tinyrend::impl {
 
 template <size_t N, typename T>
 inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
@@ -65,7 +65,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
     const float far_plane,
     const float *world_to_camera0_ptr, // [4, 4]
     const float *world_to_camera1_ptr, // [4, 4]
-    const curend::shutter::Type shutter_type,
+    const tinyrend::shutter::Type shutter_type,
     const uint32_t width,
     const uint32_t height,
     const float *mean_ptr,  // [3]
@@ -92,7 +92,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
         // load the second extrinsics for rolling shutter
         glm::fmat3 world_to_camera_R1;
         glm::fvec3 world_to_camera_t1;
-        if (shutter_type != curend::shutter::Type::GLOBAL) {
+        if (shutter_type != tinyrend::shutter::Type::GLOBAL) {
             auto const world_to_camera1 =
                 glm::transpose(glm::make_mat4(world_to_camera1_ptr));
             world_to_camera_R1 = glm::fmat3(world_to_camera1);
@@ -102,15 +102,15 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
         // transform world to camera
         auto const mu = glm::fvec3(mean_ptr[0], mean_ptr[1], mean_ptr[2]);
         auto const mu_c0 =
-            curend::se3::transform_point(world_to_camera_R0, world_to_camera_t0, mu);
-        if (shutter_type == curend::shutter::Type::GLOBAL) {
+            tinyrend::se3::transform_point(world_to_camera_R0, world_to_camera_t0, mu);
+        if (shutter_type == tinyrend::shutter::Type::GLOBAL) {
             // If point is not in the frustum, skip
             if (mu_c0.z < near_plane || mu_c0.z > far_plane) {
                 break;
             }
         } else {
             // For rolling shutter, only skip if the point is not in either frustum
-            auto const mu_c1 = curend::se3::transform_point(
+            auto const mu_c1 = tinyrend::se3::transform_point(
                 world_to_camera_R1, world_to_camera_t1, mu
             );
             if ((mu_c0.z < near_plane || mu_c0.z > far_plane) &&
@@ -155,22 +155,22 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
             glm::fvec2 image_point;
             bool valid_flag;
             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-                image_point = curend::fisheye::project(
+                image_point = tinyrend::fisheye::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-                image_point = curend::pinhole::project(
+                image_point = tinyrend::pinhole::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-                image_point = curend::orthogonal::project(
+                image_point = tinyrend::orthogonal::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-                auto const &[image_point_, valid_flag_] = curend::pinhole::project(
+                auto const &[image_point_, valid_flag_] = tinyrend::pinhole::project(
                     camera_point,
                     focal_length,
                     principal_point,
@@ -181,7 +181,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
                 image_point = image_point_;
                 valid_flag = valid_flag_;
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
-                auto const &[image_point_, valid_flag_] = curend::fisheye::project(
+                auto const &[image_point_, valid_flag_] = tinyrend::fisheye::project(
                     camera_point, focal_length, principal_point, radial_coeffs
                 );
                 image_point = image_point_;
@@ -212,7 +212,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
              &world_to_camera_t1,
              &shutter_type](const glm::fvec3 &world_point
             ) -> std::tuple<glm::fvec2, bool, AuxData> {
-            auto const result = curend::shutter::point_world_to_image(
+            auto const result = tinyrend::shutter::point_world_to_image(
                 point_camera_to_image_fn,
                 {width, height},
                 world_point,
@@ -235,10 +235,10 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
                 glm::fvec4(quat_ptr[0], quat_ptr[1], quat_ptr[2], quat_ptr[3]);
             auto const scale = glm::fvec3(scale_ptr[0], scale_ptr[1], scale_ptr[2]);
             auto const sqrt_covar =
-                curend::gaussian::quat_scale_to_scaled_rotmat(quat, scale);
+                tinyrend::gaussian::quat_scale_to_scaled_rotmat(quat, scale);
 
             // execute the function using unscented transform
-            auto const result = curend::ut::transform<3, 2, AuxData>(
+            auto const result = tinyrend::ut::transform<3, 2, AuxData>(
                 point_world_to_image_fn, mu, sqrt_covar
             );
             if (!result.valid_flag) {
@@ -268,13 +268,13 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
                 "Jacobian for distorted fisheye is not implemented"
             );
             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-                J = curend::fisheye::project_jac(camera_point, focal_length);
+                J = tinyrend::fisheye::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-                J = curend::pinhole::project_jac(camera_point, focal_length);
+                J = tinyrend::pinhole::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-                J = curend::orthogonal::project_jac(camera_point, focal_length);
+                J = tinyrend::orthogonal::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-                auto const &[J_, valid_flag_] = curend::pinhole::project_jac(
+                auto const &[J_, valid_flag_] = tinyrend::pinhole::project_jac(
                     camera_point,
                     focal_length,
                     radial_coeffs,
@@ -293,9 +293,10 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
             auto const quat =
                 glm::fvec4(quat_ptr[0], quat_ptr[1], quat_ptr[2], quat_ptr[3]);
             auto const scale = glm::fvec3(scale_ptr[0], scale_ptr[1], scale_ptr[2]);
-            auto const covar = curend::gaussian::quat_scale_to_covar(quat, scale);
+            auto const covar = tinyrend::gaussian::quat_scale_to_covar(quat, scale);
             // transform covariance to camera space, then to image space
-            auto const covar_c = curend::se3::transform_covar(world_to_camera_R, covar);
+            auto const covar_c =
+                tinyrend::se3::transform_covar(world_to_camera_R, covar);
             covar2d = J * covar_c * glm::transpose(J);
         }
 
@@ -322,7 +323,7 @@ struct ProjectionBackwardResult {
 //     const float far_plane,
 //     const float *world_to_camera0_ptr, // [4, 4]
 //     const float *world_to_camera1_ptr, // [4, 4]
-//     const curend::shutter::Type shutter_type,
+//     const tinyrend::shutter::Type shutter_type,
 //     const uint32_t width,
 //     const uint32_t height,
 //     const float *mean_ptr,  // [3]
@@ -357,7 +358,7 @@ struct ProjectionBackwardResult {
 //         auto const world_to_camera_Rt = glm::transpose(world_to_camera_R);
 
 //         if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//             auto const J = curend::fisheye::project_jac(mu, focal_length);
+//             auto const J = tinyrend::fisheye::project_jac(mu, focal_length);
 //             auto const Jt = glm::transpose(J);
 
 //             auto const v_mean_c = Jt * v_mean2d;
@@ -373,7 +374,7 @@ struct ProjectionBackwardResult {
 
 //             auto const v_J = v_covar2d * J * glm::transpose(covar) +
 //                              glm::transpose(v_covar2d) * J * covar;
-//             auto const &[H1, H2] = curend::fisheye::project_hess(mu, focal_length);
+//             auto const &[H1, H2] = tinyrend::fisheye::project_hess(mu, focal_length);
 //         }
 
 //         // load extrinsics
@@ -386,7 +387,7 @@ struct ProjectionBackwardResult {
 //         // load the second extrinsics for rolling shutter
 //         glm::fmat3 world_to_camera_R1;
 //         glm::fvec3 world_to_camera_t1;
-//         if (shutter_type != curend::shutter::Type::GLOBAL) {
+//         if (shutter_type != tinyrend::shutter::Type::GLOBAL) {
 //             auto const world_to_camera1 =
 //                 glm::transpose(glm::make_mat4(world_to_camera1_ptr));
 //             world_to_camera_R1 = glm::fmat3(world_to_camera1);
@@ -396,16 +397,16 @@ struct ProjectionBackwardResult {
 //         // transform world to camera
 //         auto const mu = glm::fvec3(mean_ptr[0], mean_ptr[1], mean_ptr[2]);
 //         auto const mu_c0 =
-//             curend::se3::transform_point(world_to_camera_R0, world_to_camera_t0,
+//             tinyrend::se3::transform_point(world_to_camera_R0, world_to_camera_t0,
 //             mu);
-//         if (shutter_type == curend::shutter::Type::GLOBAL) {
+//         if (shutter_type == tinyrend::shutter::Type::GLOBAL) {
 //             // If point is not in the frustum, skip
 //             if (mu_c0.z < near_plane || mu_c0.z > far_plane) {
 //                 break;
 //             }
 //         } else {
 //             // For rolling shutter, only skip if the point is not in either frustum
-//             auto const mu_c1 = curend::se3::transform_point(
+//             auto const mu_c1 = tinyrend::se3::transform_point(
 //                 world_to_camera_R1, world_to_camera_t1, mu
 //             );
 //             if ((mu_c0.z < near_plane || mu_c0.z > far_plane) &&
@@ -450,22 +451,22 @@ struct ProjectionBackwardResult {
 //             glm::fvec2 image_point;
 //             bool valid_flag;
 //             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//                 image_point = curend::fisheye::project(
+//                 image_point = tinyrend::fisheye::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-//                 image_point = curend::pinhole::project(
+//                 image_point = tinyrend::pinhole::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-//                 image_point = curend::orthogonal::project(
+//                 image_point = tinyrend::orthogonal::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-//                 auto const &[image_point_, valid_flag_] = curend::pinhole::project(
+//                 auto const &[image_point_, valid_flag_] = tinyrend::pinhole::project(
 //                     camera_point,
 //                     focal_length,
 //                     principal_point,
@@ -476,7 +477,7 @@ struct ProjectionBackwardResult {
 //                 image_point = image_point_;
 //                 valid_flag = valid_flag_;
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
-//                 auto const &[image_point_, valid_flag_] = curend::fisheye::project(
+//                 auto const &[image_point_, valid_flag_] = tinyrend::fisheye::project(
 //                     camera_point, focal_length, principal_point, radial_coeffs
 //                 );
 //                 image_point = image_point_;
@@ -507,7 +508,7 @@ struct ProjectionBackwardResult {
 //              &world_to_camera_t1,
 //              &shutter_type](const glm::fvec3 &world_point
 //             ) -> std::tuple<glm::fvec2, bool, AuxData> {
-//             auto const result = curend::shutter::point_world_to_image(
+//             auto const result = tinyrend::shutter::point_world_to_image(
 //                 point_camera_to_image_fn,
 //                 {width, height},
 //                 world_point,
@@ -530,10 +531,10 @@ struct ProjectionBackwardResult {
 //                 glm::fvec4(quat_ptr[0], quat_ptr[1], quat_ptr[2], quat_ptr[3]);
 //             auto const scale = glm::fvec3(scale_ptr[0], scale_ptr[1], scale_ptr[2]);
 //             auto const sqrt_covar =
-//                 curend::gaussian::quat_scale_to_scaled_rotmat(quat, scale);
+//                 tinyrend::gaussian::quat_scale_to_scaled_rotmat(quat, scale);
 
 //             // execute the function using unscented transform
-//             auto const result = curend::ut::transform<3, 2, AuxData>(
+//             auto const result = tinyrend::ut::transform<3, 2, AuxData>(
 //                 point_world_to_image_fn, mu, sqrt_covar
 //             );
 //             if (!result.valid_flag) {
@@ -563,13 +564,13 @@ struct ProjectionBackwardResult {
 //                 "Jacobian for distorted fisheye is not implemented"
 //             );
 //             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//                 J = curend::fisheye::project_jac(camera_point, focal_length);
+//                 J = tinyrend::fisheye::project_jac(camera_point, focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-//                 J = curend::pinhole::project_jac(camera_point, focal_length);
+//                 J = tinyrend::pinhole::project_jac(camera_point, focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-//                 J = curend::orthogonal::project_jac(camera_point, focal_length);
+//                 J = tinyrend::orthogonal::project_jac(camera_point, focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-//                 auto const &[J_, valid_flag_] = curend::pinhole::project_jac(
+//                 auto const &[J_, valid_flag_] = tinyrend::pinhole::project_jac(
 //                     camera_point,
 //                     focal_length,
 //                     radial_coeffs,
@@ -588,10 +589,10 @@ struct ProjectionBackwardResult {
 //             auto const quat =
 //                 glm::fvec4(quat_ptr[0], quat_ptr[1], quat_ptr[2], quat_ptr[3]);
 //             auto const scale = glm::fvec3(scale_ptr[0], scale_ptr[1], scale_ptr[2]);
-//             auto const covar = curend::gaussian::quat_scale_to_covar(quat, scale);
+//             auto const covar = tinyrend::gaussian::quat_scale_to_covar(quat, scale);
 //             // transform covariance to camera space, then to image space
 //             auto const covar_c =
-//                 curend::se3::transform_covar(world_to_camera_R, covar);
+//                 tinyrend::se3::transform_covar(world_to_camera_R, covar);
 //             covar2d = J * covar_c * glm::transpose(J);
 //         }
 
@@ -611,4 +612,4 @@ struct ProjectionBackwardResult {
 //     glm::fvec2 v_Ks;
 // };
 
-} // namespace curend::impl
+} // namespace tinyrend::impl

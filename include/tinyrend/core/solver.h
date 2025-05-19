@@ -6,10 +6,10 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "curend/core/math.h"
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/math.h"
 
-namespace curend::solver {
+namespace tinyrend::solver {
 
 template <size_t DIM> struct NewtonSolverResult;
 
@@ -195,7 +195,7 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
     std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     // check if all coefficients from x^4 onwards are zero
-    if (curend::math::is_all_zero<4, N_COEFFS>(poly)) {
+    if (tinyrend::math::is_all_zero<4, N_COEFFS>(poly)) {
         // reduce to cubic
         return cubic_minimal_positive(
             {poly[0], poly[1], poly[2], poly[3]}, y, default_value
@@ -210,8 +210,8 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
     }
     // define the residual and Jacobian of the equation
     auto const func = [&y, &poly, &d_poly](const float &x) -> std::pair<float, float> {
-        auto const J = curend::math::eval_poly_horner<N_COEFFS - 1>(d_poly, x);
-        auto const residual = curend::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
+        auto const J = tinyrend::math::eval_poly_horner<N_COEFFS - 1>(d_poly, x);
+        auto const residual = tinyrend::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
         return {residual, J};
     };
     // solve the equation.
@@ -248,4 +248,4 @@ inline GSPLAT_HOST_DEVICE float poly_minimal_positive(
     }
 }
 
-} // namespace curend::solver
+} // namespace tinyrend::solver

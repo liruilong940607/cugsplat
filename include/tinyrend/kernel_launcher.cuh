@@ -2,7 +2,7 @@
 
 #include <cuda_runtime.h>
 
-namespace curend {
+namespace tinyrend {
 
 // Template for generating a linear kernel launcher
 template <typename Func, typename... Args>
@@ -37,4 +37,4 @@ void launch_linear_kernel(size_t n_elements, Func func, Args... args) {
     }
 }
 
-} // namespace curend
+} // namespace tinyrend

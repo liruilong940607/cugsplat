@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/core/solver.h"
+#include "tinyrend/core/solver.h"
 
-using namespace curend::solver;
+using namespace tinyrend::solver;
 
 int test_newton_1d() {
     int fails = 0;

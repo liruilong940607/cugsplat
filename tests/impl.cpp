@@ -4,12 +4,12 @@
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
-#include "curend/camera/shutter.h"
-#include "curend/impl.h"
 #include "helpers.h"
+#include "tinyrend/camera/shutter.h"
+#include "tinyrend/impl.h"
 
-using namespace curend::impl;
-using namespace curend::shutter;
+using namespace tinyrend::impl;
+using namespace tinyrend::shutter;
 
 // Test projection with perfect camera shutter
 auto test_projection() -> int {

@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/camera/orthogonal.h"
+#include "tinyrend/camera/orthogonal.h"
 
-using namespace curend::orthogonal;
+using namespace tinyrend::orthogonal;
 
 // Test project function
 auto test_project() -> int {

@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "curend/core/macros.h"
+#include "tinyrend/core/macros.h"
 
-namespace curend::math {
+namespace tinyrend::math {
 
 inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
 #ifdef __CUDACC__
@@ -76,4 +76,4 @@ safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &
     return v_out;
 }
 
-} // namespace curend::math
+} // namespace tinyrend::math

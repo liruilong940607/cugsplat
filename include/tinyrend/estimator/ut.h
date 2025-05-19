@@ -7,9 +7,9 @@
 #include <glm/glm.hpp>
 #include <tuple>
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace curend::ut {
+namespace tinyrend::ut {
 
 /// \brief Structure that holds the result of the Unscented Transform
 /// \tparam M Output dimension of the function
@@ -121,4 +121,4 @@ GSPLAT_HOST_DEVICE inline auto transform(
     return {mu_ut, covar_ut, true, center_aux};
 }
 
-} // namespace curend::ut
+} // namespace tinyrend::ut

@@ -6,7 +6,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include <stdio.h>
 
-using namespace curend;
+using namespace tinyrend;
 
 template <class CameraProjection, class CameraPose>
 bool test_round_trip_consistency(

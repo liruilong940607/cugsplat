@@ -4,7 +4,7 @@
 #include "core/macros.h"
 #include "core/tensor.h" // for Maybe
 
-namespace curend {
+namespace tinyrend {
 
 #define GSPLAT_DECL_CACHE(fname, ftype) ftype fname;
 #define GSPLAT_DECL_GETTER(fname, ftype)                                               \
@@ -69,4 +69,4 @@ GSPLAT_DEFINE_DEVICE_PRIMITIVE(BatchPrimitive2DGS, FIELDS_2DGS_IN_3D)
 #undef GSPLAT_DEVICE_CTOR_INIT
 #undef GSPLAT_DEFINE_DEVICE_PRIMITIVE
 
-} // namespace curend
+} // namespace tinyrend

@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/core/se3.h"
+#include "tinyrend/core/se3.h"
 
-using namespace curend::se3;
+using namespace tinyrend::se3;
 
 int test_interpolate() {
     int fails = 0;

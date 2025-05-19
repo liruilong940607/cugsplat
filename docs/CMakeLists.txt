@@ -9,7 +9,7 @@ execute_process(
 )
 
 # Configure Doxygen
-set(DOXYGEN_INPUT_DIR ${CMAKE_SOURCE_DIR}/../curend/include)
+set(DOXYGEN_INPUT_DIR ${CMAKE_SOURCE_DIR}/../tinyrend/include)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/docs/doxygen)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/html/index.html)
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in)

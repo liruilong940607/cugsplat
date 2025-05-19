@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/camera/shutter.h"
+#include "tinyrend/camera/shutter.h"
 
-using namespace curend::shutter;
+using namespace tinyrend::shutter;
 
 // Test point_world_to_image function with quaternion rotation
 auto test_point_world_to_image_quat() -> int {
@@ -81,7 +81,7 @@ auto test_point_world_to_image_quat() -> int {
             // Check if the result is reasonable
             auto const t =
                 relative_frame_time(result.image_point, resolution, shutter_type);
-            auto const &[pose_r_rs, pose_t_rs] = curend::se3::interpolate(
+            auto const &[pose_r_rs, pose_t_rs] = tinyrend::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
 
@@ -171,7 +171,7 @@ auto test_point_world_to_image_mat() -> int {
             // Check if the result is reasonable
             auto const t =
                 relative_frame_time(result.image_point, resolution, shutter_type);
-            auto const &[pose_r_rs, pose_t_rs] = curend::se3::interpolate(
+            auto const &[pose_r_rs, pose_t_rs] = tinyrend::se3::interpolate(
                 t, pose_r_start, pose_t_start, pose_r_end, pose_t_end
             );
 

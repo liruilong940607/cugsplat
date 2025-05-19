@@ -8,7 +8,7 @@
 #include "core/macros.h"
 #include "core/tensor.h"
 
-namespace curend {
+namespace tinyrend {
 
 template <typename T, size_t N>
 inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
@@ -33,4 +33,4 @@ enum class ShutterType {
 
 enum class CameraType { PINHOLE, ORTHO, FISHEYE };
 
-} // namespace curend
+} // namespace tinyrend

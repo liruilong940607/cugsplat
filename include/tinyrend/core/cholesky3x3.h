@@ -4,9 +4,9 @@
 #include <algorithm>
 #include <glm/glm.hpp>
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace curend::cholesky3x3 {
+namespace tinyrend::cholesky3x3 {
 
 // Solve Lx = y where L is lower triangular
 inline GSPLAT_HOST_DEVICE glm::fvec3
@@ -139,4 +139,4 @@ cholesky_vjp(const glm::fmat3 &L, const glm::fmat3 &v_L) {
     return 0.5f * (v_A + glm::transpose(v_A));
 }
 
-} // namespace curend::cholesky3x3
+} // namespace tinyrend::cholesky3x3

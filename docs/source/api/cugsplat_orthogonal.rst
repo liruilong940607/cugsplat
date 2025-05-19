@@ -1,8 +1,8 @@
-curend::orthogonal
+tinyrend::orthogonal
 ====================
 
-.. doxygennamespace:: curend::orthogonal
-   :project: curend
+.. doxygennamespace:: tinyrend::orthogonal
+   :project: tinyrend
    :members:
    :undoc-members:
    :content-only:

@@ -7,7 +7,7 @@
 
 #include "core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace curend {
+namespace tinyrend {
 
 template <typename T> struct Maybe {
     bool _has_value = false;
@@ -278,4 +278,4 @@ template <typename T, bool RequiresGrad = false> struct Tensor {
 
 // };
 
-} // namespace curend
+} // namespace tinyrend

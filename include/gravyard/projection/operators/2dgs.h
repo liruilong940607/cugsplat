@@ -8,7 +8,7 @@
 #include "gaussian/utils.h"
 #include "utils/gaussian.h"
 
-namespace curend {
+namespace tinyrend {
 
 struct PreprocessOperator3DGS {
     // pointers to output buffer
@@ -82,4 +82,4 @@ struct PreprocessOperator3DGS {
     }
 };
 
-} // namespace curend
+} // namespace tinyrend

@@ -1,8 +1,8 @@
-curend::pinhole
+tinyrend::pinhole
 =================
 
-.. doxygennamespace:: curend::pinhole
-   :project: curend
+.. doxygennamespace:: tinyrend::pinhole
+   :project: tinyrend
    :members:
    :undoc-members:
    :content-only:

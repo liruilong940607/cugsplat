@@ -17,7 +17,7 @@ void test_cholesky() {
     A[2][1] = A[1][2] = 1.0f;
     A[2][2] = 3.0f;
 
-    auto [L, ok] = curend::cholesky(A);
+    auto [L, ok] = tinyrend::cholesky(A);
     assert(ok && "cholesky decomposition failed");
 
     glm::fmat3 LLT = L * glm::transpose(L);
@@ -31,7 +31,7 @@ void test_forward_substitution() {
     L[2][2] = 3.0f;
     glm::fvec3 y(1.0f, 4.0f, 9.0f);
 
-    glm::fvec3 x = curend::forward_substitution(L, y);
+    glm::fvec3 x = tinyrend::forward_substitution(L, y);
     glm::fvec3 y_reconstructed = L * x;
 
     assert(glm::all(glm::equal(y, y_reconstructed, 1e-5f)));
@@ -44,7 +44,7 @@ void test_backward_substitution() {
     L[2][2] = 3.0f;
     glm::fvec3 y(3.0f, 2.0f, 1.0f);
 
-    glm::fvec3 x = curend::backward_substitution(L, y);
+    glm::fvec3 x = tinyrend::backward_substitution(L, y);
     glm::fvec3 y_reconstructed = glm::transpose(L) * x;
 
     assert(glm::all(glm::equal(y, y_reconstructed, 1e-5f)));
@@ -53,10 +53,10 @@ void test_backward_substitution() {
 void test_forward_substitution_vjp() {
     glm::fmat3 L = glm::fmat3(1.0f);
     glm::fvec3 y = glm::fvec3(1.0f);
-    glm::fvec3 x = curend::forward_substitution(L, y);
+    glm::fvec3 x = tinyrend::forward_substitution(L, y);
     glm::fvec3 v_x = glm::fvec3(1.0f);
 
-    glm::fmat3 v_L = curend::forward_substitution_vjp(L, x, v_x);
+    glm::fmat3 v_L = tinyrend::forward_substitution_vjp(L, x, v_x);
     assert(v_L[0][0] < 0);
 }
 
@@ -72,10 +72,10 @@ void test_cholesky_Winv_y() {
     A[2][1] = 1.0f;
     A[2][2] = 3.0f;
 
-    auto [L, ok] = curend::cholesky(A);
+    auto [L, ok] = tinyrend::cholesky(A);
     assert(ok && "cholesky decomposition failed");
     glm::fvec3 y(1.0f);
-    glm::fvec3 x = curend::cholesky_Winv_y(L, y);
+    glm::fvec3 x = tinyrend::cholesky_Winv_y(L, y);
     assert(glm::all(glm::equal(A * x, y, 1e-5f)));
 }
 
@@ -91,9 +91,9 @@ void test_cholesky_Winv() {
     A[2][1] = 1.0f;
     A[2][2] = 3.0f;
 
-    auto [L, ok] = curend::cholesky(A);
+    auto [L, ok] = tinyrend::cholesky(A);
     assert(ok && "cholesky decomposition failed");
-    glm::fmat3 Winv = curend::cholesky_Winv(L);
+    glm::fmat3 Winv = tinyrend::cholesky_Winv(L);
     assert(glm::all(glm::equal(A * Winv, glm::fmat3(1.0f), 1e-5f)));
 }
 
@@ -109,9 +109,9 @@ void test_cholesky_Linv() {
     A[2][1] = 1.0f;
     A[2][2] = 3.0f;
 
-    auto [L, ok] = curend::cholesky(A);
+    auto [L, ok] = tinyrend::cholesky(A);
     assert(ok && "cholesky decomposition failed");
-    glm::fmat3 Linv = curend::cholesky_Linv(L);
+    glm::fmat3 Linv = tinyrend::cholesky_Linv(L);
     assert(glm::all(glm::equal(L * Linv, glm::fmat3(1.0f), 1e-5f)));
 }
 
@@ -135,10 +135,10 @@ void test_cholesky_Linv() {
 //     v_Linv[1][2] = 0.7f;
 //     v_Linv[2][2] = 2.0f;
 
-//     auto [L, ok] = curend::cholesky(A);
+//     auto [L, ok] = tinyrend::cholesky(A);
 //     assert(ok && "cholesky decomposition failed");
-//     glm::fmat3 Linv = curend::cholesky_Linv(L);
-//     glm::fmat3 v_L = curend::cholesky_Linv_vjp(L, v_Linv);
+//     glm::fmat3 Linv = tinyrend::cholesky_Linv(L);
+//     glm::fmat3 v_L = tinyrend::cholesky_Linv_vjp(L, v_Linv);
 
 //     // reference
 //     torch::MaybeCached L_torch = glm_to_tensor(L).requires_grad_(true);
@@ -175,9 +175,9 @@ void test_cholesky_Linv() {
 //     v_L[1][2] = 0.7f;
 //     v_L[2][2] = 2.0f;
 
-//     auto [L, ok] = curend::cholesky(A);
+//     auto [L, ok] = tinyrend::cholesky(A);
 //     assert(ok && "cholesky decomposition failed");
-//     glm::fmat3 v_A = curend::cholesky_vjp(L, v_L);
+//     glm::fmat3 v_A = tinyrend::cholesky_vjp(L, v_L);
 
 //     // reference
 //     torch::MaybeCached A_torch = glm_to_tensor(A).requires_grad_(true);

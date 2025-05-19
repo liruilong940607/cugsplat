@@ -1,6 +1,6 @@
 #pragma once
 
-namespace curend {
+namespace tinyrend {
 
 #ifdef __CUDACC__
 #define GSPLAT_HOST_DEVICE __host__ __device__
@@ -8,4 +8,4 @@ namespace curend {
 #define GSPLAT_HOST_DEVICE
 #endif
 
-} // namespace curend
+} // namespace tinyrend

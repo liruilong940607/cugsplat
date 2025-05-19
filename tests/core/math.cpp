@@ -4,9 +4,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/core/math.h"
+#include "tinyrend/core/math.h"
 
-using namespace curend::math;
+using namespace tinyrend::math;
 
 int test_rsqrtf() {
     int fails = 0;

@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/camera/pinhole.h"
+#include "tinyrend/camera/pinhole.h"
 
-using namespace curend::pinhole;
+using namespace tinyrend::pinhole;
 
 // Test project function (distorted pinhole)
 auto test_project_distorted() -> int {

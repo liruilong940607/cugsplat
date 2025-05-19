@@ -1,8 +1,8 @@
-curend::ghq
+tinyrend::ghq
 =============
 
-.. doxygennamespace:: curend::ghq
-   :project: curend
+.. doxygennamespace:: tinyrend::ghq
+   :project: tinyrend
    :members:
    :undoc-members:
    :content-only:

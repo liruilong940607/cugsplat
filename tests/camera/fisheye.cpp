@@ -5,10 +5,10 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/camera/fisheye.h"
-#include "curend/estimator/ghq.h"
+#include "tinyrend/camera/fisheye.h"
+#include "tinyrend/estimator/ghq.h"
 
-using namespace curend::fisheye;
+using namespace tinyrend::fisheye;
 
 // Test distortion and distortion_jac functions
 auto test_distortion() -> int {
@@ -383,7 +383,7 @@ auto test_project_hess() -> int {
         );
 
         // // Use GHQ to estimate gradient
-        // auto const &[J_est, H_est] = curend::ghq::estimate_jacobian_and_hessian<3,
+        // auto const &[J_est, H_est] = tinyrend::ghq::estimate_jacobian_and_hessian<3,
         // 2>(
         //     [&](const glm::fvec3 &camera_point) {
         //         return project(camera_point, focal_length, principal_point);
@@ -401,7 +401,7 @@ auto test_project_hess() -> int {
         //     auto const start_time = std::chrono::high_resolution_clock::now();
         //     for (int i = 0; i < 10000; ++i) {
         //         auto const &[J_est, H_est] =
-        //         curend::ghq::estimate_jacobian_and_hessian<3, 2>(
+        //         tinyrend::ghq::estimate_jacobian_and_hessian<3, 2>(
         //             [&](const glm::fvec3 &camera_point) {
         //                 return project(camera_point, focal_length, principal_point);
         //             },

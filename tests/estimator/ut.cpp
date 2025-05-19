@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/estimator/ut.h"
+#include "tinyrend/estimator/ut.h"
 
-using namespace curend::ut;
+using namespace tinyrend::ut;
 
 struct AuxData {};
 

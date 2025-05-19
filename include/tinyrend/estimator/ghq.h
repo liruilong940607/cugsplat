@@ -11,10 +11,10 @@
 #include <functional>
 #include <glm/glm.hpp>
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
-#include "curend/estimator/hermgauss.h"
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/estimator/hermgauss.h"
 
-namespace curend::ghq {
+namespace tinyrend::ghq {
 
 /// @private
 // Helper function to compute number of quadratic features
@@ -361,4 +361,4 @@ GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     return {J, H};
 }
 
-} // namespace curend::ghq
+} // namespace tinyrend::ghq

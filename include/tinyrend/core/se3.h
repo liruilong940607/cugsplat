@@ -6,9 +6,9 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp> // glm slerp
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace curend::se3 {
+namespace tinyrend::se3 {
 
 /// \brief Interpolate two SE(3) poses using quaternion rotation
 /// \param ratio Interpolation ratio (0 for pose1, 1 for pose2)
@@ -229,4 +229,4 @@ invtransform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3
     return glm::transpose(R) * covar * R;
 }
 
-} // namespace curend::se3
+} // namespace tinyrend::se3

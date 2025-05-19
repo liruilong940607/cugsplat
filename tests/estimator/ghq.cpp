@@ -5,9 +5,9 @@
 #include <stdio.h>
 
 #include "../helpers.h"
-#include "curend/estimator/ghq.h"
+#include "tinyrend/estimator/ghq.h"
 
-using namespace curend::ghq;
+using namespace tinyrend::ghq;
 
 // Helper function to compute Frobenius norm of a matrix
 template <typename T> float frobenius_norm(T const &mat) {

@@ -7,7 +7,7 @@
 #include "core/types.h"
 #include "gaussian/utils.h"
 
-namespace curend {
+namespace tinyrend {
 
 struct DevicePrimitiveIn3DGS {
     const glm::fvec3 *mean_ptr;
@@ -120,4 +120,4 @@ struct PreprocessOperator3DGS {
     }
 };
 
-} // namespace curend
+} // namespace tinyrend

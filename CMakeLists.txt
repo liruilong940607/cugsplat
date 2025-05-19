@@ -17,12 +17,12 @@ option(LINK_TORCH "Link torch as a dependency" OFF)
 
 # Only include CUDA if not in CPP-only mode
 if(NOT BUILD_CPP_ONLY)
-    project(curend LANGUAGES CUDA CXX)
+    project(tinyrend LANGUAGES CUDA CXX)
     set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
     # relax restrictions on glm constexpr functions so they can be called in device code.
     add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 else()
-    project(curend LANGUAGES CXX)
+    project(tinyrend LANGUAGES CXX)
 endif()
 
 if (LINK_TORCH)
@@ -32,8 +32,8 @@ if (LINK_TORCH)
 endif()
 
 # Header-only core
-add_library(curend INTERFACE)
-target_include_directories(curend INTERFACE 
+add_library(tinyrend INTERFACE)
+target_include_directories(tinyrend INTERFACE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
@@ -71,7 +71,7 @@ function(build_cuda_executables_recursive BASE_DIR PREFIX)
 
         add_executable(${TARGET_NAME} "${SRC}")
         target_link_libraries(${TARGET_NAME}
-            PRIVATE curend
+            PRIVATE tinyrend
         )
         if (LINK_TORCH)
             target_link_libraries(${TARGET_NAME}

@@ -1,8 +1,8 @@
-curend::shutter
+tinyrend::shutter
 =================
 
-.. doxygennamespace:: curend::shutter
-   :project: curend
+.. doxygennamespace:: tinyrend::shutter
+   :project: tinyrend
    :members:
    :undoc-members:
    :content-only:

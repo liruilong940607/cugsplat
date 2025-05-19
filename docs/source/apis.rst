@@ -5,8 +5,8 @@ API Documentation
    :maxdepth: 2
    :caption: API Reference
 
-   api/curend_fisheye
-   api/curend_ghq
-   api/curend_orthogonal
-   api/curend_pinhole
-   api/curend_shutter
+   api/tinyrend_fisheye
+   api/tinyrend_ghq
+   api/tinyrend_orthogonal
+   api/tinyrend_pinhole
+   api/tinyrend_shutter

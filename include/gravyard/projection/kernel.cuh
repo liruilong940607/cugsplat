@@ -4,7 +4,7 @@
 #include <cub/cub.cuh>
 #include <cuda_runtime.h>
 
-namespace curend::device {
+namespace tinyrend::device {
 
 namespace cg = cooperative_groups;
 
@@ -221,4 +221,4 @@ __global__ void PreprocessBwdKernel(
     }
 }
 
-} // namespace curend::device
+} // namespace tinyrend::device

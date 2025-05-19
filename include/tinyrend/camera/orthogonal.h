@@ -6,9 +6,9 @@
 #include <limits>
 #include <tuple>
 
-#include "curend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace curend::orthogonal {
+namespace tinyrend::orthogonal {
 
 /// \brief Project a 3D point in camera space to 2D image space using
 /// orthogonal projection.
@@ -64,4 +64,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {origin, dir};
 }
 
-} // namespace curend::orthogonal
+} // namespace tinyrend::orthogonal

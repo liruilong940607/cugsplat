@@ -8,7 +8,7 @@
 #include "projection/kernel.cuh"
 #include "projection/operators/3dgs.h"
 
-using namespace curend;
+using namespace tinyrend;
 
 template <class T> T *create_device_ptr(const T &h_val) {
     T *d_ptr;
@@ -73,7 +73,7 @@ int main() {
 
     // setup operator and launch kernel
     PreprocessOperator3DGS op;
-    curend::device::PreprocessFwdKernel<false, 0><<<1, 256>>>(
+    tinyrend::device::PreprocessFwdKernel<false, 0><<<1, 256>>>(
         1,
         d_camera,
         1,

@@ -1,8 +1,8 @@
-curend::fisheye
+tinyrend::fisheye
 =================
 
-.. doxygennamespace:: curend::fisheye
-   :project: curend
+.. doxygennamespace:: tinyrend::fisheye
+   :project: tinyrend
    :members:
    :undoc-members:
    :content-only:
