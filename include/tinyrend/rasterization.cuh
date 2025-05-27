@@ -5,6 +5,35 @@
 
 namespace tinyrend {
 
+template <typename DerivedPrimitives> struct BasePrimitives {
+    /*
+    A common interface for all primitives.
+    */
+
+    __device__ bool initialize(
+        uint32_t image_id,
+        uint32_t pixel_x,
+        uint32_t pixel_y,
+        void *shmem_ptr,
+        uint32_t shmem_n_primitives
+    ) {
+        auto const derived = static_cast<DerivedPrimitives *>(this);
+        return derived->initialize(
+            image_id, pixel_x, pixel_y, shmem_ptr, shmem_n_primitives
+        );
+    }
+
+    __device__ void load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) {
+        auto const derived = static_cast<DerivedPrimitives *>(this);
+        derived->load_to_shared_memory(shmem_id, global_id);
+    }
+
+    __device__ float get_light_attenuation(uint32_t shmem_id) {
+        auto const derived = static_cast<DerivedPrimitives *>(this);
+        return derived->get_light_attenuation(shmem_id);
+    }
+};
+
 /*
     Rasterize primitives to image buffers (tile-based)
 
@@ -32,18 +61,15 @@ namespace tinyrend {
     The outputs are:
     - buffer_alpha: [n_images, image_h, image_w, 1] Stores the alpha value for each tile
 */
+
+template <typename DerivedPrimitives>
 __global__ void rasterization(
-    const uint32_t n_primitives,
-    const uint32_t n_tiles,
-    const uint32_t n_isects,
-    const uint32_t n_images,
+    BasePrimitives<DerivedPrimitives> primitives,
     const uint32_t image_h,
     const uint32_t image_w,
     // intersection data
     const uint32_t *isect_primitive_ids,       // [n_isects]
     const uint32_t *isect_prefix_sum_per_tile, // [n_tiles]
-    // primitive data
-    // const float* opacities, // [nnz]
     // outputs
     float *buffer_alpha // [n_images, image_h, image_w, 1]
 ) {
@@ -58,79 +84,83 @@ __global__ void rasterization(
     auto const tile_id = tile_y * tile_w + tile_x;
     auto const threads_per_block = blockDim.x * blockDim.y;
     auto const thread_rank = threadIdx.x + threadIdx.y * blockDim.x;
+    printf("threads_per_block: %d\n", threads_per_block);
 
-    // Check if the pixel is inside the image. If not, we still keep this thread
-    // alive to help with loading primitives into shared memory.
-    auto const inside = pixel_x < image_w && pixel_y < image_h;
-    auto done = !inside;
+    // // Prepare the shared memory for the primitives
+    // extern __shared__ char shmem[];
 
-    // First, figure out which primitives intersect with the current tile.
-    auto const isect_start = tile_id == 0 ? 0 : isect_prefix_sum_per_tile[tile_id - 1];
-    auto const isect_end = isect_prefix_sum_per_tile[tile_id];
+    // // Initialize the primitive based on the current pixel
+    // auto const init_success = primitives.initialize(
+    //     image_id, pixel_x, pixel_y, shmem, threads_per_block
+    // );
+    // printf("init_success: %d\n", init_success);
 
-    // Since each thread is responsible for loading one primitive into shared memory,
-    // we can load at most `threads_per_block` primitives at a time as a batch. Then
-    // how many batches do we need to load all the primitives?
-    auto const n_batches =
-        (isect_end - isect_start + threads_per_block - 1) / threads_per_block;
+    // // Check if the pixel is inside the image. If not, we still keep this thread
+    // // alive to help with loading primitives into shared memory.
+    // auto const inside = pixel_x < image_w && pixel_y < image_h;
+    // auto done = (!inside) || (!init_success);
 
-    // Load the primitives into shared memory.
-    extern __shared__ char shmem[];
-    // uint32_t *shmem_ids = reinterpret_cast<uint32_t*>(shmem);
-    // float *shmem_opacities = reinterpret_cast<float*>(shmem_ids + threads_per_block);
+    // // First, figure out which primitives intersect with the current tile.
+    // auto const isect_start = tile_id == 0 ? 0 : isect_prefix_sum_per_tile[tile_id -
+    // 1]; auto const isect_end = isect_prefix_sum_per_tile[tile_id];
 
-    // Init values
-    float T = 1.0f;                 // current transmittance
-    uint32_t primitive_cur_idx = 0; // current primitive index
+    // // Since each thread is responsible for loading one primitive into shared memory,
+    // // we can load at most `threads_per_block` primitives at a time as a batch. Then
+    // // how many batches do we need to load all the primitives?
+    // auto const n_batches =
+    //     (isect_end - isect_start + threads_per_block - 1) / threads_per_block;
 
-    for (uint32_t b = 0; b < n_batches; ++b) {
-        // resync all threads before beginning next batch and early stop if entire tile
-        // is done
-        if (__syncthreads_count(done) >= threads_per_block) {
-            break;
-        }
+    // // Init values
+    // float T = 1.0f;                 // current transmittance
+    // uint32_t primitive_cur_idx = 0; // current primitive index
 
-        // Load the next batch of primitives into shared memory.
-        auto const isect_start_cur_batch = isect_start + b * threads_per_block;
-        auto const idx = isect_start_cur_batch + thread_rank;
-        if (idx < isect_end) {
-            auto const primitive_id = isect_primitive_ids[idx];
-            // shmem_ids[thread_rank] = primitive_id;
-            // shmem_opacities[thread_rank] = opacities[primitive_id];
-        }
+    // for (uint32_t b = 0; b < n_batches; ++b) {
+    //     // resync all threads before beginning next batch and early stop if entire
+    //     tile
+    //     // is done
+    //     if (__syncthreads_count(done) >= threads_per_block) {
+    //         break;
+    //     }
 
-        // wait for other threads to collect the primitives in batch
-        __syncthreads();
+    //     // Load the next batch of primitives into shared memory.
+    //     auto const isect_start_cur_batch = isect_start + b * threads_per_block;
+    //     auto const idx = isect_start_cur_batch + thread_rank;
+    //     if (idx < isect_end) {
+    //         auto const primitive_id = isect_primitive_ids[idx];
+    //         primitives.load_to_shared_memory(thread_rank, primitive_id);
+    //     }
 
-        // Now, the job of this thread is to rasterize all the primitives in the shared
-        // memory to the current pixel.
-        uint32_t cur_batch_size =
-            min(threads_per_block, isect_end - isect_start_cur_batch);
-        for (uint32_t t = 0; (t < cur_batch_size) && (!done); ++t) {
-            // auto const sigma = ...; // TODO: get sigma from the primitive
-            // auto const opacity = shmem_opacities[t];
-            // auto const alpha = min(0.999f, opacity * __expf(-sigma));
-            auto const alpha = 1.0f;
-            if (alpha < 1.0f / 255.0f) {
-                continue;
-            }
+    //     // wait for other threads to collect the primitives in batch
+    //     __syncthreads();
 
-            auto const next_T = T * (1.0f - alpha);
-            if (next_T < 1e-4f) { // this pixel is done: exclusive
-                done = true;
-                break;
-            }
+    //     // Now, the job of this thread is to rasterize all the primitives in the
+    //     shared
+    //     // memory to the current pixel.
+    //     uint32_t cur_batch_size =
+    //         min(threads_per_block, isect_end - isect_start_cur_batch);
+    //     for (uint32_t t = 0; (t < cur_batch_size) && (!done); ++t) {
+    //         auto const alpha = primitives.get_light_attenuation(t);
+    //         // if (alpha < 1.0f / 255.0f) {
+    //         //     continue;
+    //         // }
 
-            // auto const weight = alpha * T;
-            primitive_cur_idx = isect_start_cur_batch + t;
-            T = next_T;
-        }
-    }
+    //         auto const next_T = T * (1.0f - alpha);
+    //         // if (next_T < 1e-4f) { // this pixel is done: exclusive
+    //         //     done = true;
+    //         //     break;
+    //         // }
 
-    if (inside) {
-        auto const offset_pixel = image_id * image_h * image_w + pixel_id;
-        buffer_alpha[offset_pixel] = 1.0f - T;
-    }
+    //         primitive_cur_idx = isect_start_cur_batch + t;
+    //         T = next_T;
+    //     }
+    // }
+
+    // if (inside) {
+    //     auto const offset_pixel = image_id * image_h * image_w + pixel_id;
+    //     if (buffer_alpha != nullptr) {
+    //         buffer_alpha[offset_pixel] = 1.0f - T;
+    //     }
+    // }
 }
 
 } // namespace tinyrend
