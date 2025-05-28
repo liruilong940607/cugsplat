@@ -125,7 +125,8 @@ auto test_rasterization() -> int {
         image_w,
         isect_primitive_ids,
         isect_prefix_sum_per_tile,
-        buffer_alpha
+        buffer_alpha,
+        nullptr // buffer_last_primitive_id
     );
 
     err = cudaGetLastError();

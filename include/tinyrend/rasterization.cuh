@@ -71,7 +71,8 @@ __global__ void rasterization(
     const uint32_t *isect_primitive_ids,       // [n_isects]
     const uint32_t *isect_prefix_sum_per_tile, // [n_tiles]
     // outputs
-    float *buffer_alpha, // [n_images, image_h, image_w, 1]
+    float *buffer_alpha,                // [n_images, image_h, image_w, 1]
+    uint32_t *buffer_last_primitive_id, // [n_images, image_h, image_w, 1]
     // default parameters
     const float skip_if_alpha_smaller_than = 1.0f / 255.0f,
     const float stop_if_next_trans_smaller_than = -1.0f,
@@ -163,6 +164,9 @@ __global__ void rasterization(
         auto const offset_pixel = image_id * image_h * image_w + pixel_id;
         if (buffer_alpha != nullptr) {
             buffer_alpha[offset_pixel] = 1.0f - T;
+        }
+        if (buffer_last_primitive_id != nullptr) {
+            buffer_last_primitive_id[offset_pixel] = primitive_cur_idx;
         }
     }
 }
