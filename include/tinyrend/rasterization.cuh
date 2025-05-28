@@ -5,34 +5,34 @@
 
 namespace tinyrend {
 
-template <typename DerivedPrimitives> struct BasePrimitives {
-    /*
-    A common interface for all primitives.
-    */
+// template <typename DerivedPrimitives> struct BasePrimitives {
+//     /*
+//     A common interface for all primitives.
+//     */
 
-    __device__ bool initialize(
-        uint32_t image_id,
-        uint32_t pixel_x,
-        uint32_t pixel_y,
-        void *shmem_ptr,
-        uint32_t shmem_n_primitives
-    ) {
-        auto const derived = static_cast<DerivedPrimitives *>(this);
-        return derived->initialize(
-            image_id, pixel_x, pixel_y, shmem_ptr, shmem_n_primitives
-        );
-    }
+//     __device__ bool initialize(
+//         uint32_t image_id,
+//         uint32_t pixel_x,
+//         uint32_t pixel_y,
+//         void *shmem_ptr,
+//         uint32_t shmem_n_primitives
+//     ) {
+//         auto const derived = static_cast<DerivedPrimitives *>(this);
+//         return derived->initialize(
+//             image_id, pixel_x, pixel_y, shmem_ptr, shmem_n_primitives
+//         );
+//     }
 
-    __device__ void load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) {
-        auto const derived = static_cast<DerivedPrimitives *>(this);
-        derived->load_to_shared_memory(shmem_id, global_id);
-    }
+//     __device__ void load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) {
+//         auto const derived = static_cast<DerivedPrimitives *>(this);
+//         derived->load_to_shared_memory(shmem_id, global_id);
+//     }
 
-    __device__ float get_light_attenuation(uint32_t shmem_id) {
-        auto const derived = static_cast<DerivedPrimitives *>(this);
-        return derived->get_light_attenuation(shmem_id);
-    }
-};
+//     __device__ float get_light_attenuation(uint32_t shmem_id) {
+//         auto const derived = static_cast<DerivedPrimitives *>(this);
+//         return derived->get_light_attenuation(shmem_id);
+//     }
+// };
 
 /*
     Rasterize primitives to image buffers (tile-based)

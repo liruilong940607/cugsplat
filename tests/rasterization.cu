@@ -7,14 +7,21 @@
 
 using namespace tinyrend;
 
-struct ImageGaussians : public BasePrimitives<ImageGaussians> {
+struct ImageGaussians {
     /*
     A collection of 2D Gaussian primitives.
     */
 
-    // Pointers to the device memory
+    // Pointers to the device memory (shared across all threads)
     glm::fvec2 *mu;     // [N, 2]
     glm::fvec3 *conics; // [N, 3]
+
+    // Per-thread data
+    uint32_t _image_id;
+    uint32_t _pixel_x;
+    uint32_t _pixel_y;
+    void *_shmem_ptr;
+    uint32_t _shmem_n_primitives;
 
     __device__ bool initialize(
         uint32_t image_id,
@@ -52,13 +59,6 @@ struct ImageGaussians : public BasePrimitives<ImageGaussians> {
             0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
         return exp(-sigma);
     }
-
-    // private:
-    uint32_t _image_id;
-    uint32_t _pixel_x;
-    uint32_t _pixel_y;
-    void *_shmem_ptr;
-    uint32_t _shmem_n_primitives;
 };
 
 auto test_rasterization() -> int {
