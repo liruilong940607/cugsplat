@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
+#include "helpers.cuh"
 #include <tinyrend/rasterization.cuh>
 
 using namespace tinyrend;
@@ -12,8 +13,8 @@ struct ImageGaussians : public BasePrimitives<ImageGaussians> {
     */
 
     // Pointers to the device memory
-    glm::fvec2 *__restrict__ mu;     // [N, 2]
-    glm::fvec3 *__restrict__ conics; // [N, 3]
+    glm::fvec2 *mu;     // [N, 2]
+    glm::fvec3 *conics; // [N, 3]
 
     __device__ bool initialize(
         uint32_t image_id,
@@ -36,16 +37,6 @@ struct ImageGaussians : public BasePrimitives<ImageGaussians> {
             reinterpret_cast<glm::fvec3 *>(&shmem_ptr_mu[_shmem_n_primitives]);
         shmem_ptr_mu[shmem_id] = mu[global_id];
         shmem_ptr_conics[shmem_id] = conics[global_id];
-        printf(
-            "shmem_id: %d, global_id: %d, mu: %f %f, conic: %f %f %f\n",
-            shmem_id,
-            global_id,
-            mu[global_id].x,
-            mu[global_id].y,
-            conics[global_id].x,
-            conics[global_id].y,
-            conics[global_id].z
-        );
     }
 
     __device__ float get_light_attenuation(uint32_t shmem_id) {
@@ -59,19 +50,10 @@ struct ImageGaussians : public BasePrimitives<ImageGaussians> {
         auto const dy = _pixel_y - mu.y;
         auto const sigma =
             0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
-
-        printf(
-            "pixel: %d %d, mu: %f %f, sigma: %f\n",
-            _pixel_x,
-            _pixel_y,
-            mu.x,
-            mu.y,
-            sigma
-        );
         return exp(-sigma);
     }
 
-  private:
+    // private:
     uint32_t _image_id;
     uint32_t _pixel_x;
     uint32_t _pixel_y;
@@ -80,39 +62,30 @@ struct ImageGaussians : public BasePrimitives<ImageGaussians> {
 };
 
 auto test_rasterization() -> int {
-    // Add this at the start of your program
-    cudaError_t err = cudaSetDevice(0); // Try to set device 0
+    cudaError_t err = cudaSetDevice(0);
     if (err != cudaSuccess) {
         printf("CUDA Error: %s\n", cudaGetErrorString(err));
-        return;
     }
 
     const int n_primitives = 2;
 
     // Create Some Image Gaussians on GPU
-    glm::fvec2 *mu_host = new glm::fvec2[n_primitives];
+    glm::fvec2 *h_mu = new glm::fvec2[n_primitives];
     for (int i = 0; i < n_primitives; i++) {
-        mu_host[i] = glm::fvec2(i, i);
+        h_mu[i] = glm::fvec2(i, i);
     }
-    glm::fvec3 *conics_host = new glm::fvec3[n_primitives];
+    glm::fvec3 *h_conics = new glm::fvec3[n_primitives];
     for (int i = 0; i < n_primitives; i++) {
-        conics_host[i] = glm::fvec3(1.0f, 0.0f, 1.0f);
+        h_conics[i] = glm::fvec3(1.0f, 0.0f, 1.0f);
     }
 
     // Create Some Image Gaussians on GPU
-    glm::fvec2 *mu;
-    cudaMalloc(&mu, sizeof(glm::fvec2) * n_primitives);
-    cudaMemcpy(mu, mu_host, sizeof(glm::fvec2) * n_primitives, cudaMemcpyHostToDevice);
+    glm::fvec2 *d_mu = create_device_ptr(h_mu[0], n_primitives);
+    glm::fvec3 *d_conics = create_device_ptr(h_conics[0], n_primitives);
 
-    glm::fvec3 *conics;
-    cudaMalloc(&conics, sizeof(glm::fvec3) * n_primitives);
-    cudaMemcpy(
-        conics, conics_host, sizeof(glm::fvec3) * n_primitives, cudaMemcpyHostToDevice
-    );
-
-    ImageGaussians primitives;
-    primitives.mu = mu;
-    primitives.conics = conics;
+    ImageGaussians primitives{};
+    primitives.mu = d_mu;
+    primitives.conics = d_conics;
 
     // Create isect info on GPU
     uint32_t isect_primitive_ids_host[n_primitives] = {0, 1};
@@ -145,7 +118,7 @@ auto test_rasterization() -> int {
     // launch rasterization kernel
     dim3 threads(16, 16, 1);
     dim3 grid(1, 1, 1);
-    size_t shmem_size = (sizeof(glm::fvec2) + sizeof(glm::fvec3)) * n_primitives;
+    size_t shmem_size = (sizeof(glm::fvec2) + sizeof(glm::fvec3)) * 16 * 16;
     rasterization<<<grid, threads, shmem_size>>>(
         primitives,
         image_h,
@@ -173,13 +146,13 @@ auto test_rasterization() -> int {
         cudaMemcpyDeviceToHost
     );
 
-    // // print buffer_alpha
-    // for (int i = 0; i < image_h; i++) {
-    //     for (int j = 0; j < image_w; j++) {
-    //         printf("%f ", buffer_alpha_host[i * image_w + j]);
-    //     }
-    //     printf("\n");
-    // }
+    // print buffer_alpha
+    for (int i = 0; i < image_h; i++) {
+        for (int j = 0; j < image_w; j++) {
+            printf("%f ", buffer_alpha_host[i * image_w + j]);
+        }
+        printf("\n");
+    }
 
     return 0;
 }

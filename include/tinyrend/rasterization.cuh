@@ -62,16 +62,20 @@ template <typename DerivedPrimitives> struct BasePrimitives {
     - buffer_alpha: [n_images, image_h, image_w, 1] Stores the alpha value for each tile
 */
 
-template <typename DerivedPrimitives>
+template <typename Primtives>
 __global__ void rasterization(
-    BasePrimitives<DerivedPrimitives> primitives,
+    Primtives primitives,
     const uint32_t image_h,
     const uint32_t image_w,
     // intersection data
     const uint32_t *isect_primitive_ids,       // [n_isects]
     const uint32_t *isect_prefix_sum_per_tile, // [n_tiles]
     // outputs
-    float *buffer_alpha // [n_images, image_h, image_w, 1]
+    float *buffer_alpha, // [n_images, image_h, image_w, 1]
+    // default parameters
+    const float skip_if_alpha_smaller_than = 1.0f / 255.0f,
+    const float stop_if_next_trans_smaller_than = 1e-4f,
+    const float stop_if_this_trans_smaller_than = -1.0f
 ) {
     auto const tile_w = blockDim.x;
     auto const tile_h = blockDim.y;
@@ -84,83 +88,83 @@ __global__ void rasterization(
     auto const tile_id = tile_y * tile_w + tile_x;
     auto const threads_per_block = blockDim.x * blockDim.y;
     auto const thread_rank = threadIdx.x + threadIdx.y * blockDim.x;
-    printf("threads_per_block: %d\n", threads_per_block);
 
-    // // Prepare the shared memory for the primitives
-    // extern __shared__ char shmem[];
+    // Prepare the shared memory for the primitives
+    extern __shared__ char shmem[];
 
-    // // Initialize the primitive based on the current pixel
-    // auto const init_success = primitives.initialize(
-    //     image_id, pixel_x, pixel_y, shmem, threads_per_block
-    // );
-    // printf("init_success: %d\n", init_success);
+    // Initialize the primitive based on the current pixel
+    auto const init_success =
+        primitives.initialize(image_id, pixel_x, pixel_y, shmem, threads_per_block);
 
-    // // Check if the pixel is inside the image. If not, we still keep this thread
-    // // alive to help with loading primitives into shared memory.
-    // auto const inside = pixel_x < image_w && pixel_y < image_h;
-    // auto done = (!inside) || (!init_success);
+    // Check if the pixel is inside the image. If not, we still keep this thread
+    // alive to help with loading primitives into shared memory.
+    auto const inside = pixel_x < image_w && pixel_y < image_h;
+    auto done = (!inside) || (!init_success);
 
-    // // First, figure out which primitives intersect with the current tile.
-    // auto const isect_start = tile_id == 0 ? 0 : isect_prefix_sum_per_tile[tile_id -
-    // 1]; auto const isect_end = isect_prefix_sum_per_tile[tile_id];
+    // First, figure out which primitives intersect with the current tile.
+    auto const isect_start = tile_id == 0 ? 0 : isect_prefix_sum_per_tile[tile_id - 1];
+    auto const isect_end = isect_prefix_sum_per_tile[tile_id];
 
-    // // Since each thread is responsible for loading one primitive into shared memory,
-    // // we can load at most `threads_per_block` primitives at a time as a batch. Then
-    // // how many batches do we need to load all the primitives?
-    // auto const n_batches =
-    //     (isect_end - isect_start + threads_per_block - 1) / threads_per_block;
+    // Since each thread is responsible for loading one primitive into shared memory,
+    // we can load at most `threads_per_block` primitives at a time as a batch. Then
+    // how many batches do we need to load all the primitives?
+    auto const n_batches =
+        (isect_end - isect_start + threads_per_block - 1) / threads_per_block;
 
-    // // Init values
-    // float T = 1.0f;                 // current transmittance
-    // uint32_t primitive_cur_idx = 0; // current primitive index
+    // Init values
+    float T = 1.0f;                 // current transmittance
+    uint32_t primitive_cur_idx = 0; // current primitive index
 
-    // for (uint32_t b = 0; b < n_batches; ++b) {
-    //     // resync all threads before beginning next batch and early stop if entire
-    //     tile
-    //     // is done
-    //     if (__syncthreads_count(done) >= threads_per_block) {
-    //         break;
-    //     }
+    for (uint32_t b = 0; b < n_batches; ++b) {
+        // resync all threads before beginning next batch and early stop if entire
+        // tile is done
+        if (__syncthreads_count(done) >= threads_per_block) {
+            break;
+        }
 
-    //     // Load the next batch of primitives into shared memory.
-    //     auto const isect_start_cur_batch = isect_start + b * threads_per_block;
-    //     auto const idx = isect_start_cur_batch + thread_rank;
-    //     if (idx < isect_end) {
-    //         auto const primitive_id = isect_primitive_ids[idx];
-    //         primitives.load_to_shared_memory(thread_rank, primitive_id);
-    //     }
+        // Load the next batch of primitives into shared memory.
+        auto const isect_start_cur_batch = isect_start + b * threads_per_block;
+        auto const idx = isect_start_cur_batch + thread_rank;
+        if (idx < isect_end) {
+            auto const primitive_id = isect_primitive_ids[idx];
+            primitives.load_to_shared_memory(thread_rank, primitive_id);
+        }
 
-    //     // wait for other threads to collect the primitives in batch
-    //     __syncthreads();
+        // wait for other threads to collect the primitives in batch
+        __syncthreads();
 
-    //     // Now, the job of this thread is to rasterize all the primitives in the
-    //     shared
-    //     // memory to the current pixel.
-    //     uint32_t cur_batch_size =
-    //         min(threads_per_block, isect_end - isect_start_cur_batch);
-    //     for (uint32_t t = 0; (t < cur_batch_size) && (!done); ++t) {
-    //         auto const alpha = primitives.get_light_attenuation(t);
-    //         // if (alpha < 1.0f / 255.0f) {
-    //         //     continue;
-    //         // }
+        // Now, the job of this thread is to rasterize all the primitives in the
+        // shared memory to the current pixel.
+        uint32_t cur_batch_size =
+            min(threads_per_block, isect_end - isect_start_cur_batch);
+        for (uint32_t t = 0; (t < cur_batch_size) && (!done); ++t) {
+            if (T < stop_if_this_trans_smaller_than) {
+                done = true;
+                break;
+            }
 
-    //         auto const next_T = T * (1.0f - alpha);
-    //         // if (next_T < 1e-4f) { // this pixel is done: exclusive
-    //         //     done = true;
-    //         //     break;
-    //         // }
+            auto const alpha = primitives.get_light_attenuation(t);
+            if (alpha < skip_if_alpha_smaller_than) {
+                continue;
+            }
 
-    //         primitive_cur_idx = isect_start_cur_batch + t;
-    //         T = next_T;
-    //     }
-    // }
+            auto const next_T = T * (1.0f - alpha);
+            if (next_T < stop_if_next_trans_smaller_than) {
+                done = true;
+                break;
+            }
 
-    // if (inside) {
-    //     auto const offset_pixel = image_id * image_h * image_w + pixel_id;
-    //     if (buffer_alpha != nullptr) {
-    //         buffer_alpha[offset_pixel] = 1.0f - T;
-    //     }
-    // }
+            primitive_cur_idx = isect_start_cur_batch + t;
+            T = next_T;
+        }
+    }
+
+    if (inside) {
+        auto const offset_pixel = image_id * image_h * image_w + pixel_id;
+        if (buffer_alpha != nullptr) {
+            buffer_alpha[offset_pixel] = 1.0f - T;
+        }
+    }
 }
 
 } // namespace tinyrend
