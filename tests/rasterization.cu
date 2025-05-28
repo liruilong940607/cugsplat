@@ -5,7 +5,29 @@
 #include "helpers.cuh"
 #include <tinyrend/rasterization.cuh>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 using namespace tinyrend;
+
+void save_png(float *buffer, int width, int height, const char *filename) {
+    // Convert float buffer to unsigned char buffer
+    unsigned char *image_data = new unsigned char[width * height];
+
+    // Normalize and convert float values to 0-255 range
+    for (int i = 0; i < width * height; i++) {
+        // Clamp values between 0 and 1
+        float value = std::max(0.0f, std::min(1.0f, buffer[i]));
+        // Convert to 0-255 range
+        image_data[i] = static_cast<unsigned char>(value * 255.0f);
+    }
+
+    // Save as PNG
+    stbi_write_png(filename, width, height, 1, image_data, width);
+
+    // Clean up
+    delete[] image_data;
+}
 
 struct ImageGaussians {
     /*
@@ -72,11 +94,11 @@ auto test_rasterization() -> int {
     // Create Some Image Gaussians on GPU
     glm::fvec2 *h_mu = new glm::fvec2[n_primitives];
     for (int i = 0; i < n_primitives; i++) {
-        h_mu[i] = glm::fvec2(i, i);
+        h_mu[i] = glm::fvec2(i, i) * 4.0f + 6.0f;
     }
     glm::fvec3 *h_conics = new glm::fvec3[n_primitives];
     for (int i = 0; i < n_primitives; i++) {
-        h_conics[i] = glm::fvec3(1.0f, 0.0f, 1.0f);
+        h_conics[i] = glm::fvec3(0.25f, 0.0f, 0.25f);
     }
 
     // Create Some Image Gaussians on GPU
@@ -108,8 +130,8 @@ auto test_rasterization() -> int {
     );
 
     // image size
-    const uint32_t image_h = 4;
-    const uint32_t image_w = 4;
+    const uint32_t image_h = 16;
+    const uint32_t image_w = 16;
 
     // Create buffer for alpha values
     float *buffer_alpha;
@@ -154,6 +176,9 @@ auto test_rasterization() -> int {
         }
         printf("\n");
     }
+
+    // save buffer_alpha_host into a png file
+    save_png(buffer_alpha_host, image_w, image_h, "buffer_alpha.png");
 
     return 0;
 }
