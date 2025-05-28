@@ -74,7 +74,7 @@ __global__ void rasterization(
     float *buffer_alpha, // [n_images, image_h, image_w, 1]
     // default parameters
     const float skip_if_alpha_smaller_than = 1.0f / 255.0f,
-    const float stop_if_next_trans_smaller_than = 1e-4f,
+    const float stop_if_next_trans_smaller_than = -1.0f,
     const float stop_if_this_trans_smaller_than = -1.0f
 ) {
     auto const tile_w = blockDim.x;
