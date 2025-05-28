@@ -23,6 +23,10 @@ struct ImageGaussians {
     void *_shmem_ptr;
     uint32_t _shmem_n_primitives;
 
+    inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive() -> uint32_t {
+        return sizeof(glm::fvec2) + sizeof(glm::fvec3);
+    }
+
     inline GSPLAT_HOST_DEVICE auto initialize(
         uint32_t image_id,
         uint32_t pixel_x,
