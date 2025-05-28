@@ -3,9 +3,9 @@
 #include <cstdint>
 #include <cuda_runtime.h>
 
-namespace tinyrend {
+namespace tinyrend::rasterization {
 
-// template <typename DerivedPrimitives> struct BasePrimitives {
+// struct BasePrimitives {
 //     /*
 //     A common interface for all primitives.
 //     */
@@ -171,4 +171,4 @@ __global__ void rasterization(
     }
 }
 
-} // namespace tinyrend
+} // namespace tinyrend::rasterization
