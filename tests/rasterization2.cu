@@ -15,7 +15,7 @@ auto test_rasterization2() -> int {
 
     const int n_primitives = 2;
 
-    NullRasterizeKernelOperator op;
+    NullRasterizeKernelOperator op{};
 
     // Create isect info on GPU
     uint32_t isect_primitive_ids_host[n_primitives] = {0, 1};
@@ -38,8 +38,8 @@ auto test_rasterization2() -> int {
     );
 
     // image size
-    const uint32_t image_height = 16;
-    const uint32_t image_width = 16;
+    const uint32_t image_height = 32;
+    const uint32_t image_width = 32;
 
     // launch rasterization kernel
     dim3 threads(16, 16, 1);

@@ -21,7 +21,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         uint32_t pixel_y,
         uint32_t image_width,
         uint32_t image_height,
-        char *smem,
+        char *smem_ptr,
         uint32_t thread_rank,
         uint32_t n_threads_per_block
     ) -> bool {
@@ -30,7 +30,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         this->pixel_y = pixel_y;
         this->image_width = image_width;
         this->image_height = image_height;
-        this->smem = smem;
+        this->smem_ptr = smem_ptr;
         this->thread_rank = thread_rank;
         this->n_threads_per_block = n_threads_per_block;
         return static_cast<Derived *>(this)->initialize_impl();
@@ -54,7 +54,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
     uint32_t pixel_y;
     uint32_t image_width;
     uint32_t image_height;
-    char *smem;
+    char *smem_ptr;
     uint32_t thread_rank;
     uint32_t n_threads_per_block;
 };
@@ -181,7 +181,7 @@ __global__ void rasterize_kernel_forward(
         (end - start + n_threads_per_block - 1) / n_threads_per_block;
 
     // Now start the rasterization process.
-    for (uint32_t b = reverse_order ? n_batches - 1 : 0;
+    for (int32_t b = reverse_order ? n_batches - 1 : 0;
          reverse_order ? b >= 0 : b < n_batches;
          reverse_order ? --b : ++b) {
         // resync all threads before beginning next batch and early stop if entire
@@ -204,7 +204,7 @@ __global__ void rasterize_kernel_forward(
 
         // Now, the job of this thread is to rasterize this batch of primitives
         // to the current pixel.
-        for (uint32_t t = reverse_order ? batch_size - 1 : 0;
+        for (int32_t t = reverse_order ? batch_size - 1 : 0;
              reverse_order ? t >= 0 : t < batch_size;
              reverse_order ? --t : ++t) {
             if (done)

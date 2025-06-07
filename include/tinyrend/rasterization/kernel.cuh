@@ -47,6 +47,7 @@ template <typename Derived> class PrimitiveBase {
     uint32_t pixel_y;
     uint32_t image_h;
     uint32_t image_w;
+    uint32_t pixel_id;
     void *shmem_ptr;
     uint32_t threads_per_block;
 
@@ -67,6 +68,7 @@ template <typename Derived> class PrimitiveBase {
         this->image_w = image_w;
         this->shmem_ptr = shmem_ptr;
         this->threads_per_block = threads_per_block;
+        this->pixel_id = pixel_y * image_w + pixel_x;
         return static_cast<Derived *>(this)->initialize_impl();
     }
 
