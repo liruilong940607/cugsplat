@@ -106,7 +106,11 @@ __global__ void rasterize_kernel_forward(
     // - isect_prefix_sum_per_tile: Store the prefix sum of the number of intersections
     // per tile. [n_tiles]
     const uint32_t *isect_primitive_ids,
-    const uint32_t *isect_prefix_sum_per_tile
+    const uint32_t *isect_prefix_sum_per_tile,
+
+    // For each tile, scan the primitives (defined in isect_primitive_ids)
+    // in the reverse order or not.
+    const bool reverse_order = false
 ) {
     static_assert(
         is_rasterize_kernel_operator<RasterizeKernelOperator>::value,
@@ -165,6 +169,8 @@ __global__ void rasterize_kernel_forward(
     auto done = !(inside && init_success);
 
     // First, figure out which primitives intersect with the current tile.
+    // If reverse_order is true, we scan the primitives from end -> start.
+    // Otherwise, we scan the primitives from start -> end.
     auto const start = tile_id == 0 ? 0 : isect_prefix_sum_per_tile[tile_id - 1];
     auto const end = isect_prefix_sum_per_tile[tile_id];
 
@@ -175,7 +181,9 @@ __global__ void rasterize_kernel_forward(
         (end - start + n_threads_per_block - 1) / n_threads_per_block;
 
     // Now start the rasterization process.
-    for (uint32_t b = 0; b < n_batches; ++b) {
+    for (uint32_t b = reverse_order ? n_batches - 1 : 0;
+         reverse_order ? b >= 0 : b < n_batches;
+         reverse_order ? --b : ++b) {
         // resync all threads before beginning next batch and early stop if entire
         // tile is done
         if (__syncthreads_count(done) >= n_threads_per_block) {
@@ -196,7 +204,11 @@ __global__ void rasterize_kernel_forward(
 
         // Now, the job of this thread is to rasterize this batch of primitives
         // to the current pixel.
-        for (uint32_t t = 0; (t < batch_size) && (!done); ++t) {
+        for (uint32_t t = reverse_order ? batch_size - 1 : 0;
+             reverse_order ? t >= 0 : t < batch_size;
+             reverse_order ? --t : ++t) {
+            if (done)
+                break;
             // `t` is the local index of the primitive in the batch.
             bool terminate = op.rasterize(batch_start, t);
             done = done || terminate;
