@@ -37,7 +37,7 @@ auto test_rasterization2() -> int {
     dim3 threads(16, 16, 1);
     dim3 grid(1, 1, 1);
     size_t shmem_size = OpType::smem_size_per_primitive() * 16 * 16;
-    rasterize_kernel_forward<<<grid, threads, shmem_size>>>(
+    rasterize_kernel<<<grid, threads, shmem_size>>>(
         op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
     );
 
@@ -59,7 +59,7 @@ auto test_rasterization2() -> int {
     op_backward.v_mean_ptr = create_device_ptr<glm::fvec2>(n_primitives);
     op_backward.v_covariance_ptr = create_device_ptr<glm::fmat2>(n_primitives);
 
-    rasterize_kernel_forward<<<grid, threads, shmem_size>>>(
+    rasterize_kernel<<<grid, threads, shmem_size>>>(
         op_backward,
         image_height,
         image_width,
