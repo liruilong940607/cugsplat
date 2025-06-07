@@ -62,6 +62,45 @@ namespace tinyrend::rasterization {
     - buffer_alpha: [n_images, image_h, image_w, 1] Stores the alpha value for each tile
 */
 
+/*
+    A CRTP base class for all primitives.
+    All primitives must inherit from this class.
+
+    This class provides a common interface for all primitives.
+    It is used to dispatch the correct implementation of the primitive to the GPU.
+*/
+template <typename Derived> class PrimitiveBase {
+  public:
+    __device__ bool initialize(
+        uint32_t image_id,
+        uint32_t pixel_x,
+        uint32_t pixel_y,
+        char *shmem,
+        uint32_t threads_per_block
+    ) {
+        return static_cast<Derived *>(this)->initialize_impl(
+            image_id, pixel_x, pixel_y, shmem, threads_per_block
+        );
+    }
+
+    __device__ void load_to_shared_memory(uint32_t thread_rank, uint32_t primitive_id) {
+        static_cast<Derived *>(this)->load_to_shared_memory_impl(
+            thread_rank, primitive_id
+        );
+    }
+
+    __device__ float get_light_attenuation(uint32_t t) {
+        return static_cast<Derived *>(this)->get_light_attenuation_impl(t);
+    }
+
+    static __host__ auto shmem_size_per_primitive() -> uint32_t {
+        return Derived::shmem_size_per_primitive_impl();
+    }
+};
+
+// A type trait to check if a type inherits from PrimitiveBase
+template <typename T> struct is_primitive : std::is_base_of<PrimitiveBase<T>, T> {};
+
 template <typename Primtives>
 __global__ void rasterization(
     Primtives primitives,
@@ -78,6 +117,10 @@ __global__ void rasterization(
     const float stop_if_next_trans_smaller_than = -1.0f,
     const float stop_if_this_trans_smaller_than = -1.0f
 ) {
+    static_assert(
+        is_primitive<Primtives>::value, "Primtives must inherit from PrimitiveBase"
+    );
+
     auto const tile_w = blockDim.x;
     auto const tile_h = blockDim.y;
     auto const tile_x = blockIdx.x;

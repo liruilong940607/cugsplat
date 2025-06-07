@@ -4,10 +4,11 @@
 #include <glm/glm.hpp>
 
 #include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/rasterization/kernel.cuh"
 
 namespace tinyrend::rasterization {
 
-struct ImageGaussians {
+struct ImageGaussians : public PrimitiveBase<ImageGaussians> {
     /*
     A collection of Gaussian primitives defined on a image plane.
     */
@@ -23,11 +24,11 @@ struct ImageGaussians {
     void *_shmem_ptr;
     uint32_t _shmem_n_primitives;
 
-    inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive() -> uint32_t {
+    inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive_impl() -> uint32_t {
         return sizeof(glm::fvec2) + sizeof(glm::fvec3);
     }
 
-    inline GSPLAT_HOST_DEVICE auto initialize(
+    inline GSPLAT_HOST_DEVICE auto initialize_impl(
         uint32_t image_id,
         uint32_t pixel_x,
         uint32_t pixel_y,
@@ -43,7 +44,7 @@ struct ImageGaussians {
     }
 
     inline GSPLAT_HOST_DEVICE auto
-    load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) -> void {
+    load_to_shared_memory_impl(uint32_t shmem_id, uint32_t global_id) -> void {
         glm::fvec2 *shmem_ptr_mu = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
         glm::fvec3 *shmem_ptr_conics =
             reinterpret_cast<glm::fvec3 *>(&shmem_ptr_mu[_shmem_n_primitives]);
@@ -51,7 +52,8 @@ struct ImageGaussians {
         shmem_ptr_conics[shmem_id] = conics[global_id];
     }
 
-    inline GSPLAT_HOST_DEVICE auto get_light_attenuation(uint32_t shmem_id) -> float {
+    inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t shmem_id
+    ) -> float {
         glm::fvec2 *shmem_ptr_mu = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
         glm::fvec3 *shmem_ptr_conics =
             reinterpret_cast<glm::fvec3 *>(&shmem_ptr_mu[_shmem_n_primitives]);

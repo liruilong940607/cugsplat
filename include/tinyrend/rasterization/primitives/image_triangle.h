@@ -4,10 +4,11 @@
 #include <glm/glm.hpp>
 
 #include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/rasterization/kernel.cuh"
 
 namespace tinyrend::rasterization {
 
-struct ImageTriangles {
+struct ImageTriangles : public PrimitiveBase<ImageTriangles> {
     /*
     A collection of triangle primitives defined on a image plane.
     */
@@ -24,7 +25,7 @@ struct ImageTriangles {
     void *_shmem_ptr;
     uint32_t _shmem_n_primitives;
 
-    inline GSPLAT_HOST_DEVICE auto initialize(
+    inline GSPLAT_HOST_DEVICE auto initialize_impl(
         uint32_t image_id,
         uint32_t pixel_x,
         uint32_t pixel_y,
@@ -39,12 +40,12 @@ struct ImageTriangles {
         return true;
     }
 
-    inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive() -> uint32_t {
+    inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive_impl() -> uint32_t {
         return sizeof(glm::fvec2) * 3;
     }
 
     inline GSPLAT_HOST_DEVICE auto
-    load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) -> void {
+    load_to_shared_memory_impl(uint32_t shmem_id, uint32_t global_id) -> void {
         glm::fvec2 *shmem_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
         glm::fvec2 *shmem_ptr_v1 =
             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v0[_shmem_n_primitives]);
@@ -55,7 +56,8 @@ struct ImageTriangles {
         shmem_ptr_v2[shmem_id] = v2[global_id];
     }
 
-    inline GSPLAT_HOST_DEVICE auto get_light_attenuation(uint32_t shmem_id) -> float {
+    inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t shmem_id
+    ) -> float {
         glm::fvec2 *shmem_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
         glm::fvec2 *shmem_ptr_v1 =
             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v0[_shmem_n_primitives]);
