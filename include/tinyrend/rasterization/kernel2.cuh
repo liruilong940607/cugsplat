@@ -66,20 +66,20 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
 */
 struct NullRasterizeKernelOperator
     : BaseRasterizeKernelOperator<NullRasterizeKernelOperator> {
-    static __host__ auto smem_size_per_primitive_impl() -> uint32_t { return 0; }
+    static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t { return 0; }
 
-    __device__ auto initialize_impl() -> bool { return true; }
+    inline __device__ auto initialize_impl() -> bool { return true; }
 
-    __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
+    inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
         // Do nothing
     }
 
-    __device__ auto rasterize_impl(uint32_t batch_start, uint32_t t) -> bool {
+    inline __device__ auto rasterize_impl(uint32_t batch_start, uint32_t t) -> bool {
         // Do nothing
         return false; // Return whether we want to terminate the rasterization process.
     }
 
-    __device__ auto pixel_postprocess_impl() -> void {
+    inline __device__ auto pixel_postprocess_impl() -> void {
         // Do nothing
     }
 };
