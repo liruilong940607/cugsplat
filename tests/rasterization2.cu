@@ -68,7 +68,7 @@ auto test_rasterization2() -> int {
         image_width,
         isect_primitive_ids,
         isect_prefix_sum_per_tile,
-        true
+        true // reverse order
     );
 
     // copy data back to host
