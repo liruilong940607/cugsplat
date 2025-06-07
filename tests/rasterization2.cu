@@ -14,8 +14,8 @@ auto test_rasterization2() -> int {
     // number of primitives
     const int n_primitives = 2;
     // image size
-    const uint32_t image_height = 1;
-    const uint32_t image_width = 1;
+    const uint32_t image_height = 4;
+    const uint32_t image_width = 2;
 
     // NullRasterizeKernelOperator op{};
     SimplePlanerRasterizeKernelForwardOperator op{};
@@ -84,8 +84,8 @@ auto test_rasterization2() -> int {
     // o = 0.5f + (1 - 0.5f) * 0.7f
     // dl/da = dl/do * do/da = 0.3f * (1 - 0.7f) = 0.09f
     // dl/db = dl/do * do/db = 0.3f * 0.5f = 0.15f
-    assert(is_close(v_opacity_host[0], 0.09f));
-    assert(is_close(v_opacity_host[1], 0.15f));
+    assert(is_close(v_opacity_host[0], 0.09f * image_height * image_width));
+    assert(is_close(v_opacity_host[1], 0.15f * image_height * image_width));
 
     check_cuda_error();
     return 0;
