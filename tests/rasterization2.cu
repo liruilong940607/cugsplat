@@ -5,7 +5,7 @@
 #include "helpers.cuh"
 #include "helpers.h"
 #include "tinyrend/rasterization/kernel2.cuh"
-#include "tinyrend/rasterization/operators/simple_gaussian.h"
+#include "tinyrend/rasterization/operators/simple_gaussian.cuh"
 
 using namespace tinyrend::rasterization;
 
@@ -21,13 +21,13 @@ auto test_rasterization2() -> int {
     SimpleGaussianRasterizeKernelForwardOperator op{};
     using OpType = decltype(op);
 
-    op.in_mean_ptr =
+    op.mean_ptr =
         create_device_ptr<glm::fvec2>({glm::fvec2(6.0f, 6.0f), glm::fvec2(10.0f, 10.0f)}
         );
-    op.in_covariance_ptr = create_device_ptr<glm::fmat2>(
+    op.covariance_ptr = create_device_ptr<glm::fmat2>(
         {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
     );
-    op.out_alphamap_ptr = create_device_ptr<float>(image_height * image_width);
+    op.alphamap_ptr = create_device_ptr<float>(image_height * image_width);
 
     // Create isect info on GPU
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
@@ -42,14 +42,16 @@ auto test_rasterization2() -> int {
     );
 
     // copy data back to host
-    float *out_alphamap_host = new float[image_height * image_width];
+    float *alphamap_host = new float[image_height * image_width];
     cudaMemcpy(
-        out_alphamap_host,
-        op.out_alphamap_ptr,
+        alphamap_host,
+        op.alphamap_ptr,
         sizeof(float) * image_height * image_width,
         cudaMemcpyDeviceToHost
     );
-    save_png(out_alphamap_host, image_width, image_height, "results/out_alphamap.png");
+    save_png(alphamap_host, image_width, image_height, "results/alphamap.png");
+
+    // SimpleGaussianRasterizeKernelBackwardOperator op_backward{};
 
     check_cuda_error();
     return 0;

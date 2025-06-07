@@ -1,9 +1,13 @@
 #pragma once
 
+#include <cooperative_groups.h>
+#include <cooperative_groups/reduce.h>
 #include <cstdint>
 #include <cuda_runtime.h>
 
 namespace tinyrend::rasterization {
+
+namespace cg = cooperative_groups;
 
 /*
     A CRTP base class for all rasterize kernel operators.
@@ -41,8 +45,9 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         static_cast<Derived *>(this)->primitive_preprocess_impl(primitive_id);
     }
 
-    __device__ auto rasterize(uint32_t batch_start, uint32_t t) -> bool {
-        return static_cast<Derived *>(this)->rasterize_impl(batch_start, t);
+    template <class WarpT>
+    __device__ auto rasterize(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
+        return static_cast<Derived *>(this)->rasterize_impl(batch_start, t, warp);
     }
 
     __device__ auto pixel_postprocess() -> void {
@@ -76,7 +81,9 @@ struct NullRasterizeKernelOperator
         // Do nothing
     }
 
-    inline __device__ auto rasterize_impl(uint32_t batch_start, uint32_t t) -> bool {
+    template <class WarpT>
+    inline __device__ auto
+    rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
         // Do nothing
         return false; // Return whether we want to terminate the rasterization process.
     }
@@ -150,6 +157,9 @@ __global__ void rasterize_kernel_forward(
     // Which thread am I in the block?
     auto const thread_rank = threadIdx.x + threadIdx.y * blockDim.x;
 
+    // warp for reduction
+    auto const warp = cg::tiled_partition<32>(cg::this_thread_block());
+
     // Prepare the shared memory for the operator
     extern __shared__ char smem[];
 
@@ -212,7 +222,7 @@ __global__ void rasterize_kernel_forward(
             if (done)
                 break;
             // `t` is the local index of the primitive in the batch.
-            bool terminate = op.rasterize(batch_start, t);
+            bool terminate = op.rasterize(batch_start, t, warp);
             done = done || terminate;
         }
     }
