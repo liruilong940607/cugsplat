@@ -36,7 +36,7 @@ struct SimplePlanerRasterizeKernelForwardOperator
     float *opacity_ptr; // [N, 1]
 
     // Outputs
-    float *alphamap_ptr; // [n_images, image_height, image_width, 1]
+    float *render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Internal variables
     float _T = 1.0f; // current transmittance
@@ -68,11 +68,11 @@ struct SimplePlanerRasterizeKernelForwardOperator
     }
 
     inline __device__ auto pixel_postprocess_impl() -> void {
-        if (this->alphamap_ptr != nullptr) {
+        if (this->render_alpha_ptr != nullptr) {
             auto const offset_pixel =
                 this->image_id * this->image_height * this->image_width +
                 this->pixel_id;
-            this->alphamap_ptr[offset_pixel] = 1.0f - this->_T;
+            this->render_alpha_ptr[offset_pixel] = 1.0f - this->_T;
         }
     }
 };
@@ -84,18 +84,18 @@ struct SimplePlanerRasterizeKernelBackwardOperator
     float *opacity_ptr; // [N, 1]
 
     // Forward Outputs
-    float *alphamap_ptr; // [n_images, image_height, image_width, 1]
+    float *render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Gradients for Forward Outputs
-    float *v_alphamap_ptr; // [n_images, image_height, image_width, 1]
+    float *v_render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Gradients for Forward Inputs
     float *v_opacity_ptr; // [N, 1]
 
     // Internal variables
-    float _T_final;    // final transmittance
-    float _T;          // current transmittance (from back to front)
-    float _v_alphamap; // dl/d_alphamap for this pixel
+    float _T_final;        // final transmittance
+    float _T;              // current transmittance (from back to front)
+    float _v_render_alpha; // dl/d_render_alpha for this pixel
 
     static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
         return sizeof(float) + sizeof(uint32_t);
@@ -105,10 +105,10 @@ struct SimplePlanerRasterizeKernelBackwardOperator
         // load the gradient for this pixel
         auto const offset_pixel =
             this->image_id * this->image_height * this->image_width + this->pixel_id;
-        this->_v_alphamap = this->v_alphamap_ptr[offset_pixel];
+        this->_v_render_alpha = this->v_render_alpha_ptr[offset_pixel];
 
         // load the initial transmittance as remaining transmittance
-        this->_T_final = 1.0f - this->alphamap_ptr[offset_pixel];
+        this->_T_final = 1.0f - this->render_alpha_ptr[offset_pixel];
         this->_T = this->_T_final;
         return true;
     }
@@ -135,7 +135,7 @@ struct SimplePlanerRasterizeKernelBackwardOperator
         // compute the gradient
         auto const ra = 1.0f / (1.0f - alpha);
         this->_T *= ra;
-        auto v_alpha = this->_T_final * ra * this->_v_alphamap;
+        auto v_alpha = this->_T_final * ra * this->_v_render_alpha;
 
         warpSum(v_alpha, warp);
 

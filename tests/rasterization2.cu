@@ -29,7 +29,7 @@ auto test_rasterization2() -> int {
     //     {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
     // );
     op.opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
-    op.alphamap_ptr = create_device_ptr<float>(image_height * image_width);
+    op.render_alpha_ptr = create_device_ptr<float>(image_height * image_width);
 
     // Create isect info on GPU
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
@@ -44,21 +44,21 @@ auto test_rasterization2() -> int {
     );
 
     // copy data back to host
-    float *alphamap_host = new float[image_height * image_width];
+    float *render_alpha_host = new float[image_height * image_width];
     cudaMemcpy(
-        alphamap_host,
-        op.alphamap_ptr,
+        render_alpha_host,
+        op.render_alpha_ptr,
         sizeof(float) * image_height * image_width,
         cudaMemcpyDeviceToHost
     );
-    float ground_truth_alphamap = 0.5f + (1 - 0.5f) * 0.7f;
-    assert(is_close(alphamap_host[0], ground_truth_alphamap));
-    save_png(alphamap_host, image_width, image_height, "results/alphamap.png");
+    float ground_truth_render_alpha = 0.5f + (1 - 0.5f) * 0.7f;
+    assert(is_close(render_alpha_host[0], ground_truth_render_alpha));
+    save_png(render_alpha_host, image_width, image_height, "results/render_alpha.png");
 
     SimplePlanerRasterizeKernelBackwardOperator op_backward{};
     op_backward.opacity_ptr = op.opacity_ptr;
-    op_backward.alphamap_ptr = op.alphamap_ptr;
-    op_backward.v_alphamap_ptr =
+    op_backward.render_alpha_ptr = op.render_alpha_ptr;
+    op_backward.v_render_alpha_ptr =
         create_device_ptr_with_init<float>(image_height * image_width, 0.3f);
     op_backward.v_opacity_ptr = create_device_ptr_with_init<float>(n_primitives, 0.0f);
 
