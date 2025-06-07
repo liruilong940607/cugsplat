@@ -80,8 +80,8 @@ template <typename Derived> class PrimitiveBase {
         return static_cast<Derived *>(this)->get_light_attenuation_impl(t);
     }
 
-    __device__ void accumulate(float T, float alpha) {
-        static_cast<Derived *>(this)->accumulate_impl(T, alpha);
+    __device__ void accumulate(float T, float alpha, uint32_t primitive_id) {
+        static_cast<Derived *>(this)->accumulate_impl(T, alpha, primitive_id);
     }
 
     __device__ void write_to_buffer() {
@@ -194,8 +194,8 @@ __global__ void rasterization(
                 break;
             }
 
-            primitives.accumulate(T, alpha);
             primitive_cur_idx = isect_start_cur_batch + t;
+            primitives.accumulate(T, alpha, primitive_cur_idx);
             T = next_T;
         }
     }

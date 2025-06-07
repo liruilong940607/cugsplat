@@ -60,10 +60,11 @@ struct ImageGaussians : public PrimitiveBase<ImageGaussians<FEATURE_DIM>> {
         return exp(-sigma);
     }
 
-    inline GSPLAT_HOST_DEVICE auto accumulate_impl(float T, float alpha) -> void {
+    inline GSPLAT_HOST_DEVICE auto
+    accumulate_impl(float T, float alpha, uint32_t primitive_id) -> void {
 #pragma unroll
         for (uint32_t i = 0; i < FEATURE_DIM; i++) {
-            accum_features[i] += T * alpha * features[i];
+            accum_features[i] += T * alpha * features[primitive_id * FEATURE_DIM + i];
         }
     }
 
