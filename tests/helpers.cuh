@@ -1,3 +1,4 @@
+#include <initializer_list>
 #include <iostream>
 #include <string>
 
@@ -14,6 +15,18 @@ template <class T> T *create_device_ptr() {
     T *d_ptr;
     cudaMalloc(&d_ptr, sizeof(T));
     return d_ptr;
+}
+
+template <class T> T *create_device_ptr(std::initializer_list<T> init_list) {
+    T *device_ptr;
+    cudaMalloc(&device_ptr, sizeof(T) * init_list.size());
+    cudaMemcpy(
+        device_ptr,
+        init_list.begin(),
+        sizeof(T) * init_list.size(),
+        cudaMemcpyHostToDevice
+    );
+    return device_ptr;
 }
 
 template <class T> void print_device_ptr(const T *d_ptr, const std::string &name) {
@@ -35,4 +48,21 @@ void print_device_ptr<glm::fvec3>(const glm::fvec3 *d_ptr, const std::string &na
     cudaMemcpy(&h_val, d_ptr, sizeof(glm::fvec3), cudaMemcpyDeviceToHost);
     std::cout << name << ": " << h_val.x << ", " << h_val.y << ", " << h_val.z
               << std::endl;
+}
+
+void check_cuda_error() {
+    cudaError_t err;
+
+    err = cudaSetDevice(0);
+    if (err != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(err));
+    }
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(err));
+    }
+    err = cudaDeviceSynchronize();
+    if (err != cudaSuccess) {
+        printf("CUDA Error: %s\n", cudaGetErrorString(err));
+    }
 }

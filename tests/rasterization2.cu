@@ -8,34 +8,15 @@
 using namespace tinyrend::rasterization;
 
 auto test_rasterization2() -> int {
-    cudaError_t err = cudaSetDevice(0);
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
 
     const int n_primitives = 2;
 
     NullRasterizeKernelOperator op{};
 
     // Create isect info on GPU
-    uint32_t isect_primitive_ids_host[n_primitives] = {0, 1};
-    uint32_t isect_prefix_sum_per_tile_host[1] = {2};
-    uint32_t *isect_primitive_ids;
-    cudaMalloc(&isect_primitive_ids, sizeof(uint32_t) * n_primitives);
-    cudaMemcpy(
-        isect_primitive_ids,
-        isect_primitive_ids_host,
-        sizeof(uint32_t) * n_primitives,
-        cudaMemcpyHostToDevice
-    );
-    uint32_t *isect_prefix_sum_per_tile;
-    cudaMalloc(&isect_prefix_sum_per_tile, sizeof(uint32_t) * 1);
-    cudaMemcpy(
-        isect_prefix_sum_per_tile,
-        isect_prefix_sum_per_tile_host,
-        sizeof(uint32_t) * 1,
-        cudaMemcpyHostToDevice
-    );
+
+    auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
+    auto const isect_prefix_sum_per_tile = create_device_ptr<uint32_t>({2});
 
     // image size
     const uint32_t image_height = 32;
@@ -50,15 +31,7 @@ auto test_rasterization2() -> int {
         op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
     );
 
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
-    err = cudaDeviceSynchronize();
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
-
+    check_cuda_error();
     return 0;
 }
 
