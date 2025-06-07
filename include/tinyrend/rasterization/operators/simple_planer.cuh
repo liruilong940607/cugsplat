@@ -6,9 +6,7 @@
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 #include <cstdint>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for __device__
 #include "tinyrend/rasterization/kernel2.cuh"
 
 namespace tinyrend::rasterization {
@@ -17,16 +15,6 @@ namespace cg = cooperative_groups;
 
 template <class WarpT> inline __device__ void warpSum(float &val, WarpT &warp) {
     val = cg::reduce(warp, val, cg::plus<float>());
-}
-
-template <class WarpT> inline __device__ void warpSum(glm::fvec2 &val, WarpT &warp) {
-    val.x = cg::reduce(warp, val.x, cg::plus<float>());
-    val.y = cg::reduce(warp, val.y, cg::plus<float>());
-}
-
-template <class WarpT> inline __device__ void warpSum(glm::fmat2 &val, WarpT &warp) {
-    warpSum(val[0], warp);
-    warpSum(val[1], warp);
 }
 
 struct SimplePlanerRasterizeKernelForwardOperator
@@ -64,10 +52,12 @@ struct SimplePlanerRasterizeKernelForwardOperator
         auto const next_T = this->_T * (1.0f - alpha);
         this->_T = next_T;
 
-        return false; // Return whether we want to terminate the rasterization process.
+        // Return whether we want to terminate the rasterization process.
+        return false;
     }
 
     inline __device__ auto pixel_postprocess_impl() -> void {
+        // write to the output buffer
         if (this->render_alpha_ptr != nullptr) {
             auto const offset_pixel =
                 this->image_id * this->image_height * this->image_width +
@@ -98,6 +88,8 @@ struct SimplePlanerRasterizeKernelBackwardOperator
     float _v_render_alpha; // dl/d_render_alpha for this pixel
 
     static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+        // since we will cache the opacity [float] and primitive_id [uint32_t] in the
+        // shared memory, the total shared memory size per primitive is:
         return sizeof(float) + sizeof(uint32_t);
     }
 
@@ -137,15 +129,17 @@ struct SimplePlanerRasterizeKernelBackwardOperator
         this->_T *= ra;
         auto v_alpha = this->_T_final * ra * this->_v_render_alpha;
 
+        // reduce the gradient over the warp [faster than atomicAdd to global memory]
         warpSum(v_alpha, warp);
 
-        // first thread in the block handles the gradient accumulation
+        // first thread in the warp writes the gradient to global memory.
         if (warp.thread_rank() == 0) {
             float *v_opacity_ptr = (float *)this->v_opacity_ptr;
             atomicAdd(v_opacity_ptr + primitive_id, v_alpha);
         }
 
-        return false; // Return whether we want to terminate the rasterization process.
+        // Return whether we want to terminate the rasterization process.
+        return false;
     }
 
     inline __device__ auto pixel_postprocess_impl() -> void {
