@@ -5,35 +5,6 @@
 
 namespace tinyrend::rasterization {
 
-// struct BasePrimitives {
-//     /*
-//     A common interface for all primitives.
-//     */
-
-//     __device__ bool initialize(
-//         uint32_t image_id,
-//         uint32_t pixel_x,
-//         uint32_t pixel_y,
-//         void *shmem_ptr,
-//         uint32_t shmem_n_primitives
-//     ) {
-//         auto const derived = static_cast<DerivedPrimitives *>(this);
-//         return derived->initialize(
-//             image_id, pixel_x, pixel_y, shmem_ptr, shmem_n_primitives
-//         );
-//     }
-
-//     __device__ void load_to_shared_memory(uint32_t shmem_id, uint32_t global_id) {
-//         auto const derived = static_cast<DerivedPrimitives *>(this);
-//         derived->load_to_shared_memory(shmem_id, global_id);
-//     }
-
-//     __device__ float get_light_attenuation(uint32_t shmem_id) {
-//         auto const derived = static_cast<DerivedPrimitives *>(this);
-//         return derived->get_light_attenuation(shmem_id);
-//     }
-// };
-
 /*
     Rasterize primitives to image buffers (tile-based)
 
@@ -70,17 +41,33 @@ namespace tinyrend::rasterization {
     It is used to dispatch the correct implementation of the primitive to the GPU.
 */
 template <typename Derived> class PrimitiveBase {
+  protected:
+    uint32_t image_id;
+    uint32_t pixel_x;
+    uint32_t pixel_y;
+    uint32_t image_h;
+    uint32_t image_w;
+    void *shmem_ptr;
+    uint32_t threads_per_block;
+
   public:
     __device__ bool initialize(
         uint32_t image_id,
         uint32_t pixel_x,
         uint32_t pixel_y,
-        char *shmem,
+        uint32_t image_h,
+        uint32_t image_w,
+        char *shmem_ptr,
         uint32_t threads_per_block
     ) {
-        return static_cast<Derived *>(this)->initialize_impl(
-            image_id, pixel_x, pixel_y, shmem, threads_per_block
-        );
+        this->image_id = image_id;
+        this->pixel_x = pixel_x;
+        this->pixel_y = pixel_y;
+        this->image_h = image_h;
+        this->image_w = image_w;
+        this->shmem_ptr = shmem_ptr;
+        this->threads_per_block = threads_per_block;
+        return static_cast<Derived *>(this)->initialize_impl();
     }
 
     __device__ void load_to_shared_memory(uint32_t thread_rank, uint32_t primitive_id) {
@@ -91,6 +78,14 @@ template <typename Derived> class PrimitiveBase {
 
     __device__ float get_light_attenuation(uint32_t t) {
         return static_cast<Derived *>(this)->get_light_attenuation_impl(t);
+    }
+
+    __device__ void accumulate(float T, float alpha) {
+        static_cast<Derived *>(this)->accumulate_impl(T, alpha);
+    }
+
+    __device__ void write_to_buffer() {
+        static_cast<Derived *>(this)->write_to_buffer_impl();
     }
 
     static __host__ auto shmem_size_per_primitive() -> uint32_t {
@@ -137,8 +132,9 @@ __global__ void rasterization(
     extern __shared__ char shmem[];
 
     // Initialize the primitive based on the current pixel
-    auto const init_success =
-        primitives.initialize(image_id, pixel_x, pixel_y, shmem, threads_per_block);
+    auto const init_success = primitives.initialize(
+        image_id, pixel_x, pixel_y, image_h, image_w, shmem, threads_per_block
+    );
 
     // Check if the pixel is inside the image. If not, we still keep this thread
     // alive to help with loading primitives into shared memory.
@@ -198,6 +194,7 @@ __global__ void rasterization(
                 break;
             }
 
+            primitives.accumulate(T, alpha);
             primitive_cur_idx = isect_start_cur_batch + t;
             T = next_T;
         }
@@ -211,6 +208,7 @@ __global__ void rasterization(
         if (buffer_last_primitive_id != nullptr) {
             buffer_last_primitive_id[offset_pixel] = primitive_cur_idx;
         }
+        primitives.write_to_buffer();
     }
 }
 

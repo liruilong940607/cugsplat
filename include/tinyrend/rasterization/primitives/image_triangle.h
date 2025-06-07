@@ -87,6 +87,14 @@ struct ImageTriangles : public PrimitiveBase<ImageTriangles> {
         float gradient = 3.0f * std::min(std::min(u, v), w);
         return gradient;
     }
+
+    inline GSPLAT_HOST_DEVICE auto accumulate_impl(float T, float alpha) -> void {
+        // Do nothing
+    }
+
+    inline GSPLAT_HOST_DEVICE auto write_to_buffer_impl(uint32_t offset_pixel) -> void {
+        // Do nothing
+    }
 };
 
 } // namespace tinyrend::rasterization
