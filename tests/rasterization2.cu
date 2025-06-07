@@ -49,7 +49,7 @@ auto test_rasterization2() -> int {
         sizeof(float) * image_height * image_width,
         cudaMemcpyDeviceToHost
     );
-    save_png(out_alphamap_host, image_width, image_height, "out_alphamap.png");
+    save_png(out_alphamap_host, image_width, image_height, "results/out_alphamap.png");
 
     check_cuda_error();
     return 0;
