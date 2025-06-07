@@ -66,33 +66,6 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
     uint32_t n_threads_per_block;
 };
 
-/*
-    A null operator that does nothing.
-
-    This demonstrates the what a operator should look like. And also used for testing.
-*/
-struct NullRasterizeKernelOperator
-    : BaseRasterizeKernelOperator<NullRasterizeKernelOperator> {
-    static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t { return 0; }
-
-    inline __device__ auto initialize_impl() -> bool { return true; }
-
-    inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
-        // Do nothing
-    }
-
-    template <class WarpT>
-    inline __device__ auto
-    rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
-        // Do nothing
-        return false; // Return whether we want to terminate the rasterization process.
-    }
-
-    inline __device__ auto pixel_postprocess_impl() -> void {
-        // Do nothing
-    }
-};
-
 // A helper struct to check if a type is a valid rasterize kernel operator.
 template <typename T>
 struct is_rasterize_kernel_operator

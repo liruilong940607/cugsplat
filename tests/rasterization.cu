@@ -17,17 +17,9 @@ auto test_rasterization() -> int {
     const uint32_t image_height = 4;
     const uint32_t image_width = 2;
 
-    // NullRasterizeKernelOperator op{};
     SimplePlanerRasterizeKernelForwardOperator op{};
     using OpType = decltype(op);
 
-    // op.mean_ptr =
-    //     create_device_ptr<glm::fvec2>({glm::fvec2(6.0f, 6.0f),
-    //     glm::fvec2(10.0f, 10.0f)}
-    //     );
-    // op.covariance_ptr = create_device_ptr<glm::fmat2>(
-    //     {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
-    // );
     op.opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
     op.render_alpha_ptr = create_device_ptr<float>(image_height * image_width);
 
