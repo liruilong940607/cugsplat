@@ -46,7 +46,7 @@ auto test_rasterization2() -> int {
     dim3 grid(1, 1, 1);
     size_t shmem_size =
         NullRasterizeKernelOperator::smem_size_per_primitive() * 16 * 16;
-    rasterizer_kernel_forward<<<grid, threads, shmem_size>>>(
+    rasterize_kernel_forward<<<grid, threads, shmem_size>>>(
         op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
     );
 

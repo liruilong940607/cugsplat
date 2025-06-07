@@ -93,7 +93,7 @@ struct is_rasterize_kernel_operator
     The main rasterization kernel.
 */
 template <typename RasterizeKernelOperator>
-__global__ void rasterizer_kernel_forward(
+__global__ void rasterize_kernel_forward(
     RasterizeKernelOperator op,
 
     // The output image size
