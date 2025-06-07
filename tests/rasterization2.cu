@@ -5,7 +5,7 @@
 #include "helpers.cuh"
 #include "helpers.h"
 #include "tinyrend/rasterization/kernel2.cuh"
-#include "tinyrend/rasterization/operators/simple_gaussian.cuh"
+#include "tinyrend/rasterization/operators/simple_planer.cuh"
 
 using namespace tinyrend::rasterization;
 
@@ -14,19 +14,21 @@ auto test_rasterization2() -> int {
     // number of primitives
     const int n_primitives = 2;
     // image size
-    const uint32_t image_height = 16;
-    const uint32_t image_width = 16;
+    const uint32_t image_height = 1;
+    const uint32_t image_width = 1;
 
     // NullRasterizeKernelOperator op{};
-    SimpleGaussianRasterizeKernelForwardOperator op{};
+    SimplePlanerRasterizeKernelForwardOperator op{};
     using OpType = decltype(op);
 
-    op.mean_ptr =
-        create_device_ptr<glm::fvec2>({glm::fvec2(6.0f, 6.0f), glm::fvec2(10.0f, 10.0f)}
-        );
-    op.covariance_ptr = create_device_ptr<glm::fmat2>(
-        {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
-    );
+    // op.mean_ptr =
+    //     create_device_ptr<glm::fvec2>({glm::fvec2(6.0f, 6.0f),
+    //     glm::fvec2(10.0f, 10.0f)}
+    //     );
+    // op.covariance_ptr = create_device_ptr<glm::fmat2>(
+    //     {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
+    // );
+    op.opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
     op.alphamap_ptr = create_device_ptr<float>(image_height * image_width);
 
     // Create isect info on GPU
@@ -49,15 +51,16 @@ auto test_rasterization2() -> int {
         sizeof(float) * image_height * image_width,
         cudaMemcpyDeviceToHost
     );
+    float ground_truth_alphamap = 0.5f + (1 - 0.5f) * 0.7f;
+    assert(is_close(alphamap_host[0], ground_truth_alphamap));
     save_png(alphamap_host, image_width, image_height, "results/alphamap.png");
 
-    SimpleGaussianRasterizeKernelBackwardOperator op_backward{};
-    op_backward.mean_ptr = op.mean_ptr;
-    op_backward.covariance_ptr = op.covariance_ptr;
+    SimplePlanerRasterizeKernelBackwardOperator op_backward{};
+    op_backward.opacity_ptr = op.opacity_ptr;
     op_backward.alphamap_ptr = op.alphamap_ptr;
-    op_backward.v_alphamap_ptr = create_device_ptr<float>(image_height * image_width);
-    op_backward.v_mean_ptr = create_device_ptr<glm::fvec2>(n_primitives);
-    op_backward.v_covariance_ptr = create_device_ptr<glm::fmat2>(n_primitives);
+    op_backward.v_alphamap_ptr =
+        create_device_ptr_with_init<float>(image_height * image_width, 0.3f);
+    op_backward.v_opacity_ptr = create_device_ptr_with_init<float>(n_primitives, 0.0f);
 
     rasterize_kernel<<<grid, threads, shmem_size>>>(
         op_backward,
@@ -67,6 +70,22 @@ auto test_rasterization2() -> int {
         isect_prefix_sum_per_tile,
         true
     );
+
+    // copy data back to host
+    float *v_opacity_host = new float[n_primitives];
+    cudaMemcpy(
+        v_opacity_host,
+        op_backward.v_opacity_ptr,
+        sizeof(float) * n_primitives,
+        cudaMemcpyDeviceToHost
+    );
+
+    // o = a + (1 - a) * b
+    // o = 0.5f + (1 - 0.5f) * 0.7f
+    // dl/da = dl/do * do/da = 0.3f * (1 - 0.7f) = 0.09f
+    // dl/db = dl/do * do/db = 0.3f * 0.5f = 0.15f
+    assert(is_close(v_opacity_host[0], 0.09f));
+    assert(is_close(v_opacity_host[1], 0.15f));
 
     check_cuda_error();
     return 0;

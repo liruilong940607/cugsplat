@@ -23,6 +23,24 @@ template <class T> T *create_device_ptr(const size_t n) {
     return d_ptr;
 }
 
+template <class T>
+T *create_device_ptr_with_init(const size_t n, const float init_val) {
+    T *d_ptr;
+    cudaMalloc(&d_ptr, sizeof(T) * n);
+
+    // Create a temporary host array with the desired value
+    T *h_ptr = new T[n];
+    for (size_t i = 0; i < n; i++) {
+        h_ptr[i] = static_cast<T>(init_val);
+    }
+
+    // Copy the initialized array to device
+    cudaMemcpy(d_ptr, h_ptr, sizeof(T) * n, cudaMemcpyHostToDevice);
+    delete[] h_ptr;
+
+    return d_ptr;
+}
+
 template <class T> T *create_device_ptr(std::initializer_list<T> init_list) {
     T *device_ptr;
     cudaMalloc(&device_ptr, sizeof(T) * init_list.size());

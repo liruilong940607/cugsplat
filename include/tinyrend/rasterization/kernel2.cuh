@@ -136,7 +136,7 @@ __global__ void rasterize_kernel(
 
     // How many tiles are there in the x and y direction?
     auto const n_tiles_x = gridDim.x;
-    auto const n_tiles_y = gridDim.y;
+    // auto const n_tiles_y = gridDim.y; // not used
 
     // Which tile am I focusing on?
     auto const tile_x = blockIdx.x;
@@ -146,7 +146,7 @@ __global__ void rasterize_kernel(
     // Which pixel am I focusing on?
     auto const pixel_x = tile_x * tile_width + threadIdx.x;
     auto const pixel_y = tile_y * tile_height + threadIdx.y;
-    auto const pixel_id = pixel_y * image_width + pixel_x;
+    // auto const pixel_id = pixel_y * image_width + pixel_x; // not used
 
     // Which image am I focusing on?
     auto const image_id = blockIdx.z;
