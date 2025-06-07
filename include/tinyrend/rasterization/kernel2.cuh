@@ -32,6 +32,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         this->image_height = image_height;
         this->smem_ptr = smem_ptr;
         this->thread_rank = thread_rank;
+        this->pixel_id = pixel_y * image_width + pixel_x;
         this->n_threads_per_block = n_threads_per_block;
         return static_cast<Derived *>(this)->initialize_impl();
     }
@@ -52,6 +53,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
     uint32_t image_id;
     uint32_t pixel_x;
     uint32_t pixel_y;
+    uint32_t pixel_id;
     uint32_t image_width;
     uint32_t image_height;
     char *smem_ptr;

@@ -25,7 +25,7 @@ struct SimpleGaussianRasterizeKernelForwardOperator
     float _T = 1.0f; // current transmittance
 
     static inline GSPLAT_HOST_DEVICE auto smem_size_per_primitive_impl() -> uint32_t {
-        return 0;
+        return sizeof(glm::fvec2) + sizeof(glm::fmat2);
     }
 
     inline GSPLAT_HOST_DEVICE auto initialize_impl() -> bool { return true; }
@@ -67,7 +67,8 @@ struct SimpleGaussianRasterizeKernelForwardOperator
     inline GSPLAT_HOST_DEVICE auto pixel_postprocess_impl() -> void {
         if (this->out_alphamap_ptr != nullptr) {
             auto const offset_pixel =
-                this->image_id * this->image_h * this->image_w + this->pixel_id;
+                this->image_id * this->image_height * this->image_width +
+                this->pixel_id;
             this->out_alphamap_ptr[offset_pixel] = 1.0f - this->_T;
         }
     }

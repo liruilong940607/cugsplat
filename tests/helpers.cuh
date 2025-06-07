@@ -17,6 +17,12 @@ template <class T> T *create_device_ptr() {
     return d_ptr;
 }
 
+template <class T> T *create_device_ptr(const size_t n) {
+    T *d_ptr;
+    cudaMalloc(&d_ptr, sizeof(T) * n);
+    return d_ptr;
+}
+
 template <class T> T *create_device_ptr(std::initializer_list<T> init_list) {
     T *device_ptr;
     cudaMalloc(&device_ptr, sizeof(T) * init_list.size());

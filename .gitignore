@@ -122,3 +122,4 @@ compile_commands.json
 *.dump
 
 libtorch/
+results/
