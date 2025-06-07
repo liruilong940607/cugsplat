@@ -5,227 +5,91 @@
 #include "helpers.cuh"
 #include "helpers.h"
 #include "tinyrend/rasterization/kernel.cuh"
-#include "tinyrend/rasterization/primitives/image_gaussian.h"
-// #include "tinyrend/rasterization/primitives/image_triangle.h"
+#include "tinyrend/rasterization/operators/simple_planer.cuh"
 
 using namespace tinyrend::rasterization;
 
 auto test_rasterization() -> int {
-    cudaError_t err = cudaSetDevice(0);
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
 
+    // number of primitives
     const int n_primitives = 2;
+    // image size
+    const uint32_t image_height = 4;
+    const uint32_t image_width = 2;
 
-    // Create Some Image Gaussians on GPU
-    glm::fvec2 *h_mu = new glm::fvec2[n_primitives];
-    for (int i = 0; i < n_primitives; i++) {
-        h_mu[i] = glm::fvec2(i, i) * 4.0f + 6.0f;
-    }
-    glm::fvec3 *h_conics = new glm::fvec3[n_primitives];
-    for (int i = 0; i < n_primitives; i++) {
-        h_conics[i] = glm::fvec3(0.25f, 0.0f, 0.25f);
-    }
-    float *h_features = new float[n_primitives * 3];
-    for (int i = 0; i < n_primitives; i++) {
-        h_features[i * 3 + 0] = i;
-        h_features[i * 3 + 1] = i;
-        h_features[i * 3 + 2] = i;
-    }
+    // NullRasterizeKernelOperator op{};
+    SimplePlanerRasterizeKernelForwardOperator op{};
+    using OpType = decltype(op);
 
-    // Create Some Image Gaussians on GPU
-    glm::fvec2 *d_mu = create_device_ptr(h_mu[0], n_primitives);
-    glm::fvec3 *d_conics = create_device_ptr(h_conics[0], n_primitives);
-    float *d_features = create_device_ptr(h_features[0], n_primitives * 3);
-
-    ImageGaussians<3> primitives{};
-    primitives.mu = d_mu;
-    primitives.conics = d_conics;
-    primitives.features = d_features;
+    // op.mean_ptr =
+    //     create_device_ptr<glm::fvec2>({glm::fvec2(6.0f, 6.0f),
+    //     glm::fvec2(10.0f, 10.0f)}
+    //     );
+    // op.covariance_ptr = create_device_ptr<glm::fmat2>(
+    //     {glm::fmat2(0.25f, 0.0f, 0.0f, 0.25f), glm::fmat2(0.30f, 0.0f, 0.0f, 0.30f)}
+    // );
+    op.opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
+    op.render_alpha_ptr = create_device_ptr<float>(image_height * image_width);
 
     // Create isect info on GPU
-    uint32_t isect_primitive_ids_host[n_primitives] = {0, 1};
-    uint32_t isect_prefix_sum_per_tile_host[1] = {2};
-    uint32_t *isect_primitive_ids;
-    cudaMalloc(&isect_primitive_ids, sizeof(uint32_t) * n_primitives);
-    cudaMemcpy(
-        isect_primitive_ids,
-        isect_primitive_ids_host,
-        sizeof(uint32_t) * n_primitives,
-        cudaMemcpyHostToDevice
-    );
-    uint32_t *isect_prefix_sum_per_tile;
-    cudaMalloc(&isect_prefix_sum_per_tile, sizeof(uint32_t) * 1);
-    cudaMemcpy(
-        isect_prefix_sum_per_tile,
-        isect_prefix_sum_per_tile_host,
-        sizeof(uint32_t) * 1,
-        cudaMemcpyHostToDevice
-    );
-
-    // image size
-    const uint32_t image_h = 16;
-    const uint32_t image_w = 16;
-
-    // Create buffer for alpha values
-    float *buffer_alpha;
-    cudaMalloc(&buffer_alpha, sizeof(float) * image_h * image_w);
-
-    // Create buffer for features
-    cudaMalloc(&primitives.buffer_features, sizeof(float) * image_h * image_w * 3);
+    auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
+    auto const isect_prefix_sum_per_tile = create_device_ptr<uint32_t>({2});
 
     // launch rasterization kernel
     dim3 threads(16, 16, 1);
     dim3 grid(1, 1, 1);
-    size_t shmem_size = ImageGaussians<3>::shmem_size_per_primitive() * 16 * 16;
-    rasterization<<<grid, threads, shmem_size>>>(
-        primitives,
-        image_h,
-        image_w,
-        isect_primitive_ids,
-        isect_prefix_sum_per_tile,
-        buffer_alpha,
-        nullptr // buffer_last_primitive_id
+    size_t shmem_size = OpType::smem_size_per_primitive() * 16 * 16;
+    rasterize_kernel<<<grid, threads, shmem_size>>>(
+        op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
     );
 
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
-    err = cudaDeviceSynchronize();
-    if (err != cudaSuccess) {
-        printf("CUDA Error: %s\n", cudaGetErrorString(err));
-    }
-
-    // copy buffer_alpha back to host
-    float *buffer_alpha_host = new float[image_h * image_w];
+    // copy data back to host
+    float *render_alpha_host = new float[image_height * image_width];
     cudaMemcpy(
-        buffer_alpha_host,
-        buffer_alpha,
-        sizeof(float) * image_h * image_w,
+        render_alpha_host,
+        op.render_alpha_ptr,
+        sizeof(float) * image_height * image_width,
+        cudaMemcpyDeviceToHost
+    );
+    float ground_truth_render_alpha = 0.5f + (1 - 0.5f) * 0.7f;
+    assert(is_close(render_alpha_host[0], ground_truth_render_alpha));
+    save_png(render_alpha_host, image_width, image_height, "results/render_alpha.png");
+
+    SimplePlanerRasterizeKernelBackwardOperator op_backward{};
+    op_backward.opacity_ptr = op.opacity_ptr;
+    op_backward.render_alpha_ptr = op.render_alpha_ptr;
+    op_backward.v_render_alpha_ptr =
+        create_device_ptr_with_init<float>(image_height * image_width, 0.3f);
+    op_backward.v_opacity_ptr = create_device_ptr_with_init<float>(n_primitives, 0.0f);
+
+    rasterize_kernel<<<grid, threads, shmem_size>>>(
+        op_backward,
+        image_height,
+        image_width,
+        isect_primitive_ids,
+        isect_prefix_sum_per_tile,
+        true // reverse order
+    );
+
+    // copy data back to host
+    float *v_opacity_host = new float[n_primitives];
+    cudaMemcpy(
+        v_opacity_host,
+        op_backward.v_opacity_ptr,
+        sizeof(float) * n_primitives,
         cudaMemcpyDeviceToHost
     );
 
-    // print buffer_alpha
-    for (int i = 0; i < image_h; i++) {
-        for (int j = 0; j < image_w; j++) {
-            printf("%f ", buffer_alpha_host[i * image_w + j]);
-        }
-        printf("\n");
-    }
+    // o = a + (1 - a) * b
+    // o = 0.5f + (1 - 0.5f) * 0.7f
+    // dl/da = dl/do * do/da = 0.3f * (1 - 0.7f) = 0.09f
+    // dl/db = dl/do * do/db = 0.3f * 0.5f = 0.15f
+    assert(is_close(v_opacity_host[0], 0.09f * image_height * image_width));
+    assert(is_close(v_opacity_host[1], 0.15f * image_height * image_width));
 
-    // save buffer_alpha_host into a png file
-    save_png(buffer_alpha_host, image_w, image_h, "buffer_alpha.png");
-
+    check_cuda_error();
     return 0;
 }
-
-// auto test_rasterization2() -> int {
-//     cudaError_t err = cudaSetDevice(0);
-//     if (err != cudaSuccess) {
-//         printf("CUDA Error: %s\n", cudaGetErrorString(err));
-//     }
-
-//     const int n_primitives = 2;
-
-//     // Create Some Image Triangles on GPU
-//     glm::fvec2 *h_v0 = new glm::fvec2[n_primitives];
-//     for (int i = 0; i < n_primitives; i++) {
-//         h_v0[i] = glm::fvec2(i, i) * 4.0f + 0.0f;
-//     }
-//     glm::fvec2 *h_v1 = new glm::fvec2[n_primitives];
-//     for (int i = 0; i < n_primitives; i++) {
-//         h_v1[i] = glm::fvec2(i + 4, i) * 4.0f + 0.0f;
-//     }
-//     glm::fvec2 *h_v2 = new glm::fvec2[n_primitives];
-//     for (int i = 0; i < n_primitives; i++) {
-//         h_v2[i] = glm::fvec2(i, i + 4) * 4.0f + 0.0f;
-//     }
-
-//     // Create Some Image Triangles on GPU
-//     glm::fvec2 *d_v0 = create_device_ptr(h_v0[0], n_primitives);
-//     glm::fvec2 *d_v1 = create_device_ptr(h_v1[0], n_primitives);
-//     glm::fvec2 *d_v2 = create_device_ptr(h_v2[0], n_primitives);
-
-//     ImageTriangles primitives{};
-//     primitives.v0 = d_v0;
-//     primitives.v1 = d_v1;
-//     primitives.v2 = d_v2;
-
-//     // Create isect info on GPU
-//     uint32_t isect_primitive_ids_host[n_primitives] = {0, 1};
-//     uint32_t isect_prefix_sum_per_tile_host[1] = {2};
-//     uint32_t *isect_primitive_ids;
-//     cudaMalloc(&isect_primitive_ids, sizeof(uint32_t) * n_primitives);
-//     cudaMemcpy(
-//         isect_primitive_ids,
-//         isect_primitive_ids_host,
-//         sizeof(uint32_t) * n_primitives,
-//         cudaMemcpyHostToDevice
-//     );
-//     uint32_t *isect_prefix_sum_per_tile;
-//     cudaMalloc(&isect_prefix_sum_per_tile, sizeof(uint32_t) * 1);
-//     cudaMemcpy(
-//         isect_prefix_sum_per_tile,
-//         isect_prefix_sum_per_tile_host,
-//         sizeof(uint32_t) * 1,
-//         cudaMemcpyHostToDevice
-//     );
-
-//     // image size
-//     const uint32_t image_h = 16;
-//     const uint32_t image_w = 16;
-
-//     // Create buffer for alpha values
-//     float *buffer_alpha;
-//     cudaMalloc(&buffer_alpha, sizeof(float) * image_h * image_w);
-
-//     // launch rasterization kernel
-//     dim3 threads(16, 16, 1);
-//     dim3 grid(1, 1, 1);
-//     size_t shmem_size = ImageTriangles::shmem_size_per_primitive() * 16 * 16;
-//     rasterization<<<grid, threads, shmem_size>>>(
-//         primitives,
-//         image_h,
-//         image_w,
-//         isect_primitive_ids,
-//         isect_prefix_sum_per_tile,
-//         buffer_alpha,
-//         nullptr // buffer_last_primitive_id
-//     );
-
-//     err = cudaGetLastError();
-//     if (err != cudaSuccess) {
-//         printf("CUDA Error: %s\n", cudaGetErrorString(err));
-//     }
-//     err = cudaDeviceSynchronize();
-//     if (err != cudaSuccess) {
-//         printf("CUDA Error: %s\n", cudaGetErrorString(err));
-//     }
-
-//     // copy buffer_alpha back to host
-//     float *buffer_alpha_host = new float[image_h * image_w];
-//     cudaMemcpy(
-//         buffer_alpha_host,
-//         buffer_alpha,
-//         sizeof(float) * image_h * image_w,
-//         cudaMemcpyDeviceToHost
-//     );
-
-//     // print buffer_alpha
-//     for (int i = 0; i < image_h; i++) {
-//         for (int j = 0; j < image_w; j++) {
-//             printf("%f ", buffer_alpha_host[i * image_w + j]);
-//         }
-//         printf("\n");
-//     }
-
-//     // save buffer_alpha_host into a png file
-//     save_png(buffer_alpha_host, image_w, image_h, "buffer_alpha.png");
-
-//     return 0;
-// }
 
 auto main() -> int {
     int fails = 0;

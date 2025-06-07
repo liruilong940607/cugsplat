@@ -7,7 +7,7 @@
 #include <cooperative_groups/reduce.h>
 #include <cstdint>
 
-#include "tinyrend/rasterization/kernel2.cuh"
+#include "tinyrend/rasterization/kernel.cuh"
 
 namespace tinyrend::rasterization {
 
