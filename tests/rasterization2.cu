@@ -51,7 +51,22 @@ auto test_rasterization2() -> int {
     );
     save_png(alphamap_host, image_width, image_height, "results/alphamap.png");
 
-    // SimpleGaussianRasterizeKernelBackwardOperator op_backward{};
+    SimpleGaussianRasterizeKernelBackwardOperator op_backward{};
+    op_backward.mean_ptr = op.mean_ptr;
+    op_backward.covariance_ptr = op.covariance_ptr;
+    op_backward.alphamap_ptr = op.alphamap_ptr;
+    op_backward.v_alphamap_ptr = create_device_ptr<float>(image_height * image_width);
+    op_backward.v_mean_ptr = create_device_ptr<glm::fvec2>(n_primitives);
+    op_backward.v_covariance_ptr = create_device_ptr<glm::fmat2>(n_primitives);
+
+    rasterize_kernel_forward<<<grid, threads, shmem_size>>>(
+        op_backward,
+        image_height,
+        image_width,
+        isect_primitive_ids,
+        isect_prefix_sum_per_tile,
+        true
+    );
 
     check_cuda_error();
     return 0;

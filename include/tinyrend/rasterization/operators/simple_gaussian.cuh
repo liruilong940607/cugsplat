@@ -169,25 +169,28 @@ struct SimpleGaussianRasterizeKernelBackwardOperator
 
         auto const v_sigma = -alpha * v_alpha;
 
-        auto const v_mean = v_sigma * glm::fvec2(
-                                          covariance[0][0] * dx + covariance[0][1] * dy,
-                                          covariance[1][1] * dy + covariance[0][1] * dx
-                                      );
-        auto const v_covariance =
+        auto v_mean = v_sigma * glm::fvec2(
+                                    covariance[0][0] * dx + covariance[0][1] * dy,
+                                    covariance[1][1] * dy + covariance[0][1] * dx
+                                );
+        auto v_covariance =
             0.5f * v_sigma * glm::fmat2(dx * dx, dx * dy, dx * dy, dy * dy);
 
         warpSum(v_mean, warp);
         warpSum(v_covariance, warp);
 
-        // // first thread in the block handles the gradient accumulation
-        // if (t == 0) {
-        //     atomicAdd(this->v_mean_ptr + primitive_id, v_mean.x);
-        //     atomicAdd(this->v_mean_ptr + primitive_id + 1, v_mean.y);
-        //     atomicAdd(this->v_covariance_ptr + primitive_id, v_covariance[0][0]);
-        //     atomicAdd(this->v_covariance_ptr + primitive_id + 1, v_covariance[0][1]);
-        //     atomicAdd(this->v_covariance_ptr + primitive_id + 2, v_covariance[1][0]);
-        //     atomicAdd(this->v_covariance_ptr + primitive_id + 3, v_covariance[1][1]);
-        // }
+        // first thread in the block handles the gradient accumulation
+        if (t == 0) {
+            float *v_mean_ptr = (float *)this->v_mean_ptr;
+            atomicAdd(v_mean_ptr + primitive_id * 3, v_mean.x);
+            atomicAdd(v_mean_ptr + primitive_id * 3 + 1, v_mean.y);
+
+            float *v_covariance_ptr = (float *)this->v_covariance_ptr;
+            atomicAdd(v_covariance_ptr + primitive_id * 4, v_covariance[0][0]);
+            atomicAdd(v_covariance_ptr + primitive_id * 4 + 1, v_covariance[0][1]);
+            atomicAdd(v_covariance_ptr + primitive_id * 4 + 2, v_covariance[1][0]);
+            atomicAdd(v_covariance_ptr + primitive_id * 4 + 3, v_covariance[1][1]);
+        }
 
         return false; // Return whether we want to terminate the rasterization process.
     }
