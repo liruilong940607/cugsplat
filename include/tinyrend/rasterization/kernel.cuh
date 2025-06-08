@@ -15,11 +15,11 @@ namespace cg = cooperative_groups;
 */
 template <typename Derived> struct BaseRasterizeKernelOperator {
   public:
-    static __host__ auto smem_size_per_primitive() -> uint32_t {
+    static inline __host__ auto smem_size_per_primitive() -> uint32_t {
         return Derived::smem_size_per_primitive_impl();
     }
 
-    __device__ auto initialize(
+    inline __device__ auto initialize(
         uint32_t image_id,
         uint32_t pixel_x,
         uint32_t pixel_y,
@@ -41,16 +41,17 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         return static_cast<Derived *>(this)->initialize_impl();
     }
 
-    __device__ auto primitive_preprocess(uint32_t primitive_id) -> void {
+    inline __device__ auto primitive_preprocess(uint32_t primitive_id) -> void {
         static_cast<Derived *>(this)->primitive_preprocess_impl(primitive_id);
     }
 
     template <class WarpT>
-    __device__ auto rasterize(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
+    inline __device__ auto
+    rasterize(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
         return static_cast<Derived *>(this)->rasterize_impl(batch_start, t, warp);
     }
 
-    __device__ auto pixel_postprocess() -> void {
+    inline __device__ auto pixel_postprocess() -> void {
         static_cast<Derived *>(this)->pixel_postprocess_impl();
     }
 
