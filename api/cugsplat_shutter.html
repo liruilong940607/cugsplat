@@ -1,0 +1,235 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tinyrend::camera::shutter &mdash; tinyrend  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            tinyrend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tinyrend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">tinyrend::camera::shutter</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/cugsplat_shutter.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tinyrend-camera-shutter">
+<h1>tinyrend::camera::shutter<a class="headerlink" href="#tinyrend-camera-shutter" title="Link to this heading"></a></h1>
+<dl class="cpp enum-class">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4TypeE">
+<span id="_CPPv3N8tinyrend6camera7shutter4TypeE"></span><span id="_CPPv2N8tinyrend6camera7shutter4TypeE"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1"></span><span class="k"><span class="pre">enum</span></span><span class="w"> </span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shutter</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">Type</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4TypeE" title="Link to this definition"></a><br /></dt>
+<dd><p>Enumeration of shutter types. </p>
+<p>Defines different types of camera shutters </p>
+<p><em>Values:</em></p>
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4Type6GLOBALE">
+<span id="_CPPv3N8tinyrend6camera7shutter4Type6GLOBALE"></span><span id="_CPPv2N8tinyrend6camera7shutter4Type6GLOBALE"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1a6eecfba72d12922ee1dead07a0ef3334"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">GLOBAL</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4Type6GLOBALE" title="Link to this definition"></a><br /></dt>
+<dd><p>All pixels are exposed simultaneously (No rolling shutter) </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_TOP_TO_BOTTOME">
+<span id="_CPPv3N8tinyrend6camera7shutter4Type21ROLLING_TOP_TO_BOTTOME"></span><span id="_CPPv2N8tinyrend6camera7shutter4Type21ROLLING_TOP_TO_BOTTOME"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1a851c606ed62f6604abbc6b82f5c6e4af"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ROLLING_TOP_TO_BOTTOM</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_TOP_TO_BOTTOME" title="Link to this definition"></a><br /></dt>
+<dd><p>Exposure starts from top and moves to bottom. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_LEFT_TO_RIGHTE">
+<span id="_CPPv3N8tinyrend6camera7shutter4Type21ROLLING_LEFT_TO_RIGHTE"></span><span id="_CPPv2N8tinyrend6camera7shutter4Type21ROLLING_LEFT_TO_RIGHTE"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1a49a1e6a5e072f06ae2f2d97613a77298"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ROLLING_LEFT_TO_RIGHT</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_LEFT_TO_RIGHTE" title="Link to this definition"></a><br /></dt>
+<dd><p>Exposure starts from left and moves to right. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_BOTTOM_TO_TOPE">
+<span id="_CPPv3N8tinyrend6camera7shutter4Type21ROLLING_BOTTOM_TO_TOPE"></span><span id="_CPPv2N8tinyrend6camera7shutter4Type21ROLLING_BOTTOM_TO_TOPE"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1acd2b90a05541fd20d6ed41cbfd1dc15e"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ROLLING_BOTTOM_TO_TOP</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_BOTTOM_TO_TOPE" title="Link to this definition"></a><br /></dt>
+<dd><p>Exposure starts from bottom and moves to top. </p>
+</dd></dl>
+
+<dl class="cpp enumerator">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_RIGHT_TO_LEFTE">
+<span id="_CPPv3N8tinyrend6camera7shutter4Type21ROLLING_RIGHT_TO_LEFTE"></span><span id="_CPPv2N8tinyrend6camera7shutter4Type21ROLLING_RIGHT_TO_LEFTE"></span><span class="target" id="shutter_8h_1af22cd832acd3be481b3f1aca0151bea1a5d2f96e2cefa215850cb5b7804735dcd"></span><span class="k"><span class="pre">enumerator</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">ROLLING_RIGHT_TO_LEFT</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter4Type21ROLLING_RIGHT_TO_LEFTE" title="Link to this definition"></a><br /></dt>
+<dd><p>Exposure starts from right and moves to left. </p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter19relative_frame_timeERKN3glm5fvec2ERKNSt5arrayI8uint32_tXL2EEEERK4Type">
+<span id="_CPPv3N8tinyrend6camera7shutter19relative_frame_timeERKN3glm5fvec2ERKNSt5arrayI8uint32_tXL2EEEERK4Type"></span><span id="_CPPv2N8tinyrend6camera7shutter19relative_frame_timeERKN3glm5fvec2ERKNSt5arrayI8uint32_tX2EEERK4Type"></span><span id="tinyrend::camera::shutter::relative_frame_time__glm::fvec2CR.std::array:uint32_t.2:CR.TypeCR"></span><span class="target" id="shutter_8h_1a92f6eed6405625cfa01a782892319478"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shutter</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">relative_frame_time</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">image_point</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8tinyrend6camera7shutter4TypeE" title="tinyrend::camera::shutter::Type"><span class="n"><span class="pre">Type</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">shutter_type</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter19relative_frame_timeERKN3glm5fvec2ERKNSt5arrayI8uint32_tXL2EEEERK4Type" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the relative frame time for a given image point. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_point</strong> – 2D point in image space </p></li>
+<li><p><strong>resolution</strong> – Image resolution (width, height) </p></li>
+<li><p><strong>shutter_type</strong> – Type of shutter being used </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative time in [0, 1] range where 0 is start of frame and 1 is end of frame </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type">
+<span id="_CPPv3I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type"></span><span id="_CPPv2I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE4FuncRKNSt5arrayI8uint32_tX2EEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N_ITER</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">10</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RotationType</span></span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Func</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="shutter_8h_1ac3ebc84a40e7a7190cb0f1c4b21a8b3e"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">shutter</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">point_world_to_image</span></span></span><span class="sig-paren">(</span><a class="reference internal" href="#_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type" title="tinyrend::camera::shutter::point_world_to_image::Func"><span class="n"><span class="pre">Func</span></span></a><span class="w"> </span><span class="n sig-param"><span class="pre">project_fn</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">uint32_t</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">resolution</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">world_point</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type" title="tinyrend::camera::shutter::point_world_to_image::RotationType"><span class="n"><span class="pre">RotationType</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pose_r_start</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pose_t_start</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type" title="tinyrend::camera::shutter::point_world_to_image::RotationType"><span class="n"><span class="pre">RotationType</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pose_r_end</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">pose_t_end</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><a class="reference internal" href="#_CPPv4N8tinyrend6camera7shutter4TypeE" title="tinyrend::camera::shutter::Type"><span class="n"><span class="pre">Type</span></span></a><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">shutter_type</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">PointWorldToImageResult</span></span><span class="p"><span class="pre">&lt;</span></span><a class="reference internal" href="#_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type" title="tinyrend::camera::shutter::point_world_to_image::RotationType"><span class="n"><span class="pre">RotationType</span></span></a><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I_6size_t00EN8tinyrend6camera7shutter20point_world_to_imageE23PointWorldToImageResultI12RotationTypeE4FuncRKNSt5arrayI8uint32_tXL2EEEERKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK12RotationTypeRKN3glm5fvec3ERK4Type" title="Link to this definition"></a><br /></dt>
+<dd><p>Project a world point to an image point using rolling shutter. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>N_ITER</strong> – Number of iterations for convergence </p></li>
+<li><p><strong>RotationType</strong> – Type of rotation representation (glm::fmat3 or glm::fquat) </p></li>
+<li><p><strong>Func</strong> – Type of projection function </p></li>
+</ul>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>project_fn</strong> – Function to project a camera point to an image point </p></li>
+<li><p><strong>resolution</strong> – Image resolution (width, height) </p></li>
+<li><p><strong>world_point</strong> – 3D point in world space </p></li>
+<li><p><strong>pose_r_start</strong> – Camera rotation at start of frame </p></li>
+<li><p><strong>pose_t_start</strong> – Camera translation at start of frame </p></li>
+<li><p><strong>pose_r_end</strong> – Camera rotation at end of frame </p></li>
+<li><p><strong>pose_t_end</strong> – Camera translation at end of frame </p></li>
+<li><p><strong>shutter_type</strong> – Type of shutter being used </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="tinyrend_camera_shutter.html#structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult"><span class="std std-ref">PointWorldToImageResult</span></a> containing the projected results </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp struct">
+<dt class="sig sig-object cpp" id="_CPPv4I0EN8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResultE">
+<span id="_CPPv3I0EN8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResultE"></span><span id="_CPPv2I0EN8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResultE"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="k"><span class="pre">typename</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">RotationType</span></span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult"></span><span class="k"><span class="pre">struct</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">PointWorldToImageResult</span></span></span><a class="headerlink" href="#_CPPv4I0EN8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResultE" title="Link to this definition"></a><br /></dt>
+<dd><div class="docutils container">
+<em>#include &lt;shutter.h&gt;</em></div>
+<p>Result structure for point_world_to_image function. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RotationType</strong> – Type of rotation representation (glm::fmat3 or glm::fquat) </p>
+</dd>
+</dl>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-members">Public Members</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult11image_pointE">
+<span id="_CPPv3N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult11image_pointE"></span><span id="_CPPv2N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult11image_pointE"></span><span id="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::image_point__glm::fvec2"></span><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult_1aecefbe371ae706e4ed3e87ae3f8087c3"></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">image_point</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult11image_pointE" title="Link to this definition"></a><br /></dt>
+<dd><p>Projected 2D point in image space. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult12camera_pointE">
+<span id="_CPPv3N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult12camera_pointE"></span><span id="_CPPv2N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult12camera_pointE"></span><span id="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::camera_point__glm::fvec3"></span><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult_1a5b2a225cad099b83638a2765e9da7d56"></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">camera_point</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult12camera_pointE" title="Link to this definition"></a><br /></dt>
+<dd><p>3D point in camera space </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_rE">
+<span id="_CPPv3N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_rE"></span><span id="_CPPv2N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_rE"></span><span id="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::pose_r__RotationType"></span><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult_1ac98753e5d567d8eb256313d2f177dfc7"></span><a class="reference internal" href="#_CPPv4I0EN8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResultE" title="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::RotationType"><span class="n"><span class="pre">RotationType</span></span></a><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pose_r</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_rE" title="Link to this definition"></a><br /></dt>
+<dd><p>Camera rotation at exposure time. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_tE">
+<span id="_CPPv3N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_tE"></span><span id="_CPPv2N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_tE"></span><span id="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::pose_t__glm::fvec3"></span><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult_1a166024b2755ab17e357bb1e5990b435e"></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">pose_t</span></span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult6pose_tE" title="Link to this definition"></a><br /></dt>
+<dd><p>Camera translation at exposure time. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult10valid_flagE">
+<span id="_CPPv3N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult10valid_flagE"></span><span id="_CPPv2N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult10valid_flagE"></span><span id="tinyrend::camera::shutter::tinyrend::camera::shutter::PointWorldToImageResult::valid_flag__b"></span><span class="target" id="structtinyrend_1_1camera_1_1shutter_1_1PointWorldToImageResult_1a849c82ed2d3df789e068a56881d84b58"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">valid_flag</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="k"><span class="pre">false</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7shutter8tinyrend6camera7shutter23PointWorldToImageResult10valid_flagE" title="Link to this definition"></a><br /></dt>
+<dd><p>Flag indicating if projection was successful. </p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ruilong Li.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

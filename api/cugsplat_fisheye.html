@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tinyrend::camera::fisheye &mdash; tinyrend  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            tinyrend
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../apis.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tinyrend</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">tinyrend::camera::fisheye</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/cugsplat_fisheye.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tinyrend-camera-fisheye">
+<h1>tinyrend::camera::fisheye<a class="headerlink" href="#tinyrend-camera-fisheye" title="Link to this heading"></a></h1>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye10distortionERKfRKNSt5arrayIfXL4EEEE">
+<span id="_CPPv3N8tinyrend6camera7fisheye10distortionERKfRKNSt5arrayIfXL4EEEE"></span><span id="_CPPv2N8tinyrend6camera7fisheye10distortionERKfRKNSt5arrayIfX4EEE"></span><span id="tinyrend::camera::fisheye::distortion__floatCR.std::array:float.4:CR"></span><span class="target" id="fisheye_8h_1a940c755562d116daec2763641e0a8dcf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">distortion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">theta</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye10distortionERKfRKNSt5arrayIfXL4EEEE" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the radial distortion: theta -&gt; theta_d. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> – Angle in radians </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Distorted angle theta_d </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye14distortion_jacERKfRKNSt5arrayIfXL4EEEE">
+<span id="_CPPv3N8tinyrend6camera7fisheye14distortion_jacERKfRKNSt5arrayIfXL4EEEE"></span><span id="_CPPv2N8tinyrend6camera7fisheye14distortion_jacERKfRKNSt5arrayIfX4EEE"></span><span id="tinyrend::camera::fisheye::distortion_jac__floatCR.std::array:float.4:CR"></span><span class="target" id="fisheye_8h_1a679f16cf561d0df450fb8385c896455b"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">distortion_jac</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">theta</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye14distortion_jacERKfRKNSt5arrayIfXL4EEEE" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Jacobian of the distortion: J = d(theta_d) / d(theta) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> – Angle in radians </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Jacobian of the distortion function </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_6size_tEN8tinyrend6camera7fisheye12undistortionENSt4pairIfbEERKfRKNSt5arrayIfXL4EEEERKf">
+<span id="_CPPv3I_6size_tEN8tinyrend6camera7fisheye12undistortionERKfRKNSt5arrayIfXL4EEEERKf"></span><span id="_CPPv2I_6size_tEN8tinyrend6camera7fisheye12undistortionERKfRKNSt5arrayIfX4EEERKf"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N_ITER</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="fisheye_8h_1a80418fa83424ea9d36cf3cbc4cef9084"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">undistortion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">theta_d</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_theta</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">numeric_limits</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4I_6size_tEN8tinyrend6camera7fisheye12undistortionENSt4pairIfbEERKfRKNSt5arrayIfXL4EEEERKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the inverse radial distortion: theta_d -&gt; theta. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>N_ITER</strong> – Number of iterations for Newton’s method </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>theta_d</strong> – Distorted angle in radians </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+<li><p><strong>max_theta</strong> – Maximum valid theta angle </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pair of undistorted angle and convergence flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4I_6size_tEN8tinyrend6camera7fisheye19monotonic_max_thetaEfRKNSt5arrayIfXL4EEEEf">
+<span id="_CPPv3I_6size_tEN8tinyrend6camera7fisheye19monotonic_max_thetaERKNSt5arrayIfXL4EEEEf"></span><span id="_CPPv2I_6size_tEN8tinyrend6camera7fisheye19monotonic_max_thetaERKNSt5arrayIfX4EEEf"></span><span class="k"><span class="pre">template</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">size_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">N_ITER</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">20</span></span><span class="p"><span class="pre">&gt;</span></span><br /><span class="target" id="fisheye_8h_1a9b18281d0cabeaf0baf77e0855c0677f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">monotonic_max_theta</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">guess</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1.57f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="kt"><span class="pre">float</span></span><a class="headerlink" href="#_CPPv4I_6size_tEN8tinyrend6camera7fisheye19monotonic_max_thetaEfRKNSt5arrayIfXL4EEEEf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the maximum theta such that [0, max_theta] is monotonicly increasing. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Template Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>N_ITER</strong> – Number of iterations for root finding </p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+<li><p><strong>guess</strong> – Initial guess for the root </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Maximum theta angle for monotonic distortion </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKf"></span><span id="tinyrend::camera::fisheye::project__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR.floatCR"></span><span class="target" id="fisheye_8h_1a8d8e6ca50334b0c1622b4c5578e5521a"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Project a 3D point in camera space to 2D image space using fisheye projection. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Projected 2D point in image space </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfX4EEERKfRKf"></span><span id="tinyrend::camera::fisheye::project__glm::fvec3CR.glm::fvec2CR.glm::fvec2CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="fisheye_8h_1a7d0c6bf028021744a32ecfb5c428ef41"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_theta</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">numeric_limits</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye7projectERKN3glm5fvec3ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Project a 3D point in camera space to 2D image space using fisheye projection with radial distortion. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+<li><p><strong>max_theta</strong> – Maximum theta angle for valid projection </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of projected 2D point and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKf"></span><span id="tinyrend::camera::fisheye::project_jac__glm::fvec3CR.glm::fvec2CR.floatCR"></span><span class="target" id="fisheye_8h_1a88b1db062819ace2a68ff2840f972e8f"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project_jac</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat3x2</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye11project_jacERKN3glm5fvec3ERKN3glm5fvec2ERKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Jacobian of the projection: J = d(image_point) / d(camera_point) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>3x2 Jacobian matrix </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye13_project_hessERKN3glm5fvec3ERKN3glm5fvec2ERKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye13_project_hessERKN3glm5fvec3ERKN3glm5fvec2ERKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye13_project_hessERKN3glm5fvec3ERKN3glm5fvec2ERKf"></span><span id="tinyrend::camera::fisheye::_project_hess__glm::fvec3CR.glm::fvec2CR.floatCR"></span><span class="target" id="fisheye_8h_1aa49f005eb949ab6c32e94cb1119f02e4"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">_project_hess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat3x3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye13_project_hessERKN3glm5fvec3ERKN3glm5fvec2ERKf" title="Link to this definition"></a><br /></dt>
+<dd></dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye12project_hessERKN3glm5fvec3ERKN3glm5fvec2EKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye12project_hessERKN3glm5fvec3ERKN3glm5fvec2EKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye12project_hessERKN3glm5fvec3ERKN3glm5fvec2EKf"></span><span id="tinyrend::camera::fisheye::project_hess__glm::fvec3CR.glm::fvec2CR.floatC"></span><span class="target" id="fisheye_8h_1a7d629eadcea2dd73811574b4bf40fef2"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">project_hess</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">camera_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fmat3x3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">2</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye12project_hessERKN3glm5fvec3ERKN3glm5fvec2EKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Compute the Hessian of the projection: H = d²(image_point) / d(camera_point)² </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>camera_point</strong> – 3D point in camera space (x, y, z) </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKf"></span><span id="tinyrend::camera::fisheye::unproject__glm::fvec2CR.glm::fvec2CR.glm::fvec2CR.floatCR"></span><span class="target" id="fisheye_8h_1adcc83891ec644fc0f3516cd95a88c0e7"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unproject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">image_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Unproject a 2D point from image space to camera space (undistorted fisheye) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_point</strong> – 2D point in image space </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Normalized ray direction in camera space </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf">
+<span id="_CPPv3N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf"></span><span id="_CPPv2N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfX4EEERKfRKf"></span><span id="tinyrend::camera::fisheye::unproject__glm::fvec2CR.glm::fvec2CR.glm::fvec2CR.std::array:float.4:CR.floatCR.floatCR"></span><span class="target" id="fisheye_8h_1a21655a426d16d2d7a3b0feda3e88ceaf"></span><span class="k"><span class="pre">inline</span></span><span class="w"> </span><span class="kt"><span class="pre">auto</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">tinyrend</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">camera</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fisheye</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unproject</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">image_point</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">focal_length</span></span>, <span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec2</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">principal_point</span></span>, <span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">array</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="m"><span class="pre">4</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">radial_coeffs</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">min_2d_norm</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="m"><span class="pre">1e-6f</span></span>, <span class="kt"><span class="pre">float</span></span><span class="w"> </span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">max_theta</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">numeric_limits</span></span><span class="p"><span class="pre">&lt;</span></span><span class="kt"><span class="pre">float</span></span><span class="p"><span class="pre">&gt;</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">max</span></span><span class="p"><span class="pre">(</span></span><span class="p"><span class="pre">)</span></span><span class="sig-paren">)</span><span class="w"> </span><span class="o"><span class="pre">-&gt;</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">pair</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">glm</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">fvec3</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="kt"><span class="pre">bool</span></span><span class="p"><span class="pre">&gt;</span></span><a class="headerlink" href="#_CPPv4N8tinyrend6camera7fisheye9unprojectERKN3glm5fvec2ERKN3glm5fvec2ERKN3glm5fvec2ERKNSt5arrayIfXL4EEEERKfRKf" title="Link to this definition"></a><br /></dt>
+<dd><p>Unproject a 2D point from image space to camera space (distorted fisheye) </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_point</strong> – 2D point in image space </p></li>
+<li><p><strong>focal_length</strong> – Focal length in pixels (fx, fy) </p></li>
+<li><p><strong>principal_point</strong> – Principal point in pixels (cx, cy) </p></li>
+<li><p><strong>radial_coeffs</strong> – Radial distortion coefficients (k1, k2, k3, k4) </p></li>
+<li><p><strong>min_2d_norm</strong> – Minimum 2D norm threshold for numerical stability </p></li>
+<li><p><strong>max_theta</strong> – Maximum theta angle for valid unprojection </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pair of normalized ray direction and validity flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ruilong Li.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
