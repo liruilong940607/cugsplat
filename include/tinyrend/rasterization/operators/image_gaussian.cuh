@@ -103,7 +103,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
         // weights for expectation calculation
         auto const weight = alpha * this->_T;
 
-        // accumulate the feature
+        // accumulate the expectation of the feature
         auto const primitive_id = smem_primitive_id_ptr[t];
 #pragma unroll
         for (size_t i = 0; i < FEATURE_DIM; i++) {
