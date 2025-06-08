@@ -93,7 +93,7 @@ auto test_rasterization_simple_planer() -> int {
 
 auto main() -> int {
     int fails = 0;
-    fails += test_rasterization();
+    fails += test_rasterization_simple_planer();
 
     if (fails == 0) {
         printf("\nAll tests passed!\n");
