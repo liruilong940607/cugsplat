@@ -116,7 +116,7 @@ auto test_rasterization() -> int {
     }
 
     // save buffer_alpha_host into a png file
-    save_png(buffer_alpha_host, image_w, image_h, "buffer_alpha.png");
+    save_png(buffer_alpha_host, image_w, image_h, 1, "buffer_alpha.png");
 
     return 0;
 }
@@ -222,7 +222,7 @@ auto test_rasterization() -> int {
 //     }
 
 //     // save buffer_alpha_host into a png file
-//     save_png(buffer_alpha_host, image_w, image_h, "buffer_alpha.png");
+//     save_png(buffer_alpha_host, image_w, image_h, 1, "buffer_alpha.png");
 
 //     return 0;
 // }

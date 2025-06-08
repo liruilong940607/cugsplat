@@ -9,7 +9,7 @@ template <typename T, size_t N> struct alignas(T) vec {
     T data[N]; // Use raw array instead of std::array to match glm's layout
 
     // Default constructor
-    __host__ __device__ vec() = default;
+    vec() = default;
 
     // Initialize from pointer
     __host__ __device__ explicit vec(const T *ptr) {
@@ -21,11 +21,7 @@ template <typename T, size_t N> struct alignas(T) vec {
 
     // Initialize from initializer list
     template <typename... Args>
-    __host__ __device__ vec(Args... args) : data{static_cast<T>(args)...} {
-        static_assert(
-            sizeof...(Args) == N, "Number of arguments must match vector size"
-        );
-    }
+    __host__ __device__ vec(Args... args) : data{static_cast<T>(args)...} {}
 
     // Sum all elements
     __host__ __device__ T sum() const {

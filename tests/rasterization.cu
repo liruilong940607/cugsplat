@@ -57,7 +57,9 @@ auto test_rasterization_simple_planer() -> int {
             assert(is_close(h_render_alpha_ptr[i], 0.5f + (1 - 0.5f) * 0.7f));
         }
     }
-    save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
+    save_png(
+        h_render_alpha_ptr, image_width, image_height, 1, "results/render_alpha.png"
+    );
 
     // Prepare backward gradients
     auto const v_render_alpha_ptr =
@@ -106,7 +108,7 @@ auto test_rasterization_image_gaussian() -> int {
     const uint32_t tile_height = 16;
     dim3 threads(tile_width, tile_height, 1);
     dim3 grid(1, 1, 1);
-    constexpr int FEATURE_DIM = 1;
+    constexpr int FEATURE_DIM = 3;
     using FeatureType = fvec<FEATURE_DIM>;
 
     // Create primitive data:
@@ -116,8 +118,9 @@ auto test_rasterization_image_gaussian() -> int {
     auto const conic_ptr =
         create_device_ptr<fvec3>({fvec3(0.25f, 0.0f, 0.25f), fvec3(0.25f, 0.0f, 0.25f)}
         );
-    auto const feature_ptr =
-        create_device_ptr<FeatureType>({FeatureType(0.2f), FeatureType(0.5f)});
+    auto const feature_ptr = create_device_ptr<FeatureType>(
+        {FeatureType(0.2f, 0.3f, 0.4f), FeatureType(0.5f, 0.6f, 0.7f)}
+    );
     // Create isect info: all two primitives are intersected with the first tile
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
     auto const isect_prefix_sum_per_tile = create_device_ptr<uint32_t>({2});
@@ -160,7 +163,16 @@ auto test_rasterization_image_gaussian() -> int {
     auto const h_render_feature_ptr = device_ptr_to_host_ptr<FeatureType>(
         render_feature_ptr, image_height * image_width
     );
-    save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
+    save_png(
+        h_render_alpha_ptr, image_width, image_height, 1, "results/render_alpha.png"
+    );
+    save_png(
+        (float *)h_render_feature_ptr,
+        image_width,
+        image_height,
+        FEATURE_DIM,
+        "results/render_feature.png"
+    );
 
     // Prepare backward gradients
     auto const v_render_alpha_ptr =

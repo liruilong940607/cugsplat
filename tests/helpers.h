@@ -62,12 +62,14 @@ bool is_close(const T &a, const T &b, float atol = 1e-2f, float rtol = 1e-2f) {
     }
 }
 
-void save_png(float *buffer, int width, int height, const char *filename) {
+void save_png(
+    float *buffer, int width, int height, int channels, const char *filename
+) {
     // Convert float buffer to unsigned char buffer
-    unsigned char *image_data = new unsigned char[width * height];
+    unsigned char *image_data = new unsigned char[width * height * channels];
 
     // Normalize and convert float values to 0-255 range
-    for (int i = 0; i < width * height; i++) {
+    for (int i = 0; i < width * height * channels; i++) {
         // Clamp values between 0 and 1
         float value = std::max(0.0f, std::min(1.0f, buffer[i]));
         // Convert to 0-255 range
@@ -75,7 +77,7 @@ void save_png(float *buffer, int width, int height, const char *filename) {
     }
 
     // Save as PNG
-    stbi_write_png(filename, width, height, 1, image_data, width);
+    stbi_write_png(filename, width, height, channels, image_data, width * channels);
 
     // Clean up
     delete[] image_data;
