@@ -74,6 +74,27 @@ struct is_rasterize_kernel_operator
 
 /*
     The main rasterization kernel.
+
+    We expect to launch this kernel with this pattern:
+    - dim3 threads = {tile_width, tile_height, 1};
+    - dim3 grid = {n_tiles_x, n_tiles_y, n_images};
+
+    The kernel will rasterize the primitives to the output image.
+
+    The input isect_primitive_ids and isect_prefix_sum_per_tile are pre-computed
+    information of the primitive-tile intersections.
+
+    The RasterizeKernelOperator should be a class that inherits from
+    BaseRasterizeKernelOperator. See the example in
+    tinyrend/rasterization/operators/simple_planer.cuh.
+
+    The RasterizeKernelOperator should implement the following methods:
+    - smem_size_per_primitive_impl: Return the size of the shared memory per primitive.
+    - initialize_impl: Initialize the operator.
+    - primitive_preprocess_impl: Each thread is responsible for processing one
+   primitive.
+    - rasterize_impl: Each thread is responsible for rasterizing one pixel.
+    - pixel_postprocess_impl: Postprocess the rasterized pixel (e.g., write to buffer.)
 */
 template <typename RasterizeKernelOperator>
 __global__ void rasterize_kernel(
@@ -99,10 +120,6 @@ __global__ void rasterize_kernel(
         is_rasterize_kernel_operator<RasterizeKernelOperator>::value,
         "RasterizeKernelOperator must inherit from BaseRasterizeKernelOperator"
     );
-
-    // We expect to launch this kernel with this pattern:
-    // - dim3 threads = {tile_width, tile_height, 1};
-    // - dim3 grid = {n_tiles_x, n_tiles_y, n_images};
 
     // The size of each tile.
     auto const tile_width = blockDim.x;
