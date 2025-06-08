@@ -135,8 +135,10 @@ torch::Tensor rasterize_simple_planer(
     torch::Tensor isect_prefix_sum_per_tile
 ) {
     return RasterizeSimplePlanerFunction::apply(
-        opacities, n_images, image_height, image_width,
-        tile_width, tile_height, isect_primitive_ids, isect_prefix_sum_per_tile
+        opacities.contiguous(), 
+        n_images, image_height, image_width,
+        tile_width, tile_height, 
+        isect_primitive_ids.contiguous(), isect_prefix_sum_per_tile.contiguous()
     );
 }
 
