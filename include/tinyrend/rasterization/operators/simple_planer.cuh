@@ -8,18 +8,14 @@
 #pragma once
 
 #include <cooperative_groups.h>
-#include <cooperative_groups/reduce.h>
 #include <cstdint>
 
+#include "tinyrend/core/warp.cuh"
 #include "tinyrend/rasterization/kernel.cuh"
 
 namespace tinyrend::rasterization {
 
 namespace cg = cooperative_groups;
-
-template <class WarpT> inline __device__ void warpSum(float &val, WarpT &warp) {
-    val = cg::reduce(warp, val, cg::plus<float>());
-}
 
 struct SimplePlanerRasterizeKernelForwardOperator
     : BaseRasterizeKernelOperator<SimplePlanerRasterizeKernelForwardOperator> {
@@ -134,7 +130,7 @@ struct SimplePlanerRasterizeKernelBackwardOperator
         auto v_alpha = this->_T_final * ra * this->_v_render_alpha;
 
         // reduce the gradient over the warp [faster than atomicAdd to global memory]
-        warpSum(v_alpha, warp);
+        tinyrend::warp::warpSum(v_alpha, warp);
 
         // first thread in the warp writes the gradient to global memory.
         if (warp.thread_rank() == 0) {
