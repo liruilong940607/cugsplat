@@ -1,5 +1,9 @@
-// This file implements the simple Gaussian rasterization kernel operator.
-// The simple Gaussian is very simple, defined by a 2D mean and a 2x2 covariance matrix.
+// This file implements a very simple RasterizeKernelForwardOperator /
+// RasterizeKernelBackwardOperator, to demonstrate the basic usage of the rasterization
+// kernel.
+//
+// The Primitive here is an infinite planer parallel to the image plane, defined by a
+// single opacity value.
 
 #pragma once
 
