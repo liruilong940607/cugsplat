@@ -78,8 +78,8 @@ auto test_rasterization() -> int {
     // launch rasterization kernel
     dim3 threads(16, 16, 1);
     dim3 grid(1, 1, 1);
-    size_t shmem_size = ImageGaussians<3>::shmem_size_per_primitive() * 16 * 16;
-    rasterization<<<grid, threads, shmem_size>>>(
+    size_t sm_size = ImageGaussians<3>::sm_size_per_primitive() * 16 * 16;
+    rasterization<<<grid, threads, sm_size>>>(
         primitives,
         image_h,
         image_w,
@@ -184,8 +184,8 @@ auto test_rasterization() -> int {
 //     // launch rasterization kernel
 //     dim3 threads(16, 16, 1);
 //     dim3 grid(1, 1, 1);
-//     size_t shmem_size = ImageTriangles::shmem_size_per_primitive() * 16 * 16;
-//     rasterization<<<grid, threads, shmem_size>>>(
+//     size_t sm_size = ImageTriangles::sm_size_per_primitive() * 16 * 16;
+//     rasterization<<<grid, threads, sm_size>>>(
 //         primitives,
 //         image_h,
 //         image_w,

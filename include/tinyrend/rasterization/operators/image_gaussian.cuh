@@ -11,9 +11,21 @@ namespace tinyrend::rasterization {
 
 namespace cg = cooperative_groups;
 
+inline __device__ auto evaluate_light_attenuation(
+    float opacity, glm::fvec2 mean, glm::fvec3 conic, float pixel_x, float pixel_y
+) -> float {
+    auto const dx = pixel_x - mean.x;
+    auto const dy = pixel_y - mean.y;
+    auto const sigma =
+        0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
+    auto const alpha = opacity * __expf(-sigma);
+    return alpha;
+}
+
 template <size_t FEATURE_DIM>
 struct ImageGaussianRasterizeKernelForwardOperator
-    : BaseRasterizeKernelOperator<ImageGaussianRasterizeKernelForwardOperator> {
+    : BaseRasterizeKernelOperator<
+          ImageGaussianRasterizeKernelForwardOperator<FEATURE_DIM>> {
 
     // Inputs
     float *opacity_ptr;    // [N, 1]
@@ -22,22 +34,21 @@ struct ImageGaussianRasterizeKernelForwardOperator
     float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Outputs
-    float *render_last_index_ptr; // [n_images, image_height, image_width, 1]
-    float *render_alpha_ptr;      // [n_images, image_height, image_width, 1]
-    float *render_feature_ptr;    // [n_images, image_height, image_width, FEATURE_DIM]
+    int32_t *render_last_index_ptr; // [n_images, image_height, image_width, 1]
+    float *render_alpha_ptr;        // [n_images, image_height, image_width, 1]
+    float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Internal variables
-    float _accum_feature[FEATURE_DIM];
-    float _T = 1.0f;           // current transmittance
-    uint32_t _last_index = -1; // the index of intersections ([n_isects]) for the last
-                               // one being rasterized. -1 means no intersection.
+    float _accum_feature[FEATURE_DIM] = {0.0f};
+    float _T = 1.0f;          // current transmittance
+    int32_t _last_index = -1; // the index of intersections ([n_isects]) for the last
+                              // one being rasterized. -1 means no intersection.
 
     // Configs
     const float skip_if_alpha_smaller_than = 1.0f / 255.0f;
     const float maximum_alpha = 0.999f; // For backward numerical stability.
     const float stop_if_next_trans_smaller_than =
         1e-4f; // For backward numerical stability.
-    const float stop_if_this_trans_smaller_than = -1.0f; // -1 means not used.
 
     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // cache the opacity, mean, conic, and primitive_id
@@ -65,10 +76,6 @@ struct ImageGaussianRasterizeKernelForwardOperator
     template <class WarpT>
     inline __device__ auto
     rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
-        if (this->_T < this->stop_if_this_trans_smaller_than) {
-            return true; // terminate
-        }
-
         // load data from shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
         auto const sm_mean_ptr =
@@ -82,12 +89,11 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const conic = sm_conic_ptr[t];
 
         // compute the light attenuation
-        auto const dx = this->pixel_x - mu.x;
-        auto const dy = this->pixel_y - mu.y;
-        auto const sigma =
-            0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
-        auto const alpha = min(this->maximum_alpha, opacity * __expf(-sigma));
-
+        auto const alpha =
+            min(this->maximum_alpha,
+                evaluate_light_attenuation(
+                    opacity, mean, conic, this->pixel_x, this->pixel_y
+                ));
         // skip if the alpha is smaller than the threshold
         if (alpha < this->skip_if_alpha_smaller_than) {
             return false; // continue

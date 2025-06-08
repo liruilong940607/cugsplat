@@ -48,7 +48,7 @@ template <typename Derived> class PrimitiveBase {
     uint32_t image_h;
     uint32_t image_w;
     uint32_t pixel_id;
-    void *shmem_ptr;
+    void *sm_ptr;
     uint32_t threads_per_block;
 
   public:
@@ -58,7 +58,7 @@ template <typename Derived> class PrimitiveBase {
         uint32_t pixel_y,
         uint32_t image_h,
         uint32_t image_w,
-        char *shmem_ptr,
+        char *sm_ptr,
         uint32_t threads_per_block
     ) {
         this->image_id = image_id;
@@ -66,7 +66,7 @@ template <typename Derived> class PrimitiveBase {
         this->pixel_y = pixel_y;
         this->image_h = image_h;
         this->image_w = image_w;
-        this->shmem_ptr = shmem_ptr;
+        this->sm_ptr = sm_ptr;
         this->threads_per_block = threads_per_block;
         this->pixel_id = pixel_y * image_w + pixel_x;
         return static_cast<Derived *>(this)->initialize_impl();
@@ -90,8 +90,8 @@ template <typename Derived> class PrimitiveBase {
         static_cast<Derived *>(this)->write_to_buffer_impl();
     }
 
-    static __host__ auto shmem_size_per_primitive() -> uint32_t {
-        return Derived::shmem_size_per_primitive_impl();
+    static __host__ auto sm_size_per_primitive() -> uint32_t {
+        return Derived::sm_size_per_primitive_impl();
     }
 };
 
@@ -131,11 +131,11 @@ __global__ void rasterization(
     auto const thread_rank = threadIdx.x + threadIdx.y * blockDim.x;
 
     // Prepare the shared memory for the primitives
-    extern __shared__ char shmem[];
+    extern __shared__ char sm[];
 
     // Initialize the primitive based on the current pixel
     auto const init_success = primitives.initialize(
-        image_id, pixel_x, pixel_y, image_h, image_w, shmem, threads_per_block
+        image_id, pixel_x, pixel_y, image_h, image_w, sm, threads_per_block
     );
 
     // Check if the pixel is inside the image. If not, we still keep this thread

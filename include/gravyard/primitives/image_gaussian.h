@@ -23,7 +23,7 @@
 //     float accum_features[FEATURE_DIM];
 //     float *buffer_features; // [n_images, image_h, image_w, FEATURE_DIM]
 
-//     inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive_impl() -> uint32_t
+//     inline GSPLAT_HOST_DEVICE static auto sm_size_per_primitive_impl() -> uint32_t
 //     {
 //         return sizeof(glm::fvec2) + sizeof(glm::fvec3);
 //     }
@@ -38,21 +38,21 @@
 //     }
 
 //     inline GSPLAT_HOST_DEVICE auto
-//     load_to_shared_memory_impl(uint32_t shmem_id, uint32_t global_id) -> void {
-//         glm::fvec2 *shmem_ptr_mu = reinterpret_cast<glm::fvec2 *>(this->shmem_ptr);
-//         glm::fvec3 *shmem_ptr_conics =
-//             reinterpret_cast<glm::fvec3 *>(&shmem_ptr_mu[this->threads_per_block]);
-//         shmem_ptr_mu[shmem_id] = mu[global_id];
-//         shmem_ptr_conics[shmem_id] = conics[global_id];
+//     load_to_shared_memory_impl(uint32_t sm_id, uint32_t global_id) -> void {
+//         glm::fvec2 *sm_ptr_mu = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+//         glm::fvec3 *sm_ptr_conics =
+//             reinterpret_cast<glm::fvec3 *>(&sm_ptr_mu[this->threads_per_block]);
+//         sm_ptr_mu[sm_id] = mu[global_id];
+//         sm_ptr_conics[sm_id] = conics[global_id];
 //     }
 
-//     inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t shmem_id
+//     inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t sm_id
 //     ) -> float {
-//         glm::fvec2 *shmem_ptr_mu = reinterpret_cast<glm::fvec2 *>(this->shmem_ptr);
-//         glm::fvec3 *shmem_ptr_conics =
-//             reinterpret_cast<glm::fvec3 *>(&shmem_ptr_mu[this->threads_per_block]);
-//         auto const mu = shmem_ptr_mu[shmem_id];
-//         auto const conic = shmem_ptr_conics[shmem_id];
+//         glm::fvec2 *sm_ptr_mu = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+//         glm::fvec3 *sm_ptr_conics =
+//             reinterpret_cast<glm::fvec3 *>(&sm_ptr_mu[this->threads_per_block]);
+//         auto const mu = sm_ptr_mu[sm_id];
+//         auto const conic = sm_ptr_conics[sm_id];
 
 //         auto const dx = this->pixel_x - mu.x;
 //         auto const dy = this->pixel_y - mu.y;

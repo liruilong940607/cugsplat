@@ -22,51 +22,51 @@
 //     uint32_t _image_id;
 //     uint32_t _pixel_x;
 //     uint32_t _pixel_y;
-//     void *_shmem_ptr;
-//     uint32_t _shmem_n_primitives;
+//     void *_sm_ptr;
+//     uint32_t _sm_n_primitives;
 
 //     inline GSPLAT_HOST_DEVICE auto initialize_impl(
 //         uint32_t image_id,
 //         uint32_t pixel_x,
 //         uint32_t pixel_y,
-//         void *shmem_ptr,
-//         uint32_t shmem_n_primitives
+//         void *sm_ptr,
+//         uint32_t sm_n_primitives
 //     ) -> bool {
 //         _image_id = image_id;
 //         _pixel_x = pixel_x;
 //         _pixel_y = pixel_y;
-//         _shmem_ptr = shmem_ptr;
-//         _shmem_n_primitives = shmem_n_primitives;
+//         _sm_ptr = sm_ptr;
+//         _sm_n_primitives = sm_n_primitives;
 //         return true;
 //     }
 
-//     inline GSPLAT_HOST_DEVICE static auto shmem_size_per_primitive_impl() -> uint32_t
+//     inline GSPLAT_HOST_DEVICE static auto sm_size_per_primitive_impl() -> uint32_t
 //     {
 //         return sizeof(glm::fvec2) * 3;
 //     }
 
 //     inline GSPLAT_HOST_DEVICE auto
-//     load_to_shared_memory_impl(uint32_t shmem_id, uint32_t global_id) -> void {
-//         glm::fvec2 *shmem_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
-//         glm::fvec2 *shmem_ptr_v1 =
-//             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v0[_shmem_n_primitives]);
-//         glm::fvec2 *shmem_ptr_v2 =
-//             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v1[_shmem_n_primitives]);
-//         shmem_ptr_v0[shmem_id] = v0[global_id];
-//         shmem_ptr_v1[shmem_id] = v1[global_id];
-//         shmem_ptr_v2[shmem_id] = v2[global_id];
+//     load_to_shared_memory_impl(uint32_t sm_id, uint32_t global_id) -> void {
+//         glm::fvec2 *sm_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_sm_ptr);
+//         glm::fvec2 *sm_ptr_v1 =
+//             reinterpret_cast<glm::fvec2 *>(&sm_ptr_v0[_sm_n_primitives]);
+//         glm::fvec2 *sm_ptr_v2 =
+//             reinterpret_cast<glm::fvec2 *>(&sm_ptr_v1[_sm_n_primitives]);
+//         sm_ptr_v0[sm_id] = v0[global_id];
+//         sm_ptr_v1[sm_id] = v1[global_id];
+//         sm_ptr_v2[sm_id] = v2[global_id];
 //     }
 
-//     inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t shmem_id
+//     inline GSPLAT_HOST_DEVICE auto get_light_attenuation_impl(uint32_t sm_id
 //     ) -> float {
-//         glm::fvec2 *shmem_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_shmem_ptr);
-//         glm::fvec2 *shmem_ptr_v1 =
-//             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v0[_shmem_n_primitives]);
-//         glm::fvec2 *shmem_ptr_v2 =
-//             reinterpret_cast<glm::fvec2 *>(&shmem_ptr_v1[_shmem_n_primitives]);
-//         auto const v0 = shmem_ptr_v0[shmem_id];
-//         auto const v1 = shmem_ptr_v1[shmem_id];
-//         auto const v2 = shmem_ptr_v2[shmem_id];
+//         glm::fvec2 *sm_ptr_v0 = reinterpret_cast<glm::fvec2 *>(_sm_ptr);
+//         glm::fvec2 *sm_ptr_v1 =
+//             reinterpret_cast<glm::fvec2 *>(&sm_ptr_v0[_sm_n_primitives]);
+//         glm::fvec2 *sm_ptr_v2 =
+//             reinterpret_cast<glm::fvec2 *>(&sm_ptr_v1[_sm_n_primitives]);
+//         auto const v0 = sm_ptr_v0[sm_id];
+//         auto const v1 = sm_ptr_v1[sm_id];
+//         auto const v2 = sm_ptr_v2[sm_id];
 
 //         // Calculate barycentric coordinates
 //         auto const A = v0;
