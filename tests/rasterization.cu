@@ -4,7 +4,7 @@
 #include "helpers.cuh"
 #include "helpers.h"
 #include "tinyrend/core/vec.h"
-#include "tinyrend/rasterization/kernel.cuh"
+#include "tinyrend/rasterization/base.cuh"
 #include "tinyrend/rasterization/operators/image_gaussian.cuh"
 #include "tinyrend/rasterization/operators/simple_planer.cuh"
 

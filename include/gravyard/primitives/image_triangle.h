@@ -4,7 +4,7 @@
 // #include <glm/glm.hpp>
 
 // #include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
-// #include "tinyrend/rasterization/kernel.cuh"
+// #include "tinyrend/rasterization/base.cuh"
 
 // namespace tinyrend::rasterization {
 

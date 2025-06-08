@@ -11,7 +11,7 @@
 #include <cstdint>
 
 #include "tinyrend/core/warp.cuh"
-#include "tinyrend/rasterization/kernel.cuh"
+#include "tinyrend/rasterization/base.cuh"
 
 namespace tinyrend::rasterization {
 

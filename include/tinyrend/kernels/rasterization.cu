@@ -1,10 +1,10 @@
 #include "tinyrend/core/vec.h"
-#include "tinyrend/rasterization/kernel.cuh"
+#include "tinyrend/rasterization/base.cuh"
 #include "tinyrend/rasterization/operators/simple_planer.cuh"
 
 namespace tinyrend::rasterization {
 
-void simple_planer_forward_kernel_launcher(
+void launch_simple_planer_forward(
     // Primitives
     const size_t n_primitives,
     const float *__restrict__ opacities, // [n_primitives]
@@ -35,7 +35,7 @@ void simple_planer_forward_kernel_launcher(
     );
 }
 
-void simple_planer_backward_kernel_launcher(
+void launch_simple_planer_backward(
     // Primitives
     const size_t n_primitives,
     const float *__restrict__ opacities, // [n_primitives]

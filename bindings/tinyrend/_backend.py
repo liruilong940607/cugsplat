@@ -5,7 +5,7 @@ from torch.utils.cpp_extension import load
 
 def build_extension():
     CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-    REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_DIR)))
+    REPO_ROOT = os.path.dirname(os.path.dirname(CURRENT_DIR))
 
     sources = [
         os.path.join(CURRENT_DIR, "bindings.cpp")

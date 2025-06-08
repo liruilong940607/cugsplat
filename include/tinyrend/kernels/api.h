@@ -17,7 +17,7 @@ void project_kernel_launcher(
 
 namespace tinyrend::rasterization {
 
-void simple_planer_forward_kernel_launcher(
+void launch_simple_planer_forward(
     // Primitives
     const size_t n_primitives,
     const float *__restrict__ opacities, // [n_primitives]
@@ -37,7 +37,7 @@ void simple_planer_forward_kernel_launcher(
     float *__restrict__ render_alpha // [n_images, image_height, image_width, 1]
 );
 
-void simple_planer_backward_kernel_launcher(
+void launch_simple_planer_backward(
     // Primitives
     const size_t n_primitives,
     const float *__restrict__ opacities, // [n_primitives]

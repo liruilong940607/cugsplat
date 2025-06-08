@@ -50,7 +50,7 @@ public:
         
         if (opacities.device().is_cuda()) {
             const at::cuda::OptionalCUDAGuard device_guard(opacities.device());
-            tinyrend::rasterization::simple_planer_forward_kernel_launcher(
+            tinyrend::rasterization::launch_simple_planer_forward(
                 n_primitives,
                 opacities.data_ptr<float>(),
                 n_images,
@@ -100,7 +100,7 @@ public:
 
         if (opacities.device().is_cuda()) {
             const at::cuda::OptionalCUDAGuard device_guard(opacities.device());
-            tinyrend::rasterization::simple_planer_backward_kernel_launcher(
+            tinyrend::rasterization::launch_simple_planer_backward(
                 n_primitives,
                 opacities.data_ptr<float>(),
                 n_images,
