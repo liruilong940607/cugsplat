@@ -11,15 +11,62 @@ namespace tinyrend::rasterization {
 
 namespace cg = cooperative_groups;
 
-inline __device__ auto evaluate_light_attenuation(
-    float opacity, glm::fvec2 mean, glm::fvec3 conic, float pixel_x, float pixel_y
-) -> float {
+using EvaluateLightAttenuationContext = std::tuple<
+    float,      // alpha
+    float,      // vis
+    glm::fvec3, // conic
+    float,      // dx
+    float,      // dy
+    float       // maximum_alpha
+    >;
+
+inline __device__ auto evaluate_light_attenuation_forward(
+    const float opacity,
+    const glm::fvec2 mean,
+    const glm::fvec3 conic,
+    const float pixel_x,
+    const float pixel_y,
+    const float maximum_alpha
+) -> std::pair<float, EvaluateLightAttenuationContext> {
     auto const dx = pixel_x - mean.x;
     auto const dy = pixel_y - mean.y;
     auto const sigma =
         0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
-    auto const alpha = opacity * __expf(-sigma);
-    return alpha;
+    auto const vis = __expf(-sigma);
+    auto const alpha = opacity * vis;
+    auto const output = min(alpha, maximum_alpha);
+    return {
+        output,
+        EvaluateLightAttenuationContext{alpha, vis, conic, dx, dy, maximum_alpha}
+    };
+}
+
+inline __device__ auto evaluate_light_attenuation_backward(
+    // context from forward pass
+    EvaluateLightAttenuationContext ctx,
+    // gradient of outputs
+    const float v_alpha,
+    // gradients of inputs
+    float &v_opacity,
+    glm::fvec2 &v_mean,
+    glm::fvec3 &v_conic
+) -> void {
+    auto const alpha = std::get<0>(ctx);
+    auto const vis = std::get<1>(ctx);
+    auto const conic = std::get<2>(ctx);
+    auto const dx = std::get<3>(ctx);
+    auto const dy = std::get<4>(ctx);
+    auto const maximum_alpha = std::get<5>(ctx);
+
+    if (alpha >= maximum_alpha) {
+        return; // clip happens so no gradient
+    }
+
+    auto const v_sigma = -alpha * v_alpha;
+    v_opacity += vis * v_alpha;
+    v_mean +=
+        v_sigma * glm::fvec2{conic.x * dx + conic.y * dy, conic.y * dx + conic.z * dy};
+    v_conic += v_sigma * glm::fvec3{0.5f * dx * dx, dx * dy, 0.5f * dy * dy};
 }
 
 template <size_t FEATURE_DIM>
@@ -39,8 +86,8 @@ struct ImageGaussianRasterizeKernelForwardOperator
     float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Internal variables
-    float _expected_feature[FEATURE_DIM] = {0.0f};
-    float _T = 1.0f;          // current transmittance
+    float _expected_feature[FEATURE_DIM] = {0.0f}; // buffer for feature accumulation
+    float _T = 1.0f;                               // current transmittance
     int32_t _last_index = -1; // the index of intersections ([n_isects]) for the last
                               // one being rasterized. -1 means no intersection.
 
@@ -89,11 +136,9 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const conic = sm_conic_ptr[t];
 
         // compute the light attenuation
-        auto const alpha =
-            min(this->maximum_alpha,
-                evaluate_light_attenuation(
-                    opacity, mean, conic, this->pixel_x, this->pixel_y
-                ));
+        auto const &[alpha, _ctx] = evaluate_light_attenuation_forward(
+            opacity, mean, conic, this->pixel_x, this->pixel_y, this->maximum_alpha
+        );
         // skip if the alpha is smaller than the threshold
         if (alpha < this->skip_if_alpha_smaller_than) {
             return false; // continue
@@ -156,7 +201,6 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     // Forward Outputs
     int32_t *render_last_index_ptr; // [n_images, image_height, image_width, 1]
     float *render_alpha_ptr;        // [n_images, image_height, image_width, 1]
-    float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Gradients for Forward Outputs
     float *v_render_alpha_ptr;   // [n_images, image_height, image_width, 1]
@@ -173,6 +217,7 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     float _T;                             // current transmittance (from back to front)
     float _v_render_alpha;                // dl/d_render_alpha for this pixel
     float _v_render_feature[FEATURE_DIM]; // dl/d_render_feature for this pixel
+    float _expected_feature[FEATURE_DIM] = {0.0f}; // buffer for feature accumulation
 
     // Configs
     const float skip_if_alpha_smaller_than = 1.0f / 255.0f;
@@ -181,9 +226,9 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         1e-4f; // For backward numerical stability.
 
     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
-        // cache the opacity, mean, conic, and primitive_id
+        // cache the opacity, mean, conic, primitive_id, and feature
         return sizeof(float) + sizeof(glm::fvec2) + sizeof(glm::fvec3) +
-               sizeof(uint32_t);
+               sizeof(uint32_t) + sizeof(float) * FEATURE_DIM;
     }
 
     inline __device__ auto initialize_impl() -> bool {
@@ -212,10 +257,17 @@ struct ImageGaussianRasterizeKernelBackwardOperator
             reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
+        auto const sm_feature_ptr =
+            reinterpret_cast<float *>(&sm_primitive_id_ptr[this->n_threads_per_block]);
         sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
         sm_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
         sm_conic_ptr[this->thread_rank] = this->conic_ptr[primitive_id];
         sm_primitive_id_ptr[this->thread_rank] = primitive_id;
+#pragma unroll
+        for (size_t i = 0; i < FEATURE_DIM; i++) {
+            sm_feature_ptr[this->thread_rank * FEATURE_DIM + i] =
+                this->feature_ptr[primitive_id * FEATURE_DIM + i];
+        }
     }
 
     template <class WarpT>
@@ -223,23 +275,87 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
         // load data from shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const sm_mean_ptr =
+            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+        auto const sm_conic_ptr =
+            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
-            reinterpret_cast<uint32_t *>(&sm_opacity_ptr[this->n_threads_per_block]);
-        auto const alpha = sm_opacity_ptr[t];
-        auto const primitive_id = sm_primitive_id_ptr[t];
+            reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
+        auto const sm_feature_ptr =
+            reinterpret_cast<float *>(&sm_primitive_id_ptr[this->n_threads_per_block]);
+        auto const opacity = sm_opacity_ptr[t];
+        auto const mean = sm_mean_ptr[t];
+        auto const conic = sm_conic_ptr[t];
+
+        // compute the light attenuation
+        auto const &[alpha, ela_ctx] = evaluate_light_attenuation_forward(
+            opacity, mean, conic, this->pixel_x, this->pixel_y, this->maximum_alpha
+        );
+
+        // skip if the alpha is smaller than the threshold
+        if (alpha < this->skip_if_alpha_smaller_than) {
+            return false; // continue
+        }
+
+        // check if I should stop
+        auto const next_T = this->_T * (1.0f - alpha);
+        if (next_T < this->stop_if_next_trans_smaller_than) {
+            return true; // terminate
+        }
+
+        // weights for expectation calculation
+        auto const weight = alpha * this->_T;
 
         // compute the gradient
         auto const ra = 1.0f / (1.0f - alpha);
         this->_T *= ra;
         auto v_alpha = this->_T_final * ra * this->_v_render_alpha;
 
+        // accumulate the expectation of the feature
+        float v_feature[FEATURE_DIM] = {0.0f};
+#pragma unroll
+        for (size_t i = 0; i < FEATURE_DIM; i++) {
+            v_feature[i] = weight * this->_v_render_feature[i];
+            auto const c = sm_feature_ptr[t * FEATURE_DIM + i];
+            v_alpha += (c * this->_T - this->_expected_feature[i] * ra) *
+                       this->_v_render_feature[i];
+            this->_expected_feature[i] += weight * c;
+        }
+
+        // compute the gradient of the `evaluate_light_attenuation`
+        auto v_mean = glm::fvec2{};
+        auto v_conic = glm::fvec3{};
+        auto v_opacity = 0.0f;
+        evaluate_light_attenuation_backward(
+            ela_ctx, v_alpha, v_opacity, v_mean, v_conic
+        );
+
         // reduce the gradient over the warp [faster than atomicAdd to global memory]
-        tinyrend::warp::warpSum(v_alpha, warp);
+        tinyrend::warp::warpSum(v_opacity, warp);
+        tinyrend::warp::warpSum(v_mean, warp);
+        tinyrend::warp::warpSum(v_conic, warp);
+        tinyrend::warp::warpSum<FEATURE_DIM>(v_feature, warp);
 
         // first thread in the warp writes the gradient to global memory.
         if (warp.thread_rank() == 0) {
+            auto const primitive_id = sm_primitive_id_ptr[t];
             float *v_opacity_ptr = (float *)this->v_opacity_ptr;
             atomicAdd(v_opacity_ptr + primitive_id, v_alpha);
+
+            float *v_mean_ptr = (float *)this->v_mean_ptr;
+            atomicAdd(v_mean_ptr + primitive_id * 2, v_mean.x);
+            atomicAdd(v_mean_ptr + primitive_id * 2 + 1, v_mean.y);
+
+            float *v_conic_ptr = (float *)this->v_conic_ptr;
+            atomicAdd(v_conic_ptr + primitive_id * 3, v_conic.x);
+            atomicAdd(v_conic_ptr + primitive_id * 3 + 1, v_conic.y);
+            atomicAdd(v_conic_ptr + primitive_id * 3 + 2, v_conic.z);
+
+            float *v_feature_ptr = (float *)this->v_feature_ptr;
+#pragma unroll
+            for (size_t i = 0; i < FEATURE_DIM; i++) {
+                atomicAdd(v_feature_ptr + primitive_id * FEATURE_DIM + i, v_feature[i]);
+            }
         }
 
         // Return whether we want to terminate the rasterization process.

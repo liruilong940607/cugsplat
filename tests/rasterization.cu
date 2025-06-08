@@ -159,17 +159,32 @@ auto test_rasterization_image_gaussian() -> int {
     );
     save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
 
-    // // Prepare backward gradients
-    // auto const v_render_alpha_ptr =
-    //     create_device_ptr<float>(image_height * image_width, 0.3f);
-    // auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
+    // Prepare backward gradients
+    auto const v_render_alpha_ptr =
+        create_device_ptr<float>(image_height * image_width, 0.3f);
+    auto v_render_feature_ptr =
+        create_device_ptr<float>(image_height * image_width * feature_dim, 0.2f);
+    auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
+    auto v_mean_ptr =
+        create_device_ptr<glm::fvec2>(n_primitives, glm::fvec2{}); // zero init
+    auto v_conic_ptr =
+        create_device_ptr<glm::fvec3>(n_primitives, glm::fvec3{});     // zero init
+    auto v_feature_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
 
-    // // Create backward operator
-    // SimplePlanerRasterizeKernelBackwardOperator backward_op{};
-    // backward_op.opacity_ptr = opacity_ptr;
-    // backward_op.render_alpha_ptr = render_alpha_ptr;
-    // backward_op.v_render_alpha_ptr = v_render_alpha_ptr;
-    // backward_op.v_opacity_ptr = v_opacity_ptr;
+    // Create backward operator
+    ImageGaussianRasterizeKernelBackwardOperator<feature_dim> backward_op{};
+    backward_op.opacity_ptr = opacity_ptr;
+    backward_op.mean_ptr = mean_ptr;
+    backward_op.conic_ptr = conic_ptr;
+    backward_op.feature_ptr = feature_ptr;
+    backward_op.render_last_index_ptr = render_last_index_ptr;
+    backward_op.render_alpha_ptr = render_alpha_ptr;
+    backward_op.v_render_alpha_ptr = v_render_alpha_ptr;
+    backward_op.v_render_feature_ptr = v_render_feature_ptr;
+    backward_op.v_opacity_ptr = v_opacity_ptr;
+    backward_op.v_mean_ptr = v_mean_ptr;
+    backward_op.v_conic_ptr = v_conic_ptr;
+    backward_op.v_feature_ptr = v_feature_ptr;
 
     // // Launch backward rasterization
     // size_t backward_sm_size =
