@@ -91,9 +91,8 @@ struct is_rasterize_kernel_operator
     The RasterizeKernelOperator should implement the following methods:
     - smem_size_per_primitive_impl: Return the size of the shared memory per primitive.
     - initialize_impl: Initialize the operator.
-    - primitive_preprocess_impl: Each thread is responsible for processing one
-   primitive.
-    - rasterize_impl: Each thread is responsible for rasterizing one pixel.
+    - primitive_preprocess_impl: Each thread processes one primitive.
+    - rasterize_impl: Each thread rasterize a batch of primitives to the current pixel.
     - pixel_postprocess_impl: Postprocess the rasterized pixel (e.g., write to buffer.)
 */
 template <typename RasterizeKernelOperator>
