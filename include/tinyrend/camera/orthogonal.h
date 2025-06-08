@@ -8,7 +8,7 @@
 
 #include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 
-namespace tinyrend::orthogonal {
+namespace tinyrend::camera::orthogonal {
 
 /// \brief Project a 3D point in camera space to 2D image space using
 /// orthogonal projection.
@@ -64,4 +64,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {origin, dir};
 }
 
-} // namespace tinyrend::orthogonal
+} // namespace tinyrend::camera::orthogonal

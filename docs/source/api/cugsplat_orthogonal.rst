@@ -1,7 +1,7 @@
-tinyrend::orthogonal
+tinyrend::camera::orthogonal
 ====================
 
-.. doxygennamespace:: tinyrend::orthogonal
+.. doxygennamespace:: tinyrend::camera::orthogonal
    :project: tinyrend
    :members:
    :undoc-members:

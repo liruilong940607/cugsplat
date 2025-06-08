@@ -7,7 +7,7 @@
 #include "../helpers.h"
 #include "tinyrend/camera/pinhole.h"
 
-using namespace tinyrend::pinhole;
+using namespace tinyrend::camera::pinhole;
 
 // Test project function (distorted pinhole)
 auto test_project_distorted() -> int {

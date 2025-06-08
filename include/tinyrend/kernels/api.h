@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-namespace tinyrend::fisheye {
+namespace tinyrend::camera::fisheye {
 
 template <bool USE_CUDA>
 void project_kernel_launcher(
@@ -13,7 +13,7 @@ void project_kernel_launcher(
     glm::fvec2 *__restrict__ image_points
 );
 
-} // namespace tinyrend::fisheye
+} // namespace tinyrend::camera::fisheye
 
 namespace tinyrend::rasterization {
 

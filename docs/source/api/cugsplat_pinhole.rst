@@ -1,7 +1,7 @@
-tinyrend::pinhole
+tinyrend::camera::pinhole
 =================
 
-.. doxygennamespace:: tinyrend::pinhole
+.. doxygennamespace:: tinyrend::camera::pinhole
    :project: tinyrend
    :members:
    :undoc-members:

@@ -1,7 +1,7 @@
-tinyrend::shutter
+tinyrend::camera::shutter
 =================
 
-.. doxygennamespace:: tinyrend::shutter
+.. doxygennamespace:: tinyrend::camera::shutter
    :project: tinyrend
    :members:
    :undoc-members:

@@ -10,7 +10,7 @@
 #include "tinyrend/core/math.h"
 #include "tinyrend/core/solver.h"
 
-namespace tinyrend::pinhole {
+namespace tinyrend::camera::pinhole {
 
 GSPLAT_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
 GSPLAT_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
@@ -459,4 +459,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {glm::normalize(dir), true};
 }
 
-} // namespace tinyrend::pinhole
+} // namespace tinyrend::camera::pinhole

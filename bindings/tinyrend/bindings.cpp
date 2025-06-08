@@ -13,7 +13,7 @@ torch::Tensor fisheye_project(
     auto image_points = torch::empty_like(focal_lengths);
     
     #define LAUNCH_KERNEL(USE_CUDA) \
-        tinyrend::fisheye::project_kernel_launcher<USE_CUDA>( \
+        tinyrend::camera::fisheye::project_kernel_launcher<USE_CUDA>( \
             n_elements, \
             reinterpret_cast<const glm::fvec3*>(camera_points.data_ptr<float>()), \
             reinterpret_cast<const glm::fvec2*>(focal_lengths.data_ptr<float>()), \

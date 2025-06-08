@@ -9,7 +9,7 @@
 #include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
 #include "tinyrend/core/se3.h"
 
-namespace tinyrend::shutter {
+namespace tinyrend::camera::shutter {
 
 /// \brief Enumeration of shutter types
 /// \details Defines different types of camera shutters
@@ -148,4 +148,4 @@ GSPLAT_HOST_DEVICE inline auto point_world_to_image(
     };
 }
 
-} // namespace tinyrend::shutter
+} // namespace tinyrend::camera::shutter

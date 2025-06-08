@@ -65,7 +65,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
     const float far_plane,
     const float *world_to_camera0_ptr, // [4, 4]
     const float *world_to_camera1_ptr, // [4, 4]
-    const tinyrend::shutter::Type shutter_type,
+    const tinyrend::camera::shutter::Type shutter_type,
     const uint32_t width,
     const uint32_t height,
     const float *mean_ptr,  // [3]
@@ -92,7 +92,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
         // load the second extrinsics for rolling shutter
         glm::fmat3 world_to_camera_R1;
         glm::fvec3 world_to_camera_t1;
-        if (shutter_type != tinyrend::shutter::Type::GLOBAL) {
+        if (shutter_type != tinyrend::camera::shutter::Type::GLOBAL) {
             auto const world_to_camera1 =
                 glm::transpose(glm::make_mat4(world_to_camera1_ptr));
             world_to_camera_R1 = glm::fmat3(world_to_camera1);
@@ -103,7 +103,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
         auto const mu = glm::fvec3(mean_ptr[0], mean_ptr[1], mean_ptr[2]);
         auto const mu_c0 =
             tinyrend::se3::transform_point(world_to_camera_R0, world_to_camera_t0, mu);
-        if (shutter_type == tinyrend::shutter::Type::GLOBAL) {
+        if (shutter_type == tinyrend::camera::shutter::Type::GLOBAL) {
             // If point is not in the frustum, skip
             if (mu_c0.z < near_plane || mu_c0.z > far_plane) {
                 break;
@@ -155,35 +155,37 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
             glm::fvec2 image_point;
             bool valid_flag;
             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-                image_point = tinyrend::fisheye::project(
+                image_point = tinyrend::camera::fisheye::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-                image_point = tinyrend::pinhole::project(
+                image_point = tinyrend::camera::pinhole::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-                image_point = tinyrend::orthogonal::project(
+                image_point = tinyrend::camera::orthogonal::project(
                     camera_point, focal_length, principal_point
                 );
                 valid_flag = true;
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-                auto const &[image_point_, valid_flag_] = tinyrend::pinhole::project(
-                    camera_point,
-                    focal_length,
-                    principal_point,
-                    radial_coeffs,
-                    tangential_coeffs,
-                    thin_prism_coeffs
-                );
+                auto const &[image_point_, valid_flag_] =
+                    tinyrend::camera::pinhole::project(
+                        camera_point,
+                        focal_length,
+                        principal_point,
+                        radial_coeffs,
+                        tangential_coeffs,
+                        thin_prism_coeffs
+                    );
                 image_point = image_point_;
                 valid_flag = valid_flag_;
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
-                auto const &[image_point_, valid_flag_] = tinyrend::fisheye::project(
-                    camera_point, focal_length, principal_point, radial_coeffs
-                );
+                auto const &[image_point_, valid_flag_] =
+                    tinyrend::camera::fisheye::project(
+                        camera_point, focal_length, principal_point, radial_coeffs
+                    );
                 image_point = image_point_;
                 valid_flag = valid_flag_;
             }
@@ -212,7 +214,7 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
              &world_to_camera_t1,
              &shutter_type](const glm::fvec3 &world_point
             ) -> std::tuple<glm::fvec2, bool, AuxData> {
-            auto const result = tinyrend::shutter::point_world_to_image(
+            auto const result = tinyrend::camera::shutter::point_world_to_image(
                 point_camera_to_image_fn,
                 {width, height},
                 world_point,
@@ -268,13 +270,15 @@ GSPLAT_HOST_DEVICE inline auto projection_forward(
                 "Jacobian for distorted fisheye is not implemented"
             );
             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-                J = tinyrend::fisheye::project_jac(camera_point, focal_length);
+                J = tinyrend::camera::fisheye::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-                J = tinyrend::pinhole::project_jac(camera_point, focal_length);
+                J = tinyrend::camera::pinhole::project_jac(camera_point, focal_length);
             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-                J = tinyrend::orthogonal::project_jac(camera_point, focal_length);
+                J = tinyrend::camera::orthogonal::project_jac(
+                    camera_point, focal_length
+                );
             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-                auto const &[J_, valid_flag_] = tinyrend::pinhole::project_jac(
+                auto const &[J_, valid_flag_] = tinyrend::camera::pinhole::project_jac(
                     camera_point,
                     focal_length,
                     radial_coeffs,
@@ -323,7 +327,7 @@ struct ProjectionBackwardResult {
 //     const float far_plane,
 //     const float *world_to_camera0_ptr, // [4, 4]
 //     const float *world_to_camera1_ptr, // [4, 4]
-//     const tinyrend::shutter::Type shutter_type,
+//     const tinyrend::camera::shutter::Type shutter_type,
 //     const uint32_t width,
 //     const uint32_t height,
 //     const float *mean_ptr,  // [3]
@@ -358,7 +362,7 @@ struct ProjectionBackwardResult {
 //         auto const world_to_camera_Rt = glm::transpose(world_to_camera_R);
 
 //         if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//             auto const J = tinyrend::fisheye::project_jac(mu, focal_length);
+//             auto const J = tinyrend::camera::fisheye::project_jac(mu, focal_length);
 //             auto const Jt = glm::transpose(J);
 
 //             auto const v_mean_c = Jt * v_mean2d;
@@ -374,7 +378,8 @@ struct ProjectionBackwardResult {
 
 //             auto const v_J = v_covar2d * J * glm::transpose(covar) +
 //                              glm::transpose(v_covar2d) * J * covar;
-//             auto const &[H1, H2] = tinyrend::fisheye::project_hess(mu, focal_length);
+//             auto const &[H1, H2] = tinyrend::camera::fisheye::project_hess(mu,
+//             focal_length);
 //         }
 
 //         // load extrinsics
@@ -387,7 +392,7 @@ struct ProjectionBackwardResult {
 //         // load the second extrinsics for rolling shutter
 //         glm::fmat3 world_to_camera_R1;
 //         glm::fvec3 world_to_camera_t1;
-//         if (shutter_type != tinyrend::shutter::Type::GLOBAL) {
+//         if (shutter_type != tinyrend::camera::shutter::Type::GLOBAL) {
 //             auto const world_to_camera1 =
 //                 glm::transpose(glm::make_mat4(world_to_camera1_ptr));
 //             world_to_camera_R1 = glm::fmat3(world_to_camera1);
@@ -399,7 +404,7 @@ struct ProjectionBackwardResult {
 //         auto const mu_c0 =
 //             tinyrend::se3::transform_point(world_to_camera_R0, world_to_camera_t0,
 //             mu);
-//         if (shutter_type == tinyrend::shutter::Type::GLOBAL) {
+//         if (shutter_type == tinyrend::camera::shutter::Type::GLOBAL) {
 //             // If point is not in the frustum, skip
 //             if (mu_c0.z < near_plane || mu_c0.z > far_plane) {
 //                 break;
@@ -451,22 +456,23 @@ struct ProjectionBackwardResult {
 //             glm::fvec2 image_point;
 //             bool valid_flag;
 //             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//                 image_point = tinyrend::fisheye::project(
+//                 image_point = tinyrend::camera::fisheye::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-//                 image_point = tinyrend::pinhole::project(
+//                 image_point = tinyrend::camera::pinhole::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-//                 image_point = tinyrend::orthogonal::project(
+//                 image_point = tinyrend::camera::orthogonal::project(
 //                     camera_point, focal_length, principal_point
 //                 );
 //                 valid_flag = true;
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-//                 auto const &[image_point_, valid_flag_] = tinyrend::pinhole::project(
+//                 auto const &[image_point_, valid_flag_] =
+//                 tinyrend::camera::pinhole::project(
 //                     camera_point,
 //                     focal_length,
 //                     principal_point,
@@ -477,7 +483,8 @@ struct ProjectionBackwardResult {
 //                 image_point = image_point_;
 //                 valid_flag = valid_flag_;
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_FISHEYE) {
-//                 auto const &[image_point_, valid_flag_] = tinyrend::fisheye::project(
+//                 auto const &[image_point_, valid_flag_] =
+//                 tinyrend::camera::fisheye::project(
 //                     camera_point, focal_length, principal_point, radial_coeffs
 //                 );
 //                 image_point = image_point_;
@@ -508,7 +515,7 @@ struct ProjectionBackwardResult {
 //              &world_to_camera_t1,
 //              &shutter_type](const glm::fvec3 &world_point
 //             ) -> std::tuple<glm::fvec2, bool, AuxData> {
-//             auto const result = tinyrend::shutter::point_world_to_image(
+//             auto const result = tinyrend::camera::shutter::point_world_to_image(
 //                 point_camera_to_image_fn,
 //                 {width, height},
 //                 world_point,
@@ -564,13 +571,17 @@ struct ProjectionBackwardResult {
 //                 "Jacobian for distorted fisheye is not implemented"
 //             );
 //             if constexpr (CAMERA_TYPE == CameraType::FISHEYE) {
-//                 J = tinyrend::fisheye::project_jac(camera_point, focal_length);
+//                 J = tinyrend::camera::fisheye::project_jac(camera_point,
+//                 focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::PINHOLE) {
-//                 J = tinyrend::pinhole::project_jac(camera_point, focal_length);
+//                 J = tinyrend::camera::pinhole::project_jac(camera_point,
+//                 focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::ORTHO) {
-//                 J = tinyrend::orthogonal::project_jac(camera_point, focal_length);
+//                 J = tinyrend::camera::orthogonal::project_jac(camera_point,
+//                 focal_length);
 //             } else if constexpr (CAMERA_TYPE == CameraType::DISTORTED_PINHOLE) {
-//                 auto const &[J_, valid_flag_] = tinyrend::pinhole::project_jac(
+//                 auto const &[J_, valid_flag_] =
+//                 tinyrend::camera::pinhole::project_jac(
 //                     camera_point,
 //                     focal_length,
 //                     radial_coeffs,

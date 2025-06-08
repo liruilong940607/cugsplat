@@ -9,7 +9,7 @@
 #include "tinyrend/impl.h"
 
 using namespace tinyrend::impl;
-using namespace tinyrend::shutter;
+using namespace tinyrend::camera::shutter;
 
 // Test projection with perfect camera shutter
 auto test_projection() -> int {

@@ -6,7 +6,7 @@
 #include "../helpers.h"
 #include "tinyrend/camera/shutter.h"
 
-using namespace tinyrend::shutter;
+using namespace tinyrend::camera::shutter;
 
 // Test point_world_to_image function with quaternion rotation
 auto test_point_world_to_image_quat() -> int {

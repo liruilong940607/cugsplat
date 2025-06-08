@@ -7,7 +7,7 @@
 #include "../helpers.h"
 #include "tinyrend/camera/orthogonal.h"
 
-using namespace tinyrend::orthogonal;
+using namespace tinyrend::camera::orthogonal;
 
 // Test project function
 auto test_project() -> int {

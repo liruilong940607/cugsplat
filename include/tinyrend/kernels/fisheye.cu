@@ -2,7 +2,7 @@
 #include "tinyrend/core/macros.h"
 #include "tinyrend/kernel_launcher.cuh"
 
-namespace tinyrend::fisheye {
+namespace tinyrend::camera::fisheye {
 
 #define FISHEYE_PROJECT_SIGNATURE                                                      \
     const size_t n_elements, const glm::fvec3 *__restrict__ camera_points,             \
@@ -17,7 +17,7 @@ template <bool USE_CUDA> void project_kernel_launcher(FISHEYE_PROJECT_SIGNATURE)
          focal_lengths,
          principal_points,
          image_points] GSPLAT_HOST_DEVICE(size_t idx) {
-            image_points[idx] = tinyrend::fisheye::project(
+            image_points[idx] = tinyrend::camera::fisheye::project(
                 camera_points[idx], focal_lengths[idx], principal_points[idx]
             );
         }
@@ -27,4 +27,4 @@ template <bool USE_CUDA> void project_kernel_launcher(FISHEYE_PROJECT_SIGNATURE)
 template void project_kernel_launcher<true>(FISHEYE_PROJECT_SIGNATURE);
 template void project_kernel_launcher<false>(FISHEYE_PROJECT_SIGNATURE);
 
-} // namespace tinyrend::fisheye
+} // namespace tinyrend::camera::fisheye

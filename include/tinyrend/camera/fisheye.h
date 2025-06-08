@@ -10,7 +10,7 @@
 #include "tinyrend/core/math.h"
 #include "tinyrend/core/solver.h"
 
-namespace tinyrend::fisheye {
+namespace tinyrend::camera::fisheye {
 
 /// \brief Compute the radial distortion: theta -> theta_d
 /// \param theta Angle in radians
@@ -480,4 +480,4 @@ GSPLAT_HOST_DEVICE inline auto unproject(
     return {dir, true};
 }
 
-} // namespace tinyrend::fisheye
+} // namespace tinyrend::camera::fisheye

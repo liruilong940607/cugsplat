@@ -8,7 +8,7 @@
 #include "tinyrend/camera/fisheye.h"
 #include "tinyrend/estimator/ghq.h"
 
-using namespace tinyrend::fisheye;
+using namespace tinyrend::camera::fisheye;
 
 // Test distortion and distortion_jac functions
 auto test_distortion() -> int {

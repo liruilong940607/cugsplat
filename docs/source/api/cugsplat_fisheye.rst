@@ -1,7 +1,7 @@
-tinyrend::fisheye
+tinyrend::camera::fisheye
 =================
 
-.. doxygennamespace:: tinyrend::fisheye
+.. doxygennamespace:: tinyrend::camera::fisheye
    :project: tinyrend
    :members:
    :undoc-members:
