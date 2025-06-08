@@ -16,14 +16,18 @@ image_height = 28
 image_width = 22
 tile_width = 8
 tile_height = 16
-opacities = torch.tensor([0.5, 0.7], device=device)
+opacities = torch.tensor([0.5, 0.7], device=device, requires_grad=True)
 isect_primitive_ids = torch.tensor([0, 1], device=device, dtype=torch.uint32)
 isect_prefix_sum_per_tile = torch.tensor([2], device=device, dtype=torch.uint32)
 
-render_alpha = _C.rasterize_simple_planer_forward(
+render_alpha = _C.rasterize_simple_planer(
     opacities, 
     n_images, image_height, image_width, tile_width, tile_height, 
     isect_primitive_ids, isect_prefix_sum_per_tile
 )
 assert render_alpha.shape == (n_images, image_height, image_width, 1)
 assert (render_alpha[:, :tile_height, :tile_width, :] == 0.5 + (1 - 0.5) * 0.7).all()
+
+(render_alpha * 0.3).sum().backward()
+opacities_grad_ref = torch.tensor([0.09, 0.15], device=device) * tile_width * tile_height
+torch.testing.assert_close(opacities.grad, opacities_grad_ref)
