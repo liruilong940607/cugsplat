@@ -39,7 +39,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
     float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Internal variables
-    float _accum_feature[FEATURE_DIM] = {0.0f};
+    float _expected_feature[FEATURE_DIM] = {0.0f};
     float _T = 1.0f;          // current transmittance
     int32_t _last_index = -1; // the index of intersections ([n_isects]) for the last
                               // one being rasterized. -1 means no intersection.
@@ -112,7 +112,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const primitive_id = sm_primitive_id_ptr[t];
 #pragma unroll
         for (size_t i = 0; i < FEATURE_DIM; i++) {
-            this->_accum_feature[i] +=
+            this->_expected_feature[i] +=
                 weight * this->feature_ptr[primitive_id * FEATURE_DIM + i];
         }
 
@@ -137,7 +137,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
 #pragma unroll
         for (size_t i = 0; i < FEATURE_DIM; i++) {
             this->render_feature_ptr[offset_pixel * FEATURE_DIM + i] =
-                this->_accum_feature[i];
+                this->_expected_feature[i];
         }
     }
 };
