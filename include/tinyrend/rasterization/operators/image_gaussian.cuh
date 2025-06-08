@@ -22,8 +22,9 @@ struct ImageGaussianRasterizeKernelForwardOperator
     float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Outputs
-    float *render_alpha_ptr;   // [n_images, image_height, image_width, 1]
-    float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
+    float *render_last_index_ptr; // [n_images, image_height, image_width, 1]
+    float *render_alpha_ptr;      // [n_images, image_height, image_width, 1]
+    float *render_feature_ptr;    // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Internal variables
     float _accum_feature[FEATURE_DIM];
@@ -126,6 +127,8 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const offset_pixel =
             this->image_id * this->image_height * this->image_width + this->pixel_id;
         this->render_alpha_ptr[offset_pixel] = 1.0f - this->_T;
+
+        this->render_last_index_ptr[offset_pixel] = this->_last_index;
 
 #pragma unroll
         for (size_t i = 0; i < FEATURE_DIM; i++) {
