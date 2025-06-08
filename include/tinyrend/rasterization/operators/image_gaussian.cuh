@@ -11,14 +11,14 @@ namespace tinyrend::rasterization {
 
 namespace cg = cooperative_groups;
 
-using EvaluateLightAttenuationContext = std::tuple<
-    float, // alpha
-    float, // vis
-    fvec3, // conic
-    float, // dx
-    float, // dy
-    float  // maximum_alpha
-    >;
+struct EvaluateLightAttenuationContext {
+    float alpha;
+    float vis;
+    fvec3 conic;
+    float dx;
+    float dy;
+    float maximum_alpha;
+};
 
 inline __device__ auto evaluate_light_attenuation_forward(
     const float opacity,
@@ -51,22 +51,18 @@ inline __device__ auto evaluate_light_attenuation_backward(
     fvec2 &v_mean,
     fvec3 &v_conic
 ) -> void {
-    auto const alpha = std::get<0>(ctx);
-    auto const vis = std::get<1>(ctx);
-    auto const conic = std::get<2>(ctx);
-    auto const dx = std::get<3>(ctx);
-    auto const dy = std::get<4>(ctx);
-    auto const maximum_alpha = std::get<5>(ctx);
-
-    if (alpha >= maximum_alpha) {
+    if (ctx.alpha >= ctx.maximum_alpha) {
         return; // clip happens so no gradient
     }
 
-    auto const v_sigma = -alpha * v_alpha;
-    v_opacity += vis * v_alpha;
-    v_mean +=
-        v_sigma * fvec2{conic[0] * dx + conic[1] * dy, conic[1] * dx + conic[2] * dy};
-    v_conic += v_sigma * fvec3{0.5f * dx * dx, dx * dy, 0.5f * dy * dy};
+    auto const v_sigma = -ctx.alpha * v_alpha;
+    v_opacity += ctx.vis * v_alpha;
+    v_mean += v_sigma * fvec2{
+                            ctx.conic[0] * ctx.dx + ctx.conic[1] * ctx.dy,
+                            ctx.conic[1] * ctx.dx + ctx.conic[2] * ctx.dy
+                        };
+    v_conic += v_sigma *
+               fvec3{0.5f * ctx.dx * ctx.dx, ctx.dx * ctx.dy, 0.5f * ctx.dy * ctx.dy};
 }
 
 template <size_t FEATURE_DIM>
