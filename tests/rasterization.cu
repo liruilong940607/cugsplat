@@ -13,9 +13,9 @@ auto test_rasterization_simple_planer() -> int {
 
     // Configurations
     const int n_primitives = 2;
-    const uint32_t image_height = 4;
-    const uint32_t image_width = 2;
-    const uint32_t tile_width = 16;
+    const uint32_t image_height = 28;
+    const uint32_t image_width = 22;
+    const uint32_t tile_width = 8;
     const uint32_t tile_height = 16;
     dim3 threads(tile_width, tile_height, 1);
     dim3 grid(1, 1, 1);
@@ -49,8 +49,11 @@ auto test_rasterization_simple_planer() -> int {
     // Copy data back to host and check the result
     auto const h_render_alpha_ptr =
         device_ptr_to_host_ptr<float>(render_alpha_ptr, image_height * image_width);
-    for (int i = 0; i < image_height * image_width; i++) {
-        assert(is_close(h_render_alpha_ptr[i], 0.5f + (1 - 0.5f) * 0.7f));
+    for (int x = 0; x < tile_width; x++) {
+        for (int y = 0; y < tile_height; y++) {
+            int i = x + y * image_width;
+            assert(is_close(h_render_alpha_ptr[i], 0.5f + (1 - 0.5f) * 0.7f));
+        }
     }
     save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
 
@@ -84,8 +87,8 @@ auto test_rasterization_simple_planer() -> int {
     // dl/db = dl/do * do/db = 0.3f * 0.5f = 0.15f
     auto const h_v_opacity_ptr =
         device_ptr_to_host_ptr<float>(v_opacity_ptr, n_primitives);
-    assert(is_close(h_v_opacity_ptr[0], 0.09f * image_height * image_width));
-    assert(is_close(h_v_opacity_ptr[1], 0.15f * image_height * image_width));
+    assert(is_close(h_v_opacity_ptr[0], 0.09f * tile_width * tile_height));
+    assert(is_close(h_v_opacity_ptr[1], 0.15f * tile_width * tile_height));
 
     check_cuda_error();
     return 0;
