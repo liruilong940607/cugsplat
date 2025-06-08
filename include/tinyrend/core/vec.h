@@ -27,6 +27,16 @@ template <typename T, size_t N> struct alignas(T) vec {
         );
     }
 
+    // Sum all elements
+    __host__ __device__ T sum() const {
+        T result = T(0);
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            result += data[i];
+        }
+        return result;
+    }
+
     // Access operators
     __host__ __device__ T &operator[](size_t i) { return data[i]; }
     __host__ __device__ const T &operator[](size_t i) const { return data[i]; }
@@ -203,25 +213,19 @@ template <typename T, size_t N> struct alignas(T) vec {
 };
 
 // Common type aliases
-template <typename T> using vec2 = vec<T, 2>;
+template <size_t N> using fvec = vec<float, N>;
+using fvec2 = fvec<2>;
+using fvec3 = fvec<3>;
+using fvec4 = fvec<4>;
 
-template <typename T> using vec3 = vec<T, 3>;
+template <size_t N> using dvec = vec<double, N>;
+using dvec2 = dvec<2>;
+using dvec3 = dvec<3>;
+using dvec4 = dvec<4>;
 
-template <typename T> using vec4 = vec<T, 4>;
-
-// Common type aliases for float
-using fvec2 = vec2<float>;
-using fvec3 = vec3<float>;
-using fvec4 = vec4<float>;
-
-// Common type aliases for double
-using dvec2 = vec2<double>;
-using dvec3 = vec3<double>;
-using dvec4 = vec4<double>;
-
-// Common type aliases for int
-using ivec2 = vec2<int>;
-using ivec3 = vec3<int>;
-using ivec4 = vec4<int>;
+template <size_t N> using ivec = vec<int, N>;
+using ivec2 = ivec<2>;
+using ivec3 = ivec<3>;
+using ivec4 = ivec<4>;
 
 } // namespace tinyrend

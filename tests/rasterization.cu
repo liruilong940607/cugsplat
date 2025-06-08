@@ -106,7 +106,8 @@ auto test_rasterization_image_gaussian() -> int {
     const uint32_t tile_height = 16;
     dim3 threads(tile_width, tile_height, 1);
     dim3 grid(1, 1, 1);
-    const int feature_dim = 1;
+    constexpr int FEATURE_DIM = 1;
+    using FeatureType = fvec<FEATURE_DIM>;
 
     // Create primitive data:
     auto const opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
@@ -115,7 +116,8 @@ auto test_rasterization_image_gaussian() -> int {
     auto const conic_ptr =
         create_device_ptr<fvec3>({fvec3(0.25f, 0.0f, 0.25f), fvec3(0.25f, 0.0f, 0.25f)}
         );
-    auto const feature_ptr = create_device_ptr<float>({0.2f, 0.5f});
+    auto const feature_ptr =
+        create_device_ptr<FeatureType>({FeatureType(0.2f), FeatureType(0.5f)});
     // Create isect info: all two primitives are intersected with the first tile
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
     auto const isect_prefix_sum_per_tile = create_device_ptr<uint32_t>({2});
@@ -124,12 +126,12 @@ auto test_rasterization_image_gaussian() -> int {
     auto render_last_index_ptr = create_device_ptr<int32_t>(image_height * image_width);
     auto render_alpha_ptr =
         create_device_ptr<float>(image_height * image_width); // only alloc mem, no init
-    auto render_feature_ptr = create_device_ptr<float>(
-        image_height * image_width * feature_dim
+    auto render_feature_ptr = create_device_ptr<FeatureType>(
+        image_height * image_width
     ); // only alloc mem, no init
 
     // Create forward operator
-    ImageGaussianRasterizeKernelForwardOperator<feature_dim> forward_op{};
+    ImageGaussianRasterizeKernelForwardOperator<FEATURE_DIM> forward_op{};
     forward_op.opacity_ptr = opacity_ptr;
     forward_op.mean_ptr = mean_ptr;
     forward_op.conic_ptr = conic_ptr;
@@ -155,8 +157,8 @@ auto test_rasterization_image_gaussian() -> int {
     auto const h_render_last_index_ptr = device_ptr_to_host_ptr<int32_t>(
         render_last_index_ptr, image_height * image_width
     );
-    auto const h_render_feature_ptr = device_ptr_to_host_ptr<float>(
-        render_feature_ptr, image_height * image_width * feature_dim
+    auto const h_render_feature_ptr = device_ptr_to_host_ptr<FeatureType>(
+        render_feature_ptr, image_height * image_width
     );
     save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
 
@@ -164,14 +166,15 @@ auto test_rasterization_image_gaussian() -> int {
     auto const v_render_alpha_ptr =
         create_device_ptr<float>(image_height * image_width, 0.3f);
     auto v_render_feature_ptr =
-        create_device_ptr<float>(image_height * image_width * feature_dim, 0.2f);
+        create_device_ptr<FeatureType>(image_height * image_width, 0.2f);
     auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f);  // zero init
     auto v_mean_ptr = create_device_ptr<fvec2>(n_primitives, fvec2{});  // zero init
     auto v_conic_ptr = create_device_ptr<fvec3>(n_primitives, fvec3{}); // zero init
-    auto v_feature_ptr = create_device_ptr<float>(n_primitives, 0.0f);  // zero init
+    auto v_feature_ptr =
+        create_device_ptr<FeatureType>(n_primitives, FeatureType{}); // zero init
 
     // Create backward operator
-    ImageGaussianRasterizeKernelBackwardOperator<feature_dim> backward_op{};
+    ImageGaussianRasterizeKernelBackwardOperator<FEATURE_DIM> backward_op{};
     backward_op.opacity_ptr = opacity_ptr;
     backward_op.mean_ptr = mean_ptr;
     backward_op.conic_ptr = conic_ptr;

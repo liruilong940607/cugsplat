@@ -70,20 +70,24 @@ struct ImageGaussianRasterizeKernelForwardOperator
     : BaseRasterizeKernelOperator<
           ImageGaussianRasterizeKernelForwardOperator<FEATURE_DIM>> {
 
+    using FeatureType = fvec<FEATURE_DIM>;
+
     // Inputs
     float *opacity_ptr; // [N, 1]
     fvec2 *mean_ptr;    // [N, 2]
     fvec3 *conic_ptr;   // [N, 3]
-    float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
+    FeatureType
+        *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Outputs
     int32_t *render_last_index_ptr; // [n_images, image_height, image_width, 1]
     float *render_alpha_ptr;        // [n_images, image_height, image_width, 1]
-    float *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
+    FeatureType
+        *render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Internal variables
-    float _expected_feature[FEATURE_DIM] = {0.0f}; // buffer for feature accumulation
-    float _T = 1.0f;                               // current transmittance
+    FeatureType _expected_feature = {0.0f}; // buffer for feature accumulation
+    float _T = 1.0f;                        // current transmittance
     int32_t _last_index = -1; // the index of intersections ([n_isects]) for the last
                               // one being rasterized. -1 means no intersection.
 
@@ -149,12 +153,11 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const weight = alpha * this->_T;
 
         // accumulate the expectation of the feature
+        // Note(ruilong): we directly load feature from global memory here. Not sure if
+        // this is better than prefetching it to shared memory and loading it from
+        // there.
         auto const primitive_id = sm_primitive_id_ptr[t];
-#pragma unroll
-        for (size_t i = 0; i < FEATURE_DIM; i++) {
-            this->_expected_feature[i] +=
-                weight * this->feature_ptr[primitive_id * FEATURE_DIM + i];
-        }
+        this->_expected_feature += weight * this->feature_ptr[primitive_id];
 
         // update the transmittance
         this->_T = next_T;
@@ -171,14 +174,8 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const offset_pixel =
             this->image_id * this->image_height * this->image_width + this->pixel_id;
         this->render_alpha_ptr[offset_pixel] = 1.0f - this->_T;
-
         this->render_last_index_ptr[offset_pixel] = this->_last_index;
-
-#pragma unroll
-        for (size_t i = 0; i < FEATURE_DIM; i++) {
-            this->render_feature_ptr[offset_pixel * FEATURE_DIM + i] =
-                this->_expected_feature[i];
-        }
+        this->render_feature_ptr[offset_pixel] = this->_expected_feature;
     }
 };
 
@@ -187,32 +184,36 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     : BaseRasterizeKernelOperator<
           ImageGaussianRasterizeKernelBackwardOperator<FEATURE_DIM>> {
 
+    using FeatureType = fvec<FEATURE_DIM>;
+
     // Forward Inputs
     float *opacity_ptr; // [N, 1]
     fvec2 *mean_ptr;    // [N, 2]
     fvec3 *conic_ptr;   // [N, 3]
-    float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
+    FeatureType
+        *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Forward Outputs
     int32_t *render_last_index_ptr; // [n_images, image_height, image_width, 1]
     float *render_alpha_ptr;        // [n_images, image_height, image_width, 1]
 
     // Gradients for Forward Outputs
-    float *v_render_alpha_ptr;   // [n_images, image_height, image_width, 1]
-    float *v_render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
+    float *v_render_alpha_ptr; // [n_images, image_height, image_width, 1]
+    FeatureType
+        *v_render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Gradients for Forward Inputs
-    float *v_opacity_ptr; // [N, 1]
-    fvec2 *v_mean_ptr;    // [N, 2]
-    fvec3 *v_conic_ptr;   // [N, 3]
-    float *v_feature_ptr; // [N, FEATURE_DIM]
+    float *v_opacity_ptr;       // [N, 1]
+    fvec2 *v_mean_ptr;          // [N, 2]
+    fvec3 *v_conic_ptr;         // [N, 3]
+    FeatureType *v_feature_ptr; // [N, FEATURE_DIM]
 
     // Internal variables
-    float _T_final;                       // final transmittance
-    float _T;                             // current transmittance (from back to front)
-    float _v_render_alpha;                // dl/d_render_alpha for this pixel
-    float _v_render_feature[FEATURE_DIM]; // dl/d_render_feature for this pixel
-    float _expected_feature[FEATURE_DIM] = {0.0f}; // buffer for feature accumulation
+    float _T_final;                // final transmittance
+    float _T;                      // current transmittance (from back to front)
+    float _v_render_alpha;         // dl/d_render_alpha for this pixel
+    FeatureType _v_render_feature; // dl/d_render_feature for this pixel
+    FeatureType _expected_feature = {0.0f}; // buffer for feature accumulation
 
     // Configs
     const float skip_if_alpha_smaller_than = 1.0f / 255.0f;
@@ -223,7 +224,7 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // cache the opacity, mean, conic, primitive_id, and feature
         return sizeof(float) + sizeof(fvec2) + sizeof(fvec3) + sizeof(uint32_t) +
-               sizeof(float) * FEATURE_DIM;
+               sizeof(FeatureType);
     }
 
     inline __device__ auto initialize_impl() -> bool {
@@ -231,11 +232,7 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         auto const offset_pixel =
             this->image_id * this->image_height * this->image_width + this->pixel_id;
         this->_v_render_alpha = this->v_render_alpha_ptr[offset_pixel];
-#pragma unroll
-        for (size_t i = 0; i < FEATURE_DIM; i++) {
-            this->_v_render_feature[i] =
-                this->v_render_feature_ptr[offset_pixel * FEATURE_DIM + i];
-        }
+        this->_v_render_feature = this->v_render_feature_ptr[offset_pixel];
 
         // load the initial transmittance as remaining transmittance
         this->_T_final = 1.0f - this->render_alpha_ptr[offset_pixel];
@@ -252,17 +249,14 @@ struct ImageGaussianRasterizeKernelBackwardOperator
             reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
-        auto const sm_feature_ptr =
-            reinterpret_cast<float *>(&sm_primitive_id_ptr[this->n_threads_per_block]);
+        auto const sm_feature_ptr = reinterpret_cast<FeatureType *>(
+            &sm_primitive_id_ptr[this->n_threads_per_block]
+        );
         sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
         sm_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
         sm_conic_ptr[this->thread_rank] = this->conic_ptr[primitive_id];
         sm_primitive_id_ptr[this->thread_rank] = primitive_id;
-#pragma unroll
-        for (size_t i = 0; i < FEATURE_DIM; i++) {
-            sm_feature_ptr[this->thread_rank * FEATURE_DIM + i] =
-                this->feature_ptr[primitive_id * FEATURE_DIM + i];
-        }
+        sm_feature_ptr[this->thread_rank] = this->feature_ptr[primitive_id];
     }
 
     template <class WarpT>
@@ -276,8 +270,9 @@ struct ImageGaussianRasterizeKernelBackwardOperator
             reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
-        auto const sm_feature_ptr =
-            reinterpret_cast<float *>(&sm_primitive_id_ptr[this->n_threads_per_block]);
+        auto const sm_feature_ptr = reinterpret_cast<FeatureType *>(
+            &sm_primitive_id_ptr[this->n_threads_per_block]
+        );
         auto const opacity = sm_opacity_ptr[t];
         auto const mean = sm_mean_ptr[t];
         auto const conic = sm_conic_ptr[t];
@@ -307,15 +302,12 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         auto v_alpha = this->_T_final * ra * this->_v_render_alpha;
 
         // accumulate the expectation of the feature
-        float v_feature[FEATURE_DIM] = {0.0f};
-#pragma unroll
-        for (size_t i = 0; i < FEATURE_DIM; i++) {
-            v_feature[i] = weight * this->_v_render_feature[i];
-            auto const c = sm_feature_ptr[t * FEATURE_DIM + i];
-            v_alpha += (c * this->_T - this->_expected_feature[i] * ra) *
-                       this->_v_render_feature[i];
-            this->_expected_feature[i] += weight * c;
-        }
+        auto const feature = sm_feature_ptr[t];
+        FeatureType v_feature = weight * this->_v_render_feature;
+        this->_expected_feature += weight * feature;
+        v_alpha += ((feature * this->_T - this->_expected_feature * ra) *
+                    this->_v_render_feature)
+                       .sum();
 
         // compute the gradient of the `evaluate_light_attenuation`
         auto v_mean = fvec2{};
@@ -326,6 +318,7 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         );
 
         // reduce the gradient over the warp [faster than atomicAdd to global memory]
+        // TODO: warmSum support vec
         tinyrend::warp::warpSum(v_opacity, warp);
         tinyrend::warp::warpSum(v_mean, warp);
         tinyrend::warp::warpSum(v_conic, warp);
