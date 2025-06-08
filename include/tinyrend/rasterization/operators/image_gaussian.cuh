@@ -39,7 +39,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
         1e-4f; // For backward numerical stability.
     const float stop_if_this_trans_smaller_than = -1.0f; // -1 means not used.
 
-    static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+    static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // cache the opacity, mean, conic, and primitive_id
         return sizeof(float) + sizeof(glm::fvec2) + sizeof(glm::fvec3) +
                sizeof(uint32_t);
@@ -49,18 +49,17 @@ struct ImageGaussianRasterizeKernelForwardOperator
 
     inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
         // cache data to shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        auto const smem_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&smem_opacity_ptr[this->n_threads_per_block]
-            );
-        auto const smem_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&smem_mean_ptr[this->n_threads_per_block]);
-        auto const smem_primitive_id_ptr =
-            reinterpret_cast<uint32_t *>(&smem_conic_ptr[this->n_threads_per_block]);
-        smem_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
-        smem_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
-        smem_conic_ptr[this->thread_rank] = this->conic_ptr[primitive_id];
-        smem_primitive_id_ptr[this->thread_rank] = primitive_id;
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const sm_mean_ptr =
+            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+        auto const sm_conic_ptr =
+            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+        auto const sm_primitive_id_ptr =
+            reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
+        sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
+        sm_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
+        sm_conic_ptr[this->thread_rank] = this->conic_ptr[primitive_id];
+        sm_primitive_id_ptr[this->thread_rank] = primitive_id;
     }
 
     template <class WarpT>
@@ -71,17 +70,16 @@ struct ImageGaussianRasterizeKernelForwardOperator
         }
 
         // load data from shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        auto const smem_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&smem_opacity_ptr[this->n_threads_per_block]
-            );
-        auto const smem_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&smem_mean_ptr[this->n_threads_per_block]);
-        auto const smem_primitive_id_ptr =
-            reinterpret_cast<uint32_t *>(&smem_conic_ptr[this->n_threads_per_block]);
-        auto const opacity = smem_opacity_ptr[t];
-        auto const mean = smem_mean_ptr[t];
-        auto const conic = smem_conic_ptr[t];
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const sm_mean_ptr =
+            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+        auto const sm_conic_ptr =
+            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+        auto const sm_primitive_id_ptr =
+            reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
+        auto const opacity = sm_opacity_ptr[t];
+        auto const mean = sm_mean_ptr[t];
+        auto const conic = sm_conic_ptr[t];
 
         // compute the light attenuation
         auto const dx = this->pixel_x - mu.x;
@@ -105,7 +103,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
         auto const weight = alpha * this->_T;
 
         // accumulate the expectation of the feature
-        auto const primitive_id = smem_primitive_id_ptr[t];
+        auto const primitive_id = sm_primitive_id_ptr[t];
 #pragma unroll
         for (size_t i = 0; i < FEATURE_DIM; i++) {
             this->_accum_feature[i] +=
@@ -158,7 +156,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
 //     float _T;              // current transmittance (from back to front)
 //     float _v_render_alpha; // dl/d_render_alpha for this pixel
 
-//     static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+//     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
 //         // since we will cache the opacity [float] and primitive_id [uint32_t] in the
 //         // shared memory, the total shared memory size per primitive is:
 //         return sizeof(float) + sizeof(uint32_t);
@@ -178,24 +176,24 @@ struct ImageGaussianRasterizeKernelForwardOperator
 
 //     inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
 //         // cache data to shared memory
-//         auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-//         auto const smem_primitive_id_ptr =
+//         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+//         auto const sm_primitive_id_ptr =
 //             reinterpret_cast<uint32_t
-//             *>(&smem_opacity_ptr[this->n_threads_per_block]);
-//         smem_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
-//         smem_primitive_id_ptr[this->thread_rank] = primitive_id;
+//             *>(&sm_opacity_ptr[this->n_threads_per_block]);
+//         sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
+//         sm_primitive_id_ptr[this->thread_rank] = primitive_id;
 //     }
 
 //     template <class WarpT>
 //     inline __device__ auto
 //     rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
 //         // load data from shared memory
-//         auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-//         auto const smem_primitive_id_ptr =
+//         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+//         auto const sm_primitive_id_ptr =
 //             reinterpret_cast<uint32_t
-//             *>(&smem_opacity_ptr[this->n_threads_per_block]);
-//         auto const alpha = smem_opacity_ptr[t];
-//         auto const primitive_id = smem_primitive_id_ptr[t];
+//             *>(&sm_opacity_ptr[this->n_threads_per_block]);
+//         auto const alpha = sm_opacity_ptr[t];
+//         auto const primitive_id = sm_primitive_id_ptr[t];
 
 //         // compute the gradient
 //         auto const ra = 1.0f / (1.0f - alpha);

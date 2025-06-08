@@ -15,8 +15,8 @@ namespace cg = cooperative_groups;
 */
 template <typename Derived> struct BaseRasterizeKernelOperator {
   public:
-    static inline __host__ auto smem_size_per_primitive() -> uint32_t {
-        return Derived::smem_size_per_primitive_impl();
+    static inline __host__ auto sm_size_per_primitive() -> uint32_t {
+        return Derived::sm_size_per_primitive_impl();
     }
 
     inline __device__ auto initialize(
@@ -25,7 +25,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         uint32_t pixel_y,
         uint32_t image_width,
         uint32_t image_height,
-        char *smem_ptr,
+        char *sm_ptr,
         uint32_t thread_rank,
         uint32_t n_threads_per_block
     ) -> bool {
@@ -34,7 +34,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
         this->pixel_y = pixel_y;
         this->image_width = image_width;
         this->image_height = image_height;
-        this->smem_ptr = smem_ptr;
+        this->sm_ptr = sm_ptr;
         this->thread_rank = thread_rank;
         this->pixel_id = pixel_y * image_width + pixel_x;
         this->n_threads_per_block = n_threads_per_block;
@@ -62,7 +62,7 @@ template <typename Derived> struct BaseRasterizeKernelOperator {
     uint32_t pixel_id;
     uint32_t image_width;
     uint32_t image_height;
-    char *smem_ptr;
+    char *sm_ptr;
     uint32_t thread_rank;
     uint32_t n_threads_per_block;
 };
@@ -89,7 +89,7 @@ struct is_rasterize_kernel_operator
     tinyrend/rasterization/operators/simple_planer.cuh.
 
     The RasterizeKernelOperator should implement the following methods:
-    - smem_size_per_primitive_impl: Return the size of the shared memory per primitive.
+    - sm_size_per_primitive_impl: Return the size of the shared memory per primitive.
     - initialize_impl: Initialize the operator.
     - primitive_preprocess_impl: Each thread processes one primitive.
     - rasterize_impl: Each thread rasterize a batch of primitives to the current pixel.
@@ -151,7 +151,7 @@ __global__ void rasterize_kernel(
     auto const warp = cg::tiled_partition<32>(cg::this_thread_block());
 
     // Prepare the shared memory for the operator
-    extern __shared__ char smem[];
+    extern __shared__ char sm[];
 
     // Initialize the operator
     auto const init_success = op.initialize(
@@ -160,7 +160,7 @@ __global__ void rasterize_kernel(
         pixel_y,
         image_width,
         image_height,
-        smem,
+        sm,
         thread_rank,
         n_threads_per_block
     );

@@ -37,7 +37,7 @@ auto test_rasterization_simple_planer() -> int {
 
     // Launch forward rasterization
     size_t forward_shmem_size =
-        decltype(forward_op)::smem_size_per_primitive() * threads.x * threads.y;
+        decltype(forward_op)::sm_size_per_primitive() * threads.x * threads.y;
     rasterize_kernel<<<grid, threads, forward_shmem_size>>>(
         forward_op,
         image_height,
@@ -71,7 +71,7 @@ auto test_rasterization_simple_planer() -> int {
 
     // Launch backward rasterization
     size_t backward_shmem_size =
-        decltype(backward_op)::smem_size_per_primitive() * threads.x * threads.y;
+        decltype(backward_op)::sm_size_per_primitive() * threads.x * threads.y;
     rasterize_kernel<<<grid, threads, backward_shmem_size>>>(
         backward_op,
         image_height,

@@ -41,7 +41,7 @@ matrix.
         // Internal variables
         float _T = 1.0f; // current transmittance
 
-        static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+        static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
             return sizeof(glm::fvec2) + sizeof(glm::fmat2);
         }
 
@@ -50,24 +50,22 @@ matrix.
         inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id
         ) -> void {
             // cache data to shared memory
-            auto const smem_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->smem_ptr);
-            auto const smem_covariance_ptr =
-                reinterpret_cast<glm::fmat2 *>(&smem_mean_ptr[this->n_threads_per_block]
-                );
-            smem_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
-            smem_covariance_ptr[this->thread_rank] = this->covariance_ptr[primitive_id];
+            auto const sm_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+            auto const sm_covariance_ptr =
+                reinterpret_cast<glm::fmat2 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            sm_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
+            sm_covariance_ptr[this->thread_rank] = this->covariance_ptr[primitive_id];
         }
 
         template <class WarpT>
         inline __device__ auto
         rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
             // load data from shared memory
-            auto const smem_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->smem_ptr);
-            auto const smem_covariance_ptr =
-                reinterpret_cast<glm::fmat2 *>(&smem_mean_ptr[this->n_threads_per_block]
-                );
-            auto const mu = smem_mean_ptr[t];
-            auto const covariance = smem_covariance_ptr[t];
+            auto const sm_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+            auto const sm_covariance_ptr =
+                reinterpret_cast<glm::fmat2 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            auto const mu = sm_mean_ptr[t];
+            auto const covariance = sm_covariance_ptr[t];
 
             // compute the light attenuation
             auto const dx = this->pixel_x - mu.x;
@@ -117,7 +115,7 @@ matrix.
         float _T;              // current transmittance (from back to front)
         float _v_render_alpha; // dl/d_render_alpha for this pixel
 
-        static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+        static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
             return sizeof(glm::fvec2) + sizeof(glm::fmat2) + sizeof(uint32_t);
         }
 
@@ -137,32 +135,30 @@ matrix.
         inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id
         ) -> void {
             // cache data to shared memory
-            auto const smem_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->smem_ptr);
-            auto const smem_covariance_ptr =
-                reinterpret_cast<glm::fmat2 *>(&smem_mean_ptr[this->n_threads_per_block]
-                );
-            auto const smem_primitive_id_ptr = reinterpret_cast<uint32_t *>(
-                &smem_covariance_ptr[this->n_threads_per_block]
+            auto const sm_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+            auto const sm_covariance_ptr =
+                reinterpret_cast<glm::fmat2 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            auto const sm_primitive_id_ptr = reinterpret_cast<uint32_t *>(
+                &sm_covariance_ptr[this->n_threads_per_block]
             );
-            smem_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
-            smem_covariance_ptr[this->thread_rank] = this->covariance_ptr[primitive_id];
-            smem_primitive_id_ptr[this->thread_rank] = primitive_id;
+            sm_mean_ptr[this->thread_rank] = this->mean_ptr[primitive_id];
+            sm_covariance_ptr[this->thread_rank] = this->covariance_ptr[primitive_id];
+            sm_primitive_id_ptr[this->thread_rank] = primitive_id;
         }
 
         template <class WarpT>
         inline __device__ auto
         rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
             // load data from shared memory
-            auto const smem_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->smem_ptr);
-            auto const smem_covariance_ptr =
-                reinterpret_cast<glm::fmat2 *>(&smem_mean_ptr[this->n_threads_per_block]
-                );
-            auto const smem_primitive_id_ptr = reinterpret_cast<uint32_t *>(
-                &smem_covariance_ptr[this->n_threads_per_block]
+            auto const sm_mean_ptr = reinterpret_cast<glm::fvec2 *>(this->sm_ptr);
+            auto const sm_covariance_ptr =
+                reinterpret_cast<glm::fmat2 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            auto const sm_primitive_id_ptr = reinterpret_cast<uint32_t *>(
+                &sm_covariance_ptr[this->n_threads_per_block]
             );
-            auto const mu = smem_mean_ptr[t];
-            auto const covariance = smem_covariance_ptr[t];
-            auto const primitive_id = smem_primitive_id_ptr[t];
+            auto const mu = sm_mean_ptr[t];
+            auto const covariance = sm_covariance_ptr[t];
+            auto const primitive_id = sm_primitive_id_ptr[t];
 
             // compute the light attenuation
             auto const dx = this->pixel_x - mu.x;

@@ -29,7 +29,7 @@ struct SimplePlanerRasterizeKernelForwardOperator
     // Internal variables
     float _T = 1.0f; // current transmittance
 
-    static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+    static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         return sizeof(float);
     }
 
@@ -37,16 +37,16 @@ struct SimplePlanerRasterizeKernelForwardOperator
 
     inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
         // cache data to shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        smem_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
     }
 
     template <class WarpT>
     inline __device__ auto
     rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
         // load data from shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        auto const alpha = smem_opacity_ptr[t];
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const alpha = sm_opacity_ptr[t];
 
         // update the transmittance
         auto const next_T = this->_T * (1.0f - alpha);
@@ -87,7 +87,7 @@ struct SimplePlanerRasterizeKernelBackwardOperator
     float _T;              // current transmittance (from back to front)
     float _v_render_alpha; // dl/d_render_alpha for this pixel
 
-    static inline __host__ auto smem_size_per_primitive_impl() -> uint32_t {
+    static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // since we will cache the opacity [float] and primitive_id [uint32_t] in the
         // shared memory, the total shared memory size per primitive is:
         return sizeof(float) + sizeof(uint32_t);
@@ -107,22 +107,22 @@ struct SimplePlanerRasterizeKernelBackwardOperator
 
     inline __device__ auto primitive_preprocess_impl(uint32_t primitive_id) -> void {
         // cache data to shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        auto const smem_primitive_id_ptr =
-            reinterpret_cast<uint32_t *>(&smem_opacity_ptr[this->n_threads_per_block]);
-        smem_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
-        smem_primitive_id_ptr[this->thread_rank] = primitive_id;
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const sm_primitive_id_ptr =
+            reinterpret_cast<uint32_t *>(&sm_opacity_ptr[this->n_threads_per_block]);
+        sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
+        sm_primitive_id_ptr[this->thread_rank] = primitive_id;
     }
 
     template <class WarpT>
     inline __device__ auto
     rasterize_impl(uint32_t batch_start, uint32_t t, WarpT &warp) -> bool {
         // load data from shared memory
-        auto const smem_opacity_ptr = reinterpret_cast<float *>(this->smem_ptr);
-        auto const smem_primitive_id_ptr =
-            reinterpret_cast<uint32_t *>(&smem_opacity_ptr[this->n_threads_per_block]);
-        auto const alpha = smem_opacity_ptr[t];
-        auto const primitive_id = smem_primitive_id_ptr[t];
+        auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
+        auto const sm_primitive_id_ptr =
+            reinterpret_cast<uint32_t *>(&sm_opacity_ptr[this->n_threads_per_block]);
+        auto const alpha = sm_opacity_ptr[t];
+        auto const primitive_id = sm_primitive_id_ptr[t];
 
         // compute the gradient
         auto const ra = 1.0f / (1.0f - alpha);
