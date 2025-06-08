@@ -21,10 +21,10 @@ struct SimplePlanerRasterizeKernelForwardOperator
     : BaseRasterizeKernelOperator<SimplePlanerRasterizeKernelForwardOperator> {
 
     // Inputs
-    float *opacity_ptr; // [N, 1]
+    const float *__restrict__ opacity_ptr; // [N, 1]
 
     // Outputs
-    float *render_alpha_ptr; // [n_images, image_height, image_width, 1]
+    float *__restrict__ render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Internal variables
     float _T = 1.0f; // current transmittance
@@ -71,16 +71,18 @@ struct SimplePlanerRasterizeKernelBackwardOperator
     : BaseRasterizeKernelOperator<SimplePlanerRasterizeKernelBackwardOperator> {
 
     // Forward Inputs
-    float *opacity_ptr; // [N, 1]
+    const float *__restrict__ opacity_ptr; // [N, 1]
 
     // Forward Outputs
-    float *render_alpha_ptr; // [n_images, image_height, image_width, 1]
+    const float
+        *__restrict__ render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Gradients for Forward Outputs
-    float *v_render_alpha_ptr; // [n_images, image_height, image_width, 1]
+    const float
+        *__restrict__ v_render_alpha_ptr; // [n_images, image_height, image_width, 1]
 
     // Gradients for Forward Inputs
-    float *v_opacity_ptr; // [N, 1]
+    float *__restrict__ v_opacity_ptr; // [N, 1]
 
     // Internal variables
     float _T_final;        // final transmittance
