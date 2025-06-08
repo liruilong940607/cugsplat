@@ -9,53 +9,68 @@
 
 using namespace tinyrend::rasterization;
 
-auto test_rasterization() -> int {
+auto test_rasterization_simple_planer() -> int {
 
-    // number of primitives
+    // Configurations
     const int n_primitives = 2;
-    // image size
     const uint32_t image_height = 4;
     const uint32_t image_width = 2;
+    const uint32_t tile_width = 16;
+    const uint32_t tile_height = 16;
+    dim3 threads(tile_width, tile_height, 1);
+    dim3 grid(1, 1, 1);
 
-    SimplePlanerRasterizeKernelForwardOperator op{};
-    using OpType = decltype(op);
-
-    op.opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
-    op.render_alpha_ptr = create_device_ptr<float>(image_height * image_width);
-
-    // Create isect info on GPU
+    // Create primitive data:
+    auto const opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
+    // Create isect info: all two primitives are intersected with the first tile
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
     auto const isect_prefix_sum_per_tile = create_device_ptr<uint32_t>({2});
 
-    // launch rasterization kernel
-    dim3 threads(16, 16, 1);
-    dim3 grid(1, 1, 1);
-    size_t shmem_size = OpType::smem_size_per_primitive() * 16 * 16;
-    rasterize_kernel<<<grid, threads, shmem_size>>>(
-        op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
+    // Prepare forward outputs
+    auto render_alpha_ptr =
+        create_device_ptr<float>(image_height * image_width); // only alloc mem, no init
+
+    // Create forward operator
+    SimplePlanerRasterizeKernelForwardOperator forward_op{};
+    forward_op.opacity_ptr = opacity_ptr;
+    forward_op.render_alpha_ptr = render_alpha_ptr;
+
+    // Launch forward rasterization
+    size_t forward_shmem_size =
+        decltype(forward_op)::smem_size_per_primitive() * threads.x * threads.y;
+    rasterize_kernel<<<grid, threads, forward_shmem_size>>>(
+        forward_op,
+        image_height,
+        image_width,
+        isect_primitive_ids,
+        isect_prefix_sum_per_tile
     );
 
-    // copy data back to host
-    float *render_alpha_host = new float[image_height * image_width];
-    cudaMemcpy(
-        render_alpha_host,
-        op.render_alpha_ptr,
-        sizeof(float) * image_height * image_width,
-        cudaMemcpyDeviceToHost
-    );
-    float ground_truth_render_alpha = 0.5f + (1 - 0.5f) * 0.7f;
-    assert(is_close(render_alpha_host[0], ground_truth_render_alpha));
-    save_png(render_alpha_host, image_width, image_height, "results/render_alpha.png");
+    // Copy data back to host and check the result
+    auto const h_render_alpha_ptr =
+        device_ptr_to_host_ptr<float>(render_alpha_ptr, image_height * image_width);
+    for (int i = 0; i < image_height * image_width; i++) {
+        assert(is_close(h_render_alpha_ptr[i], 0.5f + (1 - 0.5f) * 0.7f));
+    }
+    save_png(h_render_alpha_ptr, image_width, image_height, "results/render_alpha.png");
 
-    SimplePlanerRasterizeKernelBackwardOperator op_backward{};
-    op_backward.opacity_ptr = op.opacity_ptr;
-    op_backward.render_alpha_ptr = op.render_alpha_ptr;
-    op_backward.v_render_alpha_ptr =
-        create_device_ptr_with_init<float>(image_height * image_width, 0.3f);
-    op_backward.v_opacity_ptr = create_device_ptr_with_init<float>(n_primitives, 0.0f);
+    // Prepare backward gradients
+    auto const v_render_alpha_ptr =
+        create_device_ptr<float>(image_height * image_width, 0.3f);
+    auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
 
-    rasterize_kernel<<<grid, threads, shmem_size>>>(
-        op_backward,
+    // Create backward operator
+    SimplePlanerRasterizeKernelBackwardOperator backward_op{};
+    backward_op.opacity_ptr = opacity_ptr;
+    backward_op.render_alpha_ptr = render_alpha_ptr;
+    backward_op.v_render_alpha_ptr = v_render_alpha_ptr;
+    backward_op.v_opacity_ptr = v_opacity_ptr;
+
+    // Launch backward rasterization
+    size_t backward_shmem_size =
+        decltype(backward_op)::smem_size_per_primitive() * threads.x * threads.y;
+    rasterize_kernel<<<grid, threads, backward_shmem_size>>>(
+        backward_op,
         image_height,
         image_width,
         isect_primitive_ids,
@@ -63,21 +78,14 @@ auto test_rasterization() -> int {
         true // reverse order
     );
 
-    // copy data back to host
-    float *v_opacity_host = new float[n_primitives];
-    cudaMemcpy(
-        v_opacity_host,
-        op_backward.v_opacity_ptr,
-        sizeof(float) * n_primitives,
-        cudaMemcpyDeviceToHost
-    );
-
     // o = a + (1 - a) * b
     // o = 0.5f + (1 - 0.5f) * 0.7f
     // dl/da = dl/do * do/da = 0.3f * (1 - 0.7f) = 0.09f
     // dl/db = dl/do * do/db = 0.3f * 0.5f = 0.15f
-    assert(is_close(v_opacity_host[0], 0.09f * image_height * image_width));
-    assert(is_close(v_opacity_host[1], 0.15f * image_height * image_width));
+    auto const h_v_opacity_ptr =
+        device_ptr_to_host_ptr<float>(v_opacity_ptr, n_primitives);
+    assert(is_close(h_v_opacity_ptr[0], 0.09f * image_height * image_width));
+    assert(is_close(h_v_opacity_ptr[1], 0.15f * image_height * image_width));
 
     check_cuda_error();
     return 0;
