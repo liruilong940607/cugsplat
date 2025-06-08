@@ -1,13 +1,14 @@
 #include <cuda_runtime.h>
-#include <glm/glm.hpp>
 #include <iostream>
 
 #include "helpers.cuh"
 #include "helpers.h"
+#include "tinyrend/core/vec.h"
 #include "tinyrend/rasterization/kernel.cuh"
 #include "tinyrend/rasterization/operators/image_gaussian.cuh"
 #include "tinyrend/rasterization/operators/simple_planer.cuh"
 
+using namespace tinyrend;
 using namespace tinyrend::rasterization;
 
 auto test_rasterization_simple_planer() -> int {
@@ -110,10 +111,10 @@ auto test_rasterization_image_gaussian() -> int {
     // Create primitive data:
     auto const opacity_ptr = create_device_ptr<float>({0.5f, 0.7f});
     auto const mean_ptr =
-        create_device_ptr<glm::fvec2>({glm::fvec2(3.0f, 3.0f), glm::fvec2(4.0f, 4.0f)});
-    auto const conic_ptr = create_device_ptr<glm::fvec3>(
-        {glm::fvec3(0.25f, 0.0f, 0.25f), glm::fvec3(0.25f, 0.0f, 0.25f)}
-    );
+        create_device_ptr<fvec2>({fvec2(3.0f, 3.0f), fvec2(4.0f, 4.0f)});
+    auto const conic_ptr =
+        create_device_ptr<fvec3>({fvec3(0.25f, 0.0f, 0.25f), fvec3(0.25f, 0.0f, 0.25f)}
+        );
     auto const feature_ptr = create_device_ptr<float>({0.2f, 0.5f});
     // Create isect info: all two primitives are intersected with the first tile
     auto const isect_primitive_ids = create_device_ptr<uint32_t>({0, 1});
@@ -164,12 +165,10 @@ auto test_rasterization_image_gaussian() -> int {
         create_device_ptr<float>(image_height * image_width, 0.3f);
     auto v_render_feature_ptr =
         create_device_ptr<float>(image_height * image_width * feature_dim, 0.2f);
-    auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
-    auto v_mean_ptr =
-        create_device_ptr<glm::fvec2>(n_primitives, glm::fvec2{}); // zero init
-    auto v_conic_ptr =
-        create_device_ptr<glm::fvec3>(n_primitives, glm::fvec3{});     // zero init
-    auto v_feature_ptr = create_device_ptr<float>(n_primitives, 0.0f); // zero init
+    auto v_opacity_ptr = create_device_ptr<float>(n_primitives, 0.0f);  // zero init
+    auto v_mean_ptr = create_device_ptr<fvec2>(n_primitives, fvec2{});  // zero init
+    auto v_conic_ptr = create_device_ptr<fvec3>(n_primitives, fvec3{}); // zero init
+    auto v_feature_ptr = create_device_ptr<float>(n_primitives, 0.0f);  // zero init
 
     // Create backward operator
     ImageGaussianRasterizeKernelBackwardOperator<feature_dim> backward_op{};
@@ -213,7 +212,7 @@ auto test_rasterization_image_gaussian() -> int {
 
 auto main() -> int {
     int fails = 0;
-    // fails += test_rasterization_simple_planer();
+    fails += test_rasterization_simple_planer();
     fails += test_rasterization_image_gaussian();
 
     if (fails == 0) {

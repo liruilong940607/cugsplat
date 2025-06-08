@@ -2,8 +2,8 @@
 
 #include <cooperative_groups.h>
 #include <cstdint>
-#include <glm/glm.hpp>
 
+#include "tinyrend/core/vec.h"
 #include "tinyrend/core/warp.cuh"
 #include "tinyrend/rasterization/kernel.cuh"
 
@@ -12,26 +12,26 @@ namespace tinyrend::rasterization {
 namespace cg = cooperative_groups;
 
 using EvaluateLightAttenuationContext = std::tuple<
-    float,      // alpha
-    float,      // vis
-    glm::fvec3, // conic
-    float,      // dx
-    float,      // dy
-    float       // maximum_alpha
+    float, // alpha
+    float, // vis
+    fvec3, // conic
+    float, // dx
+    float, // dy
+    float  // maximum_alpha
     >;
 
 inline __device__ auto evaluate_light_attenuation_forward(
     const float opacity,
-    const glm::fvec2 mean,
-    const glm::fvec3 conic,
+    const fvec2 mean,
+    const fvec3 conic,
     const float pixel_x,
     const float pixel_y,
     const float maximum_alpha
 ) -> std::pair<float, EvaluateLightAttenuationContext> {
-    auto const dx = pixel_x - mean.x;
-    auto const dy = pixel_y - mean.y;
+    auto const dx = pixel_x - mean[0];
+    auto const dy = pixel_y - mean[1];
     auto const sigma =
-        0.5f * (conic.x * dx * dx + conic.z * dy * dy) + conic.y * dx * dy;
+        0.5f * (conic[0] * dx * dx + conic[2] * dy * dy) + conic[1] * dx * dy;
     auto const vis = __expf(-sigma);
     auto const alpha = opacity * vis;
     auto const output = min(alpha, maximum_alpha);
@@ -48,8 +48,8 @@ inline __device__ auto evaluate_light_attenuation_backward(
     const float v_alpha,
     // gradients of inputs
     float &v_opacity,
-    glm::fvec2 &v_mean,
-    glm::fvec3 &v_conic
+    fvec2 &v_mean,
+    fvec3 &v_conic
 ) -> void {
     auto const alpha = std::get<0>(ctx);
     auto const vis = std::get<1>(ctx);
@@ -65,8 +65,8 @@ inline __device__ auto evaluate_light_attenuation_backward(
     auto const v_sigma = -alpha * v_alpha;
     v_opacity += vis * v_alpha;
     v_mean +=
-        v_sigma * glm::fvec2{conic.x * dx + conic.y * dy, conic.y * dx + conic.z * dy};
-    v_conic += v_sigma * glm::fvec3{0.5f * dx * dx, dx * dy, 0.5f * dy * dy};
+        v_sigma * fvec2{conic[0] * dx + conic[1] * dy, conic[1] * dx + conic[2] * dy};
+    v_conic += v_sigma * fvec3{0.5f * dx * dx, dx * dy, 0.5f * dy * dy};
 }
 
 template <size_t FEATURE_DIM>
@@ -75,9 +75,9 @@ struct ImageGaussianRasterizeKernelForwardOperator
           ImageGaussianRasterizeKernelForwardOperator<FEATURE_DIM>> {
 
     // Inputs
-    float *opacity_ptr;    // [N, 1]
-    glm::fvec2 *mean_ptr;  // [N, 2]
-    glm::fvec3 *conic_ptr; // [N, 3]
+    float *opacity_ptr; // [N, 1]
+    fvec2 *mean_ptr;    // [N, 2]
+    fvec3 *conic_ptr;   // [N, 3]
     float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Outputs
@@ -99,8 +99,7 @@ struct ImageGaussianRasterizeKernelForwardOperator
 
     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // cache the opacity, mean, conic, and primitive_id
-        return sizeof(float) + sizeof(glm::fvec2) + sizeof(glm::fvec3) +
-               sizeof(uint32_t);
+        return sizeof(float) + sizeof(fvec2) + sizeof(fvec3) + sizeof(uint32_t);
     }
 
     inline __device__ auto initialize_impl() -> bool { return true; }
@@ -109,9 +108,9 @@ struct ImageGaussianRasterizeKernelForwardOperator
         // cache data to shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
         auto const sm_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
         auto const sm_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
         sm_opacity_ptr[this->thread_rank] = this->opacity_ptr[primitive_id];
@@ -126,9 +125,9 @@ struct ImageGaussianRasterizeKernelForwardOperator
         // load data from shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
         auto const sm_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
         auto const sm_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
         auto const opacity = sm_opacity_ptr[t];
@@ -193,9 +192,9 @@ struct ImageGaussianRasterizeKernelBackwardOperator
           ImageGaussianRasterizeKernelBackwardOperator<FEATURE_DIM>> {
 
     // Forward Inputs
-    float *opacity_ptr;    // [N, 1]
-    glm::fvec2 *mean_ptr;  // [N, 2]
-    glm::fvec3 *conic_ptr; // [N, 3]
+    float *opacity_ptr; // [N, 1]
+    fvec2 *mean_ptr;    // [N, 2]
+    fvec3 *conic_ptr;   // [N, 3]
     float *feature_ptr; // [N, FEATURE_DIM] (e.g., 3 for RGB or 256 for neural features)
 
     // Forward Outputs
@@ -207,10 +206,10 @@ struct ImageGaussianRasterizeKernelBackwardOperator
     float *v_render_feature_ptr; // [n_images, image_height, image_width, FEATURE_DIM]
 
     // Gradients for Forward Inputs
-    float *v_opacity_ptr;    // [N, 1]
-    glm::fvec2 *v_mean_ptr;  // [N, 2]
-    glm::fvec3 *v_conic_ptr; // [N, 3]
-    float *v_feature_ptr;    // [N, FEATURE_DIM]
+    float *v_opacity_ptr; // [N, 1]
+    fvec2 *v_mean_ptr;    // [N, 2]
+    fvec3 *v_conic_ptr;   // [N, 3]
+    float *v_feature_ptr; // [N, FEATURE_DIM]
 
     // Internal variables
     float _T_final;                       // final transmittance
@@ -227,8 +226,8 @@ struct ImageGaussianRasterizeKernelBackwardOperator
 
     static inline __host__ auto sm_size_per_primitive_impl() -> uint32_t {
         // cache the opacity, mean, conic, primitive_id, and feature
-        return sizeof(float) + sizeof(glm::fvec2) + sizeof(glm::fvec3) +
-               sizeof(uint32_t) + sizeof(float) * FEATURE_DIM;
+        return sizeof(float) + sizeof(fvec2) + sizeof(fvec3) + sizeof(uint32_t) +
+               sizeof(float) * FEATURE_DIM;
     }
 
     inline __device__ auto initialize_impl() -> bool {
@@ -252,9 +251,9 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         // cache data to shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
         auto const sm_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
         auto const sm_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
         auto const sm_feature_ptr =
@@ -276,9 +275,9 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         // load data from shared memory
         auto const sm_opacity_ptr = reinterpret_cast<float *>(this->sm_ptr);
         auto const sm_mean_ptr =
-            reinterpret_cast<glm::fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec2 *>(&sm_opacity_ptr[this->n_threads_per_block]);
         auto const sm_conic_ptr =
-            reinterpret_cast<glm::fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
+            reinterpret_cast<fvec3 *>(&sm_mean_ptr[this->n_threads_per_block]);
         auto const sm_primitive_id_ptr =
             reinterpret_cast<uint32_t *>(&sm_conic_ptr[this->n_threads_per_block]);
         auto const sm_feature_ptr =
@@ -323,8 +322,8 @@ struct ImageGaussianRasterizeKernelBackwardOperator
         }
 
         // compute the gradient of the `evaluate_light_attenuation`
-        auto v_mean = glm::fvec2{};
-        auto v_conic = glm::fvec3{};
+        auto v_mean = fvec2{};
+        auto v_conic = fvec3{};
         auto v_opacity = 0.0f;
         evaluate_light_attenuation_backward(
             ela_ctx, v_alpha, v_opacity, v_mean, v_conic
@@ -343,13 +342,13 @@ struct ImageGaussianRasterizeKernelBackwardOperator
             atomicAdd(v_opacity_ptr + primitive_id, v_alpha);
 
             float *v_mean_ptr = (float *)this->v_mean_ptr;
-            atomicAdd(v_mean_ptr + primitive_id * 2, v_mean.x);
-            atomicAdd(v_mean_ptr + primitive_id * 2 + 1, v_mean.y);
+            atomicAdd(v_mean_ptr + primitive_id * 2, v_mean[0]);
+            atomicAdd(v_mean_ptr + primitive_id * 2 + 1, v_mean[1]);
 
             float *v_conic_ptr = (float *)this->v_conic_ptr;
-            atomicAdd(v_conic_ptr + primitive_id * 3, v_conic.x);
-            atomicAdd(v_conic_ptr + primitive_id * 3 + 1, v_conic.y);
-            atomicAdd(v_conic_ptr + primitive_id * 3 + 2, v_conic.z);
+            atomicAdd(v_conic_ptr + primitive_id * 3, v_conic[0]);
+            atomicAdd(v_conic_ptr + primitive_id * 3 + 1, v_conic[1]);
+            atomicAdd(v_conic_ptr + primitive_id * 3 + 2, v_conic[2]);
 
             float *v_feature_ptr = (float *)this->v_feature_ptr;
 #pragma unroll
