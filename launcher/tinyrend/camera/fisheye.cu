@@ -10,7 +10,7 @@ namespace tinyrend::camera::fisheye {
         const glm::fvec2 *__restrict__ principal_points,                               \
         glm::fvec2 *__restrict__ image_points
 
-template <bool USE_CUDA> void project_kernel_launcher(FISHEYE_PROJECT_SIGNATURE) {
+template <bool USE_CUDA> void launch_project(FISHEYE_PROJECT_SIGNATURE) {
     tinyrend::launch_linear_kernel<USE_CUDA>(
         n_elements,
         [camera_points,
@@ -24,7 +24,7 @@ template <bool USE_CUDA> void project_kernel_launcher(FISHEYE_PROJECT_SIGNATURE)
     );
 }
 
-template void project_kernel_launcher<true>(FISHEYE_PROJECT_SIGNATURE);
-template void project_kernel_launcher<false>(FISHEYE_PROJECT_SIGNATURE);
+template void launch_project<true>(FISHEYE_PROJECT_SIGNATURE);
+template void launch_project<false>(FISHEYE_PROJECT_SIGNATURE);
 
 } // namespace tinyrend::camera::fisheye
