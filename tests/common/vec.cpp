@@ -6,7 +6,7 @@
 
 using namespace tinyrend;
 
-int test_vec() {
+int test() {
     int fails = 0;
 
     // Initialize from values and pointer
@@ -91,7 +91,7 @@ int test_vec() {
 int main() {
     int fails = 0;
 
-    fails += test_vec();
+    fails += test();
 
     if (fails > 0) {
         printf("[common/vec.cpp] %d tests failed!\n", fails);

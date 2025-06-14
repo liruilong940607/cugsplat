@@ -7,6 +7,7 @@
 #include <string>
 
 #include "tinyrend/common/macros.h"
+#include "tinyrend/common/math.h"
 
 namespace tinyrend {
 
@@ -287,5 +288,35 @@ template <size_t N> using ivec = vec<int, N>;
 using ivec2 = ivec<2>;
 using ivec3 = ivec<3>;
 using ivec4 = ivec<4>;
+
+// Functions
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE T dot(const vec<T, N> &v1, const vec<T, N> &v2) {
+    return (v1 * v2).sum();
+}
+
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N> cross(const vec<T, N> &v1, const vec<T, N> &v2) {
+    return vec<T, N>(
+        v1[1] * v2[2] - v1[2] * v2[1],
+        v1[2] * v2[0] - v1[0] * v2[2],
+        v1[0] * v2[1] - v1[1] * v2[0]
+    );
+}
+
+template <typename T, size_t N> inline TREND_HOST_DEVICE T length(const vec<T, N> &v) {
+    return std::sqrt(dot(v, v));
+}
+
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE T normalize(const vec<T, N> &v) {
+    return v * rsqrt(dot(v, v));
+}
+
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N> safe_normalize(const vec<T, N> &v) {
+    const T l2 = dot(v, v);
+    return (l2 > 0.0f) ? (v * rsqrt(l2)) : v;
+}
 
 } // namespace tinyrend

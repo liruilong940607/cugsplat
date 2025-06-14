@@ -6,7 +6,7 @@
 
 using namespace tinyrend;
 
-int test_mat() {
+int test() {
     int fails = 0;
 
     // Initialize from values and pointer
@@ -135,7 +135,7 @@ int test_mat() {
 int main() {
     int fails = 0;
 
-    fails += test_mat();
+    fails += test();
 
     if (fails > 0) {
         printf("[common/mat.cpp] %d tests failed!\n", fails);

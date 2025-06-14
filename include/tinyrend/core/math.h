@@ -1,13 +1,14 @@
 #pragma once
 
 #include <cstdint>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h"
+#include "tinyrend/common/macros.h"
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::math {
 
-inline TREND_HOST_DEVICE float rsqrtf(const float x) {
+template <typename T> inline TREND_HOST_DEVICE T rsqrtf(const T x) {
 #ifdef __CUDACC__
     return ::rsqrtf(x); // use CUDA's fast rsqrtf()
 #else
@@ -57,21 +58,20 @@ inline TREND_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
     return true;
 }
 
-template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline TREND_HOST_DEVICE glm::vec<L, float, Q>
-safe_normalize(const glm::vec<L, float, Q> &x) {
-    const float l2 = glm::dot(x, x);
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N> safe_normalize(const vec<T, N> &x) {
+    const T l2 = dot(x, x);
     return (l2 > 0.0f) ? (x * rsqrtf(l2)) : x;
 }
 
-template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline TREND_HOST_DEVICE glm::vec<L, float, Q>
-safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out) {
-    const float l2 = glm::dot(x, x);
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N>
+safe_normalize_vjp(const vec<T, N> &x, const vec<T, N> &v_out) {
+    const T l2 = dot(x, x);
     if (l2 > 0.0f) {
-        const float il = rsqrtf(l2);
-        const float il3 = il * il * il;
-        return il * v_out - il3 * glm::dot(v_out, x) * x;
+        const T il = rsqrtf(l2);
+        const T il3 = il * il * il;
+        return il * v_out - il3 * dot(v_out, x) * x;
     }
     return v_out;
 }
