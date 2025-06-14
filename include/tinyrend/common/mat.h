@@ -12,7 +12,7 @@
 namespace tinyrend {
 
 template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
-    T data[Cols][Rows]; // Column-major storage: [column][row]
+    vec<T, Rows> data[Cols]; // Column vectors for access
 
     // Default constructor
     mat() = default;
@@ -56,9 +56,11 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
         return result;
     }
 
-    // Access operators [col]
-    TREND_HOST_DEVICE T &operator[](size_t col) { return data[col]; }
-    TREND_HOST_DEVICE const T &operator[](size_t col) const { return data[col]; }
+    // Access operators [col] to return vec<T>
+    TREND_HOST_DEVICE vec<T, Rows> &operator[](size_t col) { return data[col]; }
+    TREND_HOST_DEVICE const vec<T, Rows> &operator[](size_t col) const {
+        return data[col];
+    }
 
     // Access operators (col, row)
     TREND_HOST_DEVICE T &operator()(size_t col, size_t row) { return data[col][row]; }
@@ -197,7 +199,7 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
     // Matrix-Vector multiplication
     template <size_t N>
     TREND_HOST_DEVICE vec<T, Rows> operator*(const vec<T, N> &v) const {
-        static_assert(N == Cols, "Vector dimension must match matrix columns");
+        static_assert(N == Cols, "Vector dimension must match matrix data");
         vec<T, Rows> result;
 #pragma unroll
         for (size_t i = 0; i < Rows; ++i) {

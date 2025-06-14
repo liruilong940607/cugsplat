@@ -25,6 +25,15 @@ int test_mat() {
         fails += CHECK(m1 == m2, "");
     }
 
+    // Access operators [col]
+    {
+        fmat2x2 m(1.2f, 2.0f, 3.0f, 4.0f);
+        fvec2 v1 = m[0];
+        fvec2 v2 = m[1];
+        fails += CHECK(v1.is_close(fvec2(1.2f, 2.0f)), "");
+        fails += CHECK(v2.is_close(fvec2(3.0f, 4.0f)), "");
+    }
+
     // Matrix-Matrix element-wise operations
     {
         fmat2x2 m1(1.2f, 2.0f, 3.0f, 4.0f);
