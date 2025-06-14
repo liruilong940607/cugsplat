@@ -48,6 +48,7 @@ int test_vec() {
         CHECK((1.0f + v1).is_close(fvec3(2.2f, 3.0f, 4.0f)), "");
         CHECK((1.0f - v1).is_close(-fvec3(0.2f, 1.0f, 2.0f)), "");
         CHECK((1.0f * v1).is_close(fvec3(1.2f, 2.0f, 3.0f)), "");
+        CHECK((2.4f / v1).is_close(fvec3(2.0f, 1.2f, 0.8f)), "");
     }
 
     // Compound assignment operators

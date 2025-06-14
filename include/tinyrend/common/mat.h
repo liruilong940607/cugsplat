@@ -1,0 +1,354 @@
+#pragma once
+
+#include <array>
+#include <cmath>
+#include <cstddef>
+#include <sstream>
+#include <string>
+
+#include "tinyrend/common/macros.h"
+#include "tinyrend/common/vec.h"
+
+namespace tinyrend {
+
+template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
+    T data[Cols][Rows]; // Column-major storage: [column][row]
+
+    // Default constructor
+    mat() = default;
+
+    // Initialize from values
+    template <typename... Args> TREND_HOST_DEVICE mat(Args... args) {
+        static_assert(sizeof...(args) == Rows * Cols, "Invalid number of arguments");
+        T arr[] = {static_cast<T>(args)...};
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                data[j][i] = arr[i + j * Rows];
+            }
+        }
+    }
+
+    // Initialize from pointer (column-major)
+    TREND_HOST_DEVICE static mat from_ptr_col_major(const T *ptr) {
+        mat result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result.data[j][i] = ptr[i + j * Rows];
+            }
+        }
+        return result;
+    }
+
+    // Initialize from pointer (row-major)
+    TREND_HOST_DEVICE static mat from_ptr_row_major(const T *ptr) {
+        mat result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result.data[j][i] = ptr[i * Cols + j];
+            }
+        }
+        return result;
+    }
+
+    // Access operators [col]
+    TREND_HOST_DEVICE T &operator[](size_t col) { return data[col]; }
+    TREND_HOST_DEVICE const T &operator[](size_t col) const { return data[col]; }
+
+    // Access operators (col, row)
+    TREND_HOST_DEVICE T &operator()(size_t col, size_t row) { return data[col][row]; }
+    TREND_HOST_DEVICE const T &operator()(size_t col, size_t row) const {
+        return data[col][row];
+    }
+
+    // Matrix-Matrix element-wise operations
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator+(const mat<T, Cols, Rows> &other
+    ) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] + other(j, i);
+            }
+        }
+        return result;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator-(const mat<T, Cols, Rows> &other
+    ) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] - other(j, i);
+            }
+        }
+        return result;
+    }
+
+    // Matrix-Matrix product
+    template <size_t OtherCols>
+    TREND_HOST_DEVICE mat<T, OtherCols, Rows>
+    operator*(const mat<T, OtherCols, Cols> &other) const {
+        mat<T, OtherCols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < OtherCols; ++j) {
+                result(j, i) = T(0);
+#pragma unroll
+                for (size_t k = 0; k < Cols; ++k) {
+                    result(j, i) += data[k][i] * other(j, k);
+                }
+            }
+        }
+        return result;
+    }
+
+    // Matrix-Scalar operations
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator+(T scalar) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] + scalar;
+            }
+        }
+        return result;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator-(T scalar) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] - scalar;
+            }
+        }
+        return result;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator*(T scalar) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] * scalar;
+            }
+        }
+        return result;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator/(T scalar) const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = data[j][i] / scalar;
+            }
+        }
+        return result;
+    }
+
+    // Scalar-Matrix operations (friend functions)
+    TREND_HOST_DEVICE friend mat<T, Cols, Rows>
+    operator+(T scalar, const mat<T, Cols, Rows> &m) {
+        return m + scalar;
+    }
+
+    TREND_HOST_DEVICE friend mat<T, Cols, Rows>
+    operator-(T scalar, const mat<T, Cols, Rows> &m) {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = scalar - m(j, i);
+            }
+        }
+        return result;
+    }
+
+    TREND_HOST_DEVICE friend mat<T, Cols, Rows>
+    operator*(T scalar, const mat<T, Cols, Rows> &m) {
+        return m * scalar;
+    }
+
+    TREND_HOST_DEVICE friend mat<T, Cols, Rows>
+    operator/(T scalar, const mat<T, Cols, Rows> &m) {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = scalar / m(j, i);
+            }
+        }
+        return result;
+    }
+
+    // Matrix-Vector multiplication
+    template <size_t N>
+    TREND_HOST_DEVICE vec<T, Rows> operator*(const vec<T, N> &v) const {
+        static_assert(N == Cols, "Vector dimension must match matrix columns");
+        vec<T, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            result[i] = T(0);
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result[i] += data[j][i] * v[j];
+            }
+        }
+        return result;
+    }
+
+    // Vector-Matrix multiplication
+    template <size_t N>
+    TREND_HOST_DEVICE friend vec<T, Cols>
+    operator*(const vec<T, N> &v, const mat<T, Rows, Cols> &m) {
+        static_assert(N == Rows, "Vector dimension must match matrix rows");
+        vec<T, Cols> result;
+#pragma unroll
+        for (size_t i = 0; i < Cols; ++i) {
+            result[i] = T(0);
+#pragma unroll
+            for (size_t j = 0; j < Rows; ++j) {
+                result[i] += m.data[i][j] * v[j];
+            }
+        }
+        return result;
+    }
+
+    // Compound assignment operators
+    TREND_HOST_DEVICE mat<T, Cols, Rows> &operator+=(const mat<T, Cols, Rows> &other) {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                data[j][i] += other(j, i);
+            }
+        }
+        return *this;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> &operator-=(const mat<T, Cols, Rows> &other) {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                data[j][i] -= other(j, i);
+            }
+        }
+        return *this;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> &operator*=(T scalar) {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                data[j][i] *= scalar;
+            }
+        }
+        return *this;
+    }
+
+    TREND_HOST_DEVICE mat<T, Cols, Rows> &operator/=(T scalar) {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                data[j][i] /= scalar;
+            }
+        }
+        return *this;
+    }
+
+    // Comparison operators
+    TREND_HOST_DEVICE bool operator==(const mat<T, Cols, Rows> &other) const {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                if (data[j][i] != other(j, i)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    TREND_HOST_DEVICE bool operator!=(const mat<T, Cols, Rows> &other) const {
+        return !(*this == other);
+    }
+
+    // Is close
+    TREND_HOST_DEVICE bool
+    is_close(const mat<T, Cols, Rows> &other, T atol = 1e-5f, T rtol = 1e-5f) const {
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                if (std::abs(data[j][i] - other(j, i)) >
+                    atol + rtol * std::abs(other(j, i))) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    // To string
+    std::string to_string() const {
+        std::stringstream ss;
+        ss << "mat" << Cols << "x" << Rows << "(";
+        for (size_t j = 0; j < Cols; ++j) {
+            if (j > 0)
+                ss << ", ";
+            ss << "(";
+            for (size_t i = 0; i < Rows; ++i) {
+                if (i > 0)
+                    ss << ", ";
+                ss << data[j][i];
+            }
+            ss << ")";
+        }
+        ss << ")";
+        return ss.str();
+    }
+
+    // Transpose
+    TREND_HOST_DEVICE mat<T, Rows, Cols> transpose() const {
+        mat<T, Rows, Cols> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(i, j) = data[j][i];
+            }
+        }
+        return result;
+    }
+};
+
+// Common type aliases
+template <size_t Cols, size_t Rows> using fmat = mat<float, Cols, Rows>;
+using fmat2x2 = fmat<2, 2>;
+using fmat2x3 = fmat<2, 3>;
+using fmat2x4 = fmat<2, 4>;
+using fmat3x2 = fmat<3, 2>;
+using fmat3x3 = fmat<3, 3>;
+using fmat3x4 = fmat<3, 4>;
+using fmat4x2 = fmat<4, 2>;
+using fmat4x3 = fmat<4, 3>;
+using fmat4x4 = fmat<4, 4>;
+
+} // namespace tinyrend
