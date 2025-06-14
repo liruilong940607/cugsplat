@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 
 namespace tinyrend::ut {
 
@@ -52,7 +52,7 @@ template <int M, typename Aux> struct UnscentedTransformResult {
  * transformation fails, the entire transform will return false.
  */
 template <int N, int M, typename Aux, typename Func>
-GSPLAT_HOST_DEVICE inline auto transform(
+TREND_HOST_DEVICE inline auto transform(
     Func const &f,
     glm::vec<N, float> const &mu,
     glm::mat<N, N, float> const &sqrt_covar,

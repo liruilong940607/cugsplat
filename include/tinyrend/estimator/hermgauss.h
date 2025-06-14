@@ -8,7 +8,7 @@
 #include <array>
 #include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 
 namespace tinyrend::ghq {
 
@@ -57,7 +57,7 @@ template <int B> struct constexpr_pow<B, 0> {
 
 // Recursive implementation for tensor weights
 template <int N, int I = 0, int J = 0, int K = 0>
-GSPLAT_HOST_DEVICE constexpr auto hermgauss_weights_impl(
+TREND_HOST_DEVICE constexpr auto hermgauss_weights_impl(
     std::array<float, N> const &w1d, std::array<float, constexpr_pow<N, 3>::value> &w
 ) -> void {
     if constexpr (K < N) {
@@ -74,7 +74,7 @@ GSPLAT_HOST_DEVICE constexpr auto hermgauss_weights_impl(
 
 // Recursive implementation for tensor points
 template <int N, int I = 0, int J = 0, int K = 0>
-GSPLAT_HOST_DEVICE constexpr auto hermgauss_points_impl(
+TREND_HOST_DEVICE constexpr auto hermgauss_points_impl(
     std::array<float, N> const &x1d,
     std::array<glm::fvec3, constexpr_pow<N, 3>::value> &p
 ) -> void {
@@ -92,7 +92,7 @@ GSPLAT_HOST_DEVICE constexpr auto hermgauss_points_impl(
 
 // Main function to generate tensor weights
 template <int N>
-GSPLAT_HOST_DEVICE constexpr auto hermgauss_weights(std::array<float, N> const &w1d
+TREND_HOST_DEVICE constexpr auto hermgauss_weights(std::array<float, N> const &w1d
 ) -> std::array<float, constexpr_pow<N, 3>::value> {
     std::array<float, constexpr_pow<N, 3>::value> w{};
     hermgauss_weights_impl<N>(w1d, w);
@@ -101,7 +101,7 @@ GSPLAT_HOST_DEVICE constexpr auto hermgauss_weights(std::array<float, N> const &
 
 // Main function to generate tensor points
 template <int N>
-GSPLAT_HOST_DEVICE constexpr auto hermgauss_points(std::array<float, N> const &x1d
+TREND_HOST_DEVICE constexpr auto hermgauss_points(std::array<float, N> const &x1d
 ) -> std::array<glm::fvec3, constexpr_pow<N, 3>::value> {
     std::array<glm::fvec3, constexpr_pow<N, 3>::value> p{};
     hermgauss_points_impl<N>(x1d, p);
@@ -109,15 +109,15 @@ GSPLAT_HOST_DEVICE constexpr auto hermgauss_points(std::array<float, N> const &x
 }
 
 // Compile-time generated 3D weights and points for order 3
-GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_WEIGHTS_3D_ORDER3 =
+TREND_HOST_DEVICE constexpr auto HERMGAUSS_WEIGHTS_3D_ORDER3 =
     hermgauss_weights<ORDER3>(HERMGAUSS_WEIGHTS_1D_ORDER3);
-GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_POINTS_3D_ORDER3 =
+TREND_HOST_DEVICE constexpr auto HERMGAUSS_POINTS_3D_ORDER3 =
     hermgauss_points<ORDER3>(HERMGAUSS_POINTS_1D_ORDER3);
 
 // Compile-time generated 3D weights and points for order 5
-GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_WEIGHTS_3D_ORDER5 =
+TREND_HOST_DEVICE constexpr auto HERMGAUSS_WEIGHTS_3D_ORDER5 =
     hermgauss_weights<ORDER5>(HERMGAUSS_WEIGHTS_1D_ORDER5);
-GSPLAT_HOST_DEVICE constexpr auto HERMGAUSS_POINTS_3D_ORDER5 =
+TREND_HOST_DEVICE constexpr auto HERMGAUSS_POINTS_3D_ORDER5 =
     hermgauss_points<ORDER5>(HERMGAUSS_POINTS_1D_ORDER5);
 
 } // namespace tinyrend::ghq

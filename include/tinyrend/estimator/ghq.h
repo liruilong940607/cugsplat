@@ -11,7 +11,7 @@
 #include <functional>
 #include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/estimator/hermgauss.h"
 
 namespace tinyrend::ghq {
@@ -25,7 +25,7 @@ template <int N> constexpr int num_quadratic_features() {
 /// @private
 // Helper function to compute quadratic features for a single point
 template <int N>
-GSPLAT_HOST_DEVICE constexpr auto
+TREND_HOST_DEVICE constexpr auto
 build_quadratic_features_point(glm::vec<N, float> const &point
 ) -> std::array<float, num_quadratic_features<N>()> {
     std::array<float, num_quadratic_features<N>()> features{};
@@ -52,7 +52,7 @@ build_quadratic_features_point(glm::vec<N, float> const &point
 /// @private
 // Build quadratic features matrix for all points
 template <int N, int M>
-GSPLAT_HOST_DEVICE constexpr auto
+TREND_HOST_DEVICE constexpr auto
 build_quadratic_features(std::array<glm::vec<N, float>, M> const &points
 ) -> std::array<std::array<float, num_quadratic_features<N>()>, M> {
     std::array<std::array<float, num_quadratic_features<N>()>, M> features_matrix{};
@@ -65,7 +65,7 @@ build_quadratic_features(std::array<glm::vec<N, float>, M> const &points
 /// @private
 // Compute weighted features transpose
 template <int N, int M>
-GSPLAT_HOST_DEVICE constexpr auto compute_weighted_features_transpose(
+TREND_HOST_DEVICE constexpr auto compute_weighted_features_transpose(
     std::array<std::array<float, num_quadratic_features<N>()>, M> const
         &features_matrix,
     std::array<float, M> const &weights
@@ -83,7 +83,7 @@ GSPLAT_HOST_DEVICE constexpr auto compute_weighted_features_transpose(
 /// @private
 // Compute weighted features covariance
 template <int N, int M>
-GSPLAT_HOST_DEVICE constexpr auto compute_weighted_features_covariance(
+TREND_HOST_DEVICE constexpr auto compute_weighted_features_covariance(
     std::array<std::array<float, num_quadratic_features<N>()>, M> const
         &features_matrix,
     std::array<std::array<float, M>, num_quadratic_features<N>()> const
@@ -111,7 +111,7 @@ GSPLAT_HOST_DEVICE constexpr auto compute_weighted_features_covariance(
 /// @private
 // Compute inverse of weighted features covariance using Gauss-Jordan elimination
 template <int N>
-GSPLAT_HOST_DEVICE constexpr auto
+TREND_HOST_DEVICE constexpr auto
 compute_inverse(std::array<
                 std::array<float, num_quadratic_features<N>()>,
                 num_quadratic_features<N>()> const &matrix)
@@ -175,7 +175,7 @@ compute_inverse(std::array<
 /// @private
 // Compute weighted least squares coefficients
 template <int N, int M>
-GSPLAT_HOST_DEVICE constexpr auto compute_weighted_least_squares_coefficients(
+TREND_HOST_DEVICE constexpr auto compute_weighted_least_squares_coefficients(
     std::array<
         std::array<float, num_quadratic_features<N>()>,
         num_quadratic_features<N>()> const &weighted_covariance_inverse,
@@ -198,50 +198,50 @@ GSPLAT_HOST_DEVICE constexpr auto compute_weighted_least_squares_coefficients(
 
 // Precompute all matrices for order 3
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto features_matrix_order3 =
+TREND_HOST_DEVICE constexpr auto features_matrix_order3 =
     build_quadratic_features<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         HERMGAUSS_POINTS_3D_ORDER3
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_features_transpose_order3 =
+TREND_HOST_DEVICE constexpr auto weighted_features_transpose_order3 =
     compute_weighted_features_transpose<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         features_matrix_order3, HERMGAUSS_WEIGHTS_3D_ORDER3
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_covariance_order3 =
+TREND_HOST_DEVICE constexpr auto weighted_covariance_order3 =
     compute_weighted_features_covariance<3, HERMGAUSS_POINTS_3D_ORDER3.size()>(
         features_matrix_order3, weighted_features_transpose_order3
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_covariance_inverse_order3 =
+TREND_HOST_DEVICE constexpr auto weighted_covariance_inverse_order3 =
     compute_inverse<3>(weighted_covariance_order3);
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_least_squares_coefficients_order3 =
+TREND_HOST_DEVICE constexpr auto weighted_least_squares_coefficients_order3 =
     compute_weighted_least_squares_coefficients<3, constexpr_pow<ORDER3, 3>::value>(
         weighted_covariance_inverse_order3, weighted_features_transpose_order3
     );
 
 // Precompute all matrices for order 5
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto features_matrix_order5 =
+TREND_HOST_DEVICE constexpr auto features_matrix_order5 =
     build_quadratic_features<3, constexpr_pow<ORDER5, 3>::value>(
         HERMGAUSS_POINTS_3D_ORDER5
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_features_transpose_order5 =
+TREND_HOST_DEVICE constexpr auto weighted_features_transpose_order5 =
     compute_weighted_features_transpose<3, constexpr_pow<ORDER5, 3>::value>(
         features_matrix_order5, HERMGAUSS_WEIGHTS_3D_ORDER5
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_covariance_order5 =
+TREND_HOST_DEVICE constexpr auto weighted_covariance_order5 =
     compute_weighted_features_covariance<3, constexpr_pow<ORDER5, 3>::value>(
         features_matrix_order5, weighted_features_transpose_order5
     );
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_covariance_inverse_order5 =
+TREND_HOST_DEVICE constexpr auto weighted_covariance_inverse_order5 =
     compute_inverse<3>(weighted_covariance_order5);
 /// @private
-GSPLAT_HOST_DEVICE constexpr auto weighted_least_squares_coefficients_order5 =
+TREND_HOST_DEVICE constexpr auto weighted_least_squares_coefficients_order5 =
     compute_weighted_least_squares_coefficients<3, constexpr_pow<ORDER5, 3>::value>(
         weighted_covariance_inverse_order5, weighted_features_transpose_order5
     );
@@ -296,7 +296,7 @@ template <int N, int order> auto get_precomputed_matrices() {
  *       Higher order provides better accuracy but requires more function evaluations.
  */
 template <int N, int M, int order = 3, typename Func>
-GSPLAT_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
+TREND_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev
 ) -> std::pair<glm::mat<M, N, float>, std::array<glm::mat<N, N, float>, M>> {
     // Get precomputed matrices based on order

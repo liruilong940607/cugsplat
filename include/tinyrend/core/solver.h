@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/math.h"
 
 namespace tinyrend::solver {
@@ -28,7 +28,7 @@ template <> struct NewtonSolverResult<2> {
 template <
     size_t N_ITER,
     typename Func> // Func(float x) -> pair<float, float> = {residual, dfdx}
-inline GSPLAT_HOST_DEVICE auto newton_1d(
+inline TREND_HOST_DEVICE auto newton_1d(
     const Func &f, const float &x0, const float epsilon = 1e-6f
 ) -> NewtonSolverResult<1> {
     auto x = x0;
@@ -52,7 +52,7 @@ inline GSPLAT_HOST_DEVICE auto newton_1d(
 template <
     size_t N_ITER,
     typename Func> // Func(xy) -> pair<residual[2], jacobian[2][2]>
-inline GSPLAT_HOST_DEVICE auto newton_2d(
+inline TREND_HOST_DEVICE auto newton_2d(
     const Func &f, const glm::fvec2 &x0, float epsilon = 1e-6f
 ) -> NewtonSolverResult<2> {
     auto x = x0;
@@ -75,7 +75,7 @@ inline GSPLAT_HOST_DEVICE auto newton_2d(
 }
 
 template <size_t DIM, size_t N_ITER, typename Func>
-inline GSPLAT_HOST_DEVICE auto newton(
+inline TREND_HOST_DEVICE auto newton(
     const Func &f,
     typename NewtonSolverResult<DIM>::dtype x0,
     const float epsilon = 1e-6f
@@ -91,7 +91,7 @@ inline GSPLAT_HOST_DEVICE auto newton(
 
 // Solve a linear equation y=c_0+c_1*x and return the minimal positive root.
 // If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float linear_minimal_positive(
+inline TREND_HOST_DEVICE float linear_minimal_positive(
     std::array<float, 2> const &poly, float y, float default_value
 ) {
     auto const &[c0, c1] = poly;
@@ -104,7 +104,7 @@ inline GSPLAT_HOST_DEVICE float linear_minimal_positive(
 
 // Solve a quadratic equation y=c_0+c_1*x+c_2*x^2 and return the minimal
 // positive root. If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float quadratic_minimal_positive(
+inline TREND_HOST_DEVICE float quadratic_minimal_positive(
     std::array<float, 3> const &poly, float y, float default_value
 ) {
     auto const &[c0, c1, c2] = poly;
@@ -129,7 +129,7 @@ inline GSPLAT_HOST_DEVICE float quadratic_minimal_positive(
 
 // Solve a cubic equation y=c_0+c_1*x+c_2*x^2+c_3*x^3 and return the minimal
 // positive root. If no positive root exists, return default_value.
-inline GSPLAT_HOST_DEVICE float
+inline TREND_HOST_DEVICE float
 cubic_minimal_positive(std::array<float, 4> const &poly, float y, float default_value) {
     auto const &[c0, c1, c2, c3] = poly;
     if (c3 == 0.f) {
@@ -191,7 +191,7 @@ cubic_minimal_positive(std::array<float, 4> const &poly, float y, float default_
 // using newton method and return the minimal positive root.
 // If no positive root exists or netwon does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
+inline TREND_HOST_DEVICE float polyN_minimal_positive_newton(
     std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     // check if all coefficients from x^4 onwards are zero
@@ -227,7 +227,7 @@ inline GSPLAT_HOST_DEVICE float polyN_minimal_positive_newton(
 // up to cubic polynomials and newton method for higher order polynomials.
 // If no positive root exists or newton does not converge, return default_value.
 template <size_t N_ITER = 20, size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float poly_minimal_positive(
+inline TREND_HOST_DEVICE float poly_minimal_positive(
     std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     if constexpr (N_COEFFS == 1) {

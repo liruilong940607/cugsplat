@@ -1,7 +1,12 @@
 #pragma once
 
 #include <array>
+#include <cmath>
 #include <cstddef>
+#include <sstream>
+#include <string>
+
+#include "tinyrend/common/macros.h"
 
 namespace tinyrend {
 
@@ -11,20 +16,38 @@ template <typename T, size_t N> struct alignas(T) vec {
     // Default constructor
     vec() = default;
 
-    // Initialize from pointer
-    __host__ __device__ explicit vec(const T *ptr) {
+    // Initialize from values
+    template <typename... Args> TREND_HOST_DEVICE vec(Args... args) {
+        static_assert(sizeof...(args) == N, "Invalid number of arguments");
+        T arr[] = {static_cast<T>(args)...};
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
-            data[i] = ptr[i];
+            data[i] = arr[i];
         }
     }
 
-    // Initialize from initializer list
-    template <typename... Args>
-    __host__ __device__ vec(Args... args) : data{static_cast<T>(args)...} {}
+    // Initialize from pointer
+    TREND_HOST_DEVICE static vec from_ptr(const T *ptr) {
+        vec result;
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            result.data[i] = ptr[i];
+        }
+        return result;
+    }
+
+    // Unary minus operator
+    TREND_HOST_DEVICE vec operator-() const {
+        vec result;
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            result[i] = -data[i];
+        }
+        return result;
+    }
 
     // Sum all elements
-    __host__ __device__ T sum() const {
+    TREND_HOST_DEVICE T sum() const {
         T result = T(0);
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -34,15 +57,15 @@ template <typename T, size_t N> struct alignas(T) vec {
     }
 
     // Access operators
-    __host__ __device__ T &operator[](size_t i) { return data[i]; }
-    __host__ __device__ const T &operator[](size_t i) const { return data[i]; }
+    TREND_HOST_DEVICE T &operator[](size_t i) { return data[i]; }
+    TREND_HOST_DEVICE const T &operator[](size_t i) const { return data[i]; }
 
     // Pointer casting operators
-    __host__ __device__ operator T *() { return data; }
-    __host__ __device__ operator const T *() const { return data; }
+    TREND_HOST_DEVICE operator T *() { return data; }
+    TREND_HOST_DEVICE operator const T *() const { return data; }
 
     // Vector-Vector operations
-    __host__ __device__ vec<T, N> operator+(const vec<T, N> &other) const {
+    TREND_HOST_DEVICE vec<T, N> operator+(const vec<T, N> &other) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -51,7 +74,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator-(const vec<T, N> &other) const {
+    TREND_HOST_DEVICE vec<T, N> operator-(const vec<T, N> &other) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -60,7 +83,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator*(const vec<T, N> &other) const {
+    TREND_HOST_DEVICE vec<T, N> operator*(const vec<T, N> &other) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -69,7 +92,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator/(const vec<T, N> &other) const {
+    TREND_HOST_DEVICE vec<T, N> operator/(const vec<T, N> &other) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -79,7 +102,7 @@ template <typename T, size_t N> struct alignas(T) vec {
     }
 
     // Vector-Scalar operations
-    __host__ __device__ vec<T, N> operator+(T scalar) const {
+    TREND_HOST_DEVICE vec<T, N> operator+(T scalar) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -88,7 +111,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator-(T scalar) const {
+    TREND_HOST_DEVICE vec<T, N> operator-(T scalar) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -97,7 +120,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator*(T scalar) const {
+    TREND_HOST_DEVICE vec<T, N> operator*(T scalar) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -106,7 +129,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ vec<T, N> operator/(T scalar) const {
+    TREND_HOST_DEVICE vec<T, N> operator/(T scalar) const {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -116,11 +139,11 @@ template <typename T, size_t N> struct alignas(T) vec {
     }
 
     // Scalar-Vector operations (friend functions)
-    __host__ __device__ friend vec<T, N> operator+(T scalar, const vec<T, N> &v) {
+    TREND_HOST_DEVICE friend vec<T, N> operator+(T scalar, const vec<T, N> &v) {
         return v + scalar;
     }
 
-    __host__ __device__ friend vec<T, N> operator-(T scalar, const vec<T, N> &v) {
+    TREND_HOST_DEVICE friend vec<T, N> operator-(T scalar, const vec<T, N> &v) {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -129,11 +152,11 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
-    __host__ __device__ friend vec<T, N> operator*(T scalar, const vec<T, N> &v) {
+    TREND_HOST_DEVICE friend vec<T, N> operator*(T scalar, const vec<T, N> &v) {
         return v * scalar;
     }
 
-    __host__ __device__ friend vec<T, N> operator/(T scalar, const vec<T, N> &v) {
+    TREND_HOST_DEVICE friend vec<T, N> operator/(T scalar, const vec<T, N> &v) {
         vec<T, N> result;
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
@@ -143,7 +166,7 @@ template <typename T, size_t N> struct alignas(T) vec {
     }
 
     // Compound assignment operators
-    __host__ __device__ vec<T, N> &operator+=(const vec<T, N> &other) {
+    TREND_HOST_DEVICE vec<T, N> &operator+=(const vec<T, N> &other) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] += other[i];
@@ -151,7 +174,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator-=(const vec<T, N> &other) {
+    TREND_HOST_DEVICE vec<T, N> &operator-=(const vec<T, N> &other) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] -= other[i];
@@ -159,7 +182,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator*=(const vec<T, N> &other) {
+    TREND_HOST_DEVICE vec<T, N> &operator*=(const vec<T, N> &other) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] *= other[i];
@@ -167,7 +190,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator/=(const vec<T, N> &other) {
+    TREND_HOST_DEVICE vec<T, N> &operator/=(const vec<T, N> &other) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] /= other[i];
@@ -175,7 +198,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator+=(T scalar) {
+    TREND_HOST_DEVICE vec<T, N> &operator+=(T scalar) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] += scalar;
@@ -183,7 +206,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator-=(T scalar) {
+    TREND_HOST_DEVICE vec<T, N> &operator-=(T scalar) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] -= scalar;
@@ -191,7 +214,7 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator*=(T scalar) {
+    TREND_HOST_DEVICE vec<T, N> &operator*=(T scalar) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] *= scalar;
@@ -199,12 +222,53 @@ template <typename T, size_t N> struct alignas(T) vec {
         return *this;
     }
 
-    __host__ __device__ vec<T, N> &operator/=(T scalar) {
+    TREND_HOST_DEVICE vec<T, N> &operator/=(T scalar) {
 #pragma unroll
         for (size_t i = 0; i < N; ++i) {
             data[i] /= scalar;
         }
         return *this;
+    }
+
+    // Comparison operators
+    TREND_HOST_DEVICE bool operator==(const vec<T, N> &other) const {
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            if (data[i] != other[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    TREND_HOST_DEVICE bool operator!=(const vec<T, N> &other) const {
+        return !(*this == other);
+    }
+
+    // Is close
+    TREND_HOST_DEVICE bool
+    is_close(const vec<T, N> &other, T atol = 1e-5f, T rtol = 1e-5f) const {
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            if (std::abs(data[i] - other[i]) > atol + rtol * std::abs(other[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // To string
+    std::string to_string() const {
+        std::stringstream ss;
+        ss << "vec" << N << "(";
+        for (size_t i = 0; i < N; ++i) {
+            ss << data[i];
+            if (i < N - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ")";
+        return ss.str();
     }
 };
 

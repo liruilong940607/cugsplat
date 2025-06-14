@@ -6,7 +6,7 @@
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/se3.h"
 
 namespace tinyrend::camera::shutter {
@@ -32,7 +32,7 @@ enum class Type {
 /// \param shutter_type Type of shutter being used
 /// \return Relative time in [0, 1] range where 0 is start of frame and 1 is end of
 /// frame
-GSPLAT_HOST_DEVICE inline auto relative_frame_time(
+TREND_HOST_DEVICE inline auto relative_frame_time(
     const glm::fvec2 &image_point,
     const std::array<uint32_t, 2> &resolution,
     const Type &shutter_type
@@ -79,7 +79,7 @@ template <typename RotationType> struct PointWorldToImageResult {
 /// \param shutter_type Type of shutter being used
 /// \return PointWorldToImageResult containing the projected results
 template <size_t N_ITER = 10, typename RotationType, typename Func>
-GSPLAT_HOST_DEVICE inline auto point_world_to_image(
+TREND_HOST_DEVICE inline auto point_world_to_image(
     Func project_fn, // Function to project a camera point to an image point
     const std::array<uint32_t, 2> &resolution,
     const glm::fvec3 &world_point,

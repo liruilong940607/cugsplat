@@ -6,14 +6,14 @@
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/math.h"
 #include "tinyrend/core/solver.h"
 
 namespace tinyrend::camera::pinhole {
 
-GSPLAT_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
-GSPLAT_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
+TREND_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
+TREND_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
     std::numeric_limits<float>::max();
 
 /// @private
@@ -21,7 +21,7 @@ GSPLAT_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
 // Where:
 //      icD_num = 1 + k1 * r2 + k2 * r4 + k3 * r6
 //      icD_den = 1 + k4 * r2 + k5 * r4 + k6 * r6
-GSPLAT_HOST_DEVICE inline auto compute_icD(
+TREND_HOST_DEVICE inline auto compute_icD(
     const float r2, const std::array<float, 6> &radial_coeffs
 ) -> std::pair<float, float> {
     auto const &[k1, k2, k3, k4, k5, k6] = radial_coeffs;
@@ -34,7 +34,7 @@ GSPLAT_HOST_DEVICE inline auto compute_icD(
 // Compute the gradient of the radial distortion factor icD w.r.t. r2
 // Where:
 //      r2 = x^2 + y^2
-GSPLAT_HOST_DEVICE inline auto gradient_icD(
+TREND_HOST_DEVICE inline auto gradient_icD(
     const float r2,
     const float icD_den,
     const float icD_num,
@@ -52,7 +52,7 @@ GSPLAT_HOST_DEVICE inline auto gradient_icD(
 
 /// @private
 // Compute the shifting in the distortion: delta.
-GSPLAT_HOST_DEVICE inline auto compute_delta(
+TREND_HOST_DEVICE inline auto compute_delta(
     const glm::fvec2 xy,
     const float r2,
     const std::array<float, 2> &tangential_coeffs,
@@ -70,7 +70,7 @@ GSPLAT_HOST_DEVICE inline auto compute_delta(
 
 /// @private
 // Compute the Jacobian of the shifting distortion: d(delta) / d(xy)
-GSPLAT_HOST_DEVICE inline auto jacobian_delta(
+TREND_HOST_DEVICE inline auto jacobian_delta(
     const glm::fvec2 xy,
     const float r2,
     const std::array<float, 2> &tangential_coeffs,
@@ -100,7 +100,7 @@ GSPLAT_HOST_DEVICE inline auto jacobian_delta(
 /// \param max_radial_dist Maximum radial distortion threshold for numerical stability.
 /// Default value is max float.
 /// \return Pair of distorted 2D point and validity flag
-GSPLAT_HOST_DEVICE inline auto distortion(
+TREND_HOST_DEVICE inline auto distortion(
     const glm::fvec2 &xy,
     const std::array<float, 6> &radial_coeffs,
     const std::array<float, 2> &tangential_coeffs,
@@ -130,7 +130,7 @@ GSPLAT_HOST_DEVICE inline auto distortion(
 /// Default value is max float.
 /// \return Tuple containing the 2x2 Jacobian matrix, radial distortion factor icD,
 /// squared radius r2, and validity flag
-GSPLAT_HOST_DEVICE inline auto distortion_jac(
+TREND_HOST_DEVICE inline auto distortion_jac(
     const glm::fvec2 &xy,
     const std::array<float, 6> &radial_coeffs,
     const std::array<float, 2> &tangential_coeffs,
@@ -171,7 +171,7 @@ GSPLAT_HOST_DEVICE inline auto distortion_jac(
 /// Default value is max float.
 /// \return Pair of undistorted 2D point and convergence flag
 template <size_t N_ITER = 20>
-GSPLAT_HOST_DEVICE inline auto undistortion(
+TREND_HOST_DEVICE inline auto undistortion(
     const glm::fvec2 &uv,
     const std::array<float, 6> &radial_coeffs,
     const std::array<float, 2> &tangential_coeffs,
@@ -211,7 +211,7 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return Projected 2D point in image space
-GSPLAT_HOST_DEVICE inline auto project(
+TREND_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point
@@ -226,7 +226,7 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param v_image_point gradient of the image point dl/d(image_point)
 /// \return The gradient of the camera point dl/d(camera_point)
-GSPLAT_HOST_DEVICE inline auto project_vjp(
+TREND_HOST_DEVICE inline auto project_vjp(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &v_image_point
@@ -247,7 +247,7 @@ GSPLAT_HOST_DEVICE inline auto project_vjp(
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
-GSPLAT_HOST_DEVICE inline auto project_hess(
+TREND_HOST_DEVICE inline auto project_hess(
     glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> std::array<glm::fmat3x3, 2> {
     auto const rz = 1.f / camera_point.z;
@@ -269,7 +269,7 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return 3x2 Jacobian matrix
-GSPLAT_HOST_DEVICE inline auto project_jac(
+TREND_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> glm::fmat3x2 {
     auto const rz = 1.0f / camera_point.z;
@@ -291,7 +291,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param v_J gradient of the Jacobian matrix dl/d(J)
 /// \return The gradient of the camera point dl/d(camera_point)
-GSPLAT_HOST_DEVICE inline auto project_jac_vjp(
+TREND_HOST_DEVICE inline auto project_jac_vjp(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fmat3x2 const &v_J
@@ -325,7 +325,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac_vjp(
 /// \param max_radial_dist Maximum radial distortion threshold for numerical stability.
 /// Default value is max float.
 /// \return Pair of projected 2D point and validity flag
-GSPLAT_HOST_DEVICE inline auto project(
+TREND_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -362,7 +362,7 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \param max_radial_dist Maximum radial distortion threshold for numerical stability.
 /// Default value is max float.
 /// \return Pair of 3x2 Jacobian matrix and validity flag
-GSPLAT_HOST_DEVICE inline auto project_jac(
+TREND_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     std::array<float, 6> const &radial_coeffs,
@@ -409,7 +409,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return ray direction in camera space
-GSPLAT_HOST_DEVICE inline auto unproject(
+TREND_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point
@@ -433,7 +433,7 @@ GSPLAT_HOST_DEVICE inline auto unproject(
 /// \param max_radial_dist Maximum radial distortion threshold for numerical stability.
 /// Default value is max float.
 /// \return Pair of ray direction and validity flag
-GSPLAT_HOST_DEVICE inline auto unproject(
+TREND_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,

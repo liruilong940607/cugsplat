@@ -6,7 +6,7 @@
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/math.h"
 #include "tinyrend/core/solver.h"
 
@@ -16,7 +16,7 @@ namespace tinyrend::camera::fisheye {
 /// \param theta Angle in radians
 /// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
 /// \return Distorted angle theta_d
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
@@ -27,7 +27,7 @@ distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> flo
 /// \param theta Angle in radians
 /// \param radial_coeffs Radial distortion coefficients (k1, k2, k3, k4)
 /// \return Jacobian of the distortion function
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
@@ -43,7 +43,7 @@ distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) ->
 /// \param max_theta Maximum valid theta angle
 /// \return Pair of undistorted angle and convergence flag
 template <size_t N_ITER = 20>
-GSPLAT_HOST_DEVICE inline auto undistortion(
+TREND_HOST_DEVICE inline auto undistortion(
     float const &theta_d,
     std::array<float, 4> const &radial_coeffs,
     float const &max_theta = std::numeric_limits<float>::max()
@@ -70,7 +70,7 @@ GSPLAT_HOST_DEVICE inline auto undistortion(
 /// \param guess Initial guess for the root
 /// \return Maximum theta angle for monotonic distortion
 template <size_t N_ITER = 20>
-GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
+TREND_HOST_DEVICE inline auto monotonic_max_theta(
     std::array<float, 4> const &radial_coeffs, float guess = 1.57f
 ) -> float {
     // The distortion function is
@@ -101,7 +101,7 @@ GSPLAT_HOST_DEVICE inline auto monotonic_max_theta(
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Projected 2D point in image space
-GSPLAT_HOST_DEVICE inline auto project(
+TREND_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -130,7 +130,7 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \param max_theta Maximum theta angle for valid projection
 /// \return Pair of projected 2D point and validity flag
-GSPLAT_HOST_DEVICE inline auto project(
+TREND_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -162,7 +162,7 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return 3x2 Jacobian matrix
-GSPLAT_HOST_DEVICE inline auto project_jac(
+TREND_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     float const &min_2d_norm = 1e-6f
@@ -203,7 +203,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
 }
 
 // This version is slower than the one below.
-GSPLAT_HOST_DEVICE inline auto _project_hess(
+TREND_HOST_DEVICE inline auto _project_hess(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     float const &min_2d_norm = 1e-6f
@@ -331,7 +331,7 @@ GSPLAT_HOST_DEVICE inline auto _project_hess(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
-GSPLAT_HOST_DEVICE inline auto project_hess(
+TREND_HOST_DEVICE inline auto project_hess(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     float const min_2d_norm = 1e-6f
@@ -425,7 +425,7 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Normalized ray direction in camera space
-GSPLAT_HOST_DEVICE inline auto unproject(
+TREND_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,
@@ -453,7 +453,7 @@ GSPLAT_HOST_DEVICE inline auto unproject(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \param max_theta Maximum theta angle for valid unprojection
 /// \return Pair of normalized ray direction and validity flag
-GSPLAT_HOST_DEVICE inline auto unproject(
+TREND_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point,

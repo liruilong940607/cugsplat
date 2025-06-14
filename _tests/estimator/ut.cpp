@@ -20,7 +20,7 @@ template <int N, int M> struct LinearTransform {
     LinearTransform(glm::mat<N, M, float> const &A, glm::vec<M, float> const &b)
         : A(A), b(b) {}
 
-    GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
+    TREND_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
     ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
         return {A * x + b, true, AuxData{}};
     }
@@ -38,7 +38,7 @@ template <int N, int M> struct QuadraticTransform {
     )
         : A(A), b(b), scale(scale) {}
 
-    GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
+    TREND_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
     ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
         auto y = A * x + b;
         for (int i = 0; i < M; i++) {
@@ -60,7 +60,7 @@ template <int N, int M> struct FailingTransform {
     )
         : A(A), b(b), threshold(threshold) {}
 
-    GSPLAT_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
+    TREND_HOST_DEVICE auto operator()(glm::vec<N, float> const &x
     ) const -> std::tuple<glm::vec<M, float>, bool, AuxData> {
         // Fail if any component of x is above threshold
         for (int i = 0; i < N; i++) {

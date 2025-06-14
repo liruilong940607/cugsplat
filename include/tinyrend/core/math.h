@@ -7,7 +7,7 @@
 
 namespace tinyrend::math {
 
-inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
+inline TREND_HOST_DEVICE float rsqrtf(const float x) {
 #ifdef __CUDACC__
     return ::rsqrtf(x); // use CUDA's fast rsqrtf()
 #else
@@ -15,7 +15,7 @@ inline GSPLAT_HOST_DEVICE float rsqrtf(const float x) {
 #endif
 }
 
-inline GSPLAT_HOST_DEVICE float numerically_stable_norm2(float x, float y) {
+inline TREND_HOST_DEVICE float numerically_stable_norm2(float x, float y) {
     // Computes 2-norm of a [x,y] vector in a numerically stable way
     auto const abs_x = std::fabs(x);
     auto const abs_y = std::fabs(y);
@@ -30,7 +30,7 @@ inline GSPLAT_HOST_DEVICE float numerically_stable_norm2(float x, float y) {
 }
 
 template <size_t N_COEFFS>
-inline GSPLAT_HOST_DEVICE float
+inline TREND_HOST_DEVICE float
 eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
     // Evaluates a polynomial y=f(x) with
     //
@@ -48,7 +48,7 @@ eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
 }
 
 template <size_t SKIP_FIRST_N = 0, size_t N>
-inline GSPLAT_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
+inline TREND_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
 #pragma unroll
     for (size_t i = SKIP_FIRST_N; i < N; ++i) {
         if (fabsf(arr[i]) >= std::numeric_limits<float>::epsilon())
@@ -58,14 +58,14 @@ inline GSPLAT_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
 }
 
 template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
+inline TREND_HOST_DEVICE glm::vec<L, float, Q>
 safe_normalize(const glm::vec<L, float, Q> &x) {
     const float l2 = glm::dot(x, x);
     return (l2 > 0.0f) ? (x * rsqrtf(l2)) : x;
 }
 
 template <glm::length_t L, glm::qualifier Q = glm::defaultp>
-inline GSPLAT_HOST_DEVICE glm::vec<L, float, Q>
+inline TREND_HOST_DEVICE glm::vec<L, float, Q>
 safe_normalize_vjp(const glm::vec<L, float, Q> &x, const glm::vec<L, float, Q> &v_out) {
     const float l2 = glm::dot(x, x);
     if (l2 > 0.0f) {

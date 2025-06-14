@@ -11,7 +11,7 @@
 #include "tinyrend/camera/orthogonal.h"
 #include "tinyrend/camera/pinhole.h"
 #include "tinyrend/camera/shutter.h"
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/se3.h"
 #include "tinyrend/estimator/ut.h"
 #include "tinyrend/gaussian.h"
@@ -19,7 +19,7 @@
 namespace tinyrend::impl {
 
 template <size_t N, typename T>
-inline GSPLAT_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
+inline TREND_HOST_DEVICE std::array<T, N> make_array(const T *ptr, size_t offset = 0) {
     std::array<T, N> arr{}; // zero-initialize
     if (!ptr) {
         return arr;
@@ -59,7 +59,7 @@ struct ProjectionForwardResult {
 };
 
 template <CameraType CAMERA_TYPE, bool USE_UT = false>
-GSPLAT_HOST_DEVICE inline auto projection_forward(
+TREND_HOST_DEVICE inline auto projection_forward(
     const float *intrinsic_ptr, // [3, 3]
     const float near_plane,
     const float far_plane,
@@ -320,7 +320,7 @@ struct ProjectionBackwardResult {
 };
 
 // template <CameraType CAMERA_TYPE, bool USE_UT = false>
-// GSPLAT_HOST_DEVICE inline auto projection_backward(
+// TREND_HOST_DEVICE inline auto projection_backward(
 //     // inputs
 //     const float *intrinsic_ptr, // [3, 3]
 //     const float near_plane,

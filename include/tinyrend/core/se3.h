@@ -6,7 +6,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp> // glm slerp
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 
 namespace tinyrend::se3 {
 
@@ -17,7 +17,7 @@ namespace tinyrend::se3 {
 /// \param rot2 Second rotation as quaternion
 /// \param transl2 Second translation
 /// \return Pair of interpolated rotation and translation
-GSPLAT_HOST_DEVICE inline auto interpolate(
+TREND_HOST_DEVICE inline auto interpolate(
     const float ratio,
     const glm::fquat &rot1,
     const glm::fvec3 &transl1,
@@ -36,7 +36,7 @@ GSPLAT_HOST_DEVICE inline auto interpolate(
 /// \param rot2 Second rotation as 3x3 matrix
 /// \param transl2 Second translation
 /// \return Pair of interpolated rotation and translation
-GSPLAT_HOST_DEVICE inline auto interpolate(
+TREND_HOST_DEVICE inline auto interpolate(
     const float ratio,
     const glm::fmat3 &rot1,
     const glm::fvec3 &transl1,
@@ -53,7 +53,7 @@ GSPLAT_HOST_DEVICE inline auto interpolate(
 /// \param transl Translation vector
 /// \param point Point to transform
 /// \return Transformed point
-GSPLAT_HOST_DEVICE inline auto transform_point(
+TREND_HOST_DEVICE inline auto transform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return rot * point + transl;
@@ -64,7 +64,7 @@ GSPLAT_HOST_DEVICE inline auto transform_point(
 /// \param transl Translation vector
 /// \param point Point to transform
 /// \return Transformed point
-GSPLAT_HOST_DEVICE inline auto transform_point(
+TREND_HOST_DEVICE inline auto transform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::mat3_cast(rot) * point + transl;
@@ -75,7 +75,7 @@ GSPLAT_HOST_DEVICE inline auto transform_point(
 /// \param transl Translation vector
 /// \param point Point to inverse transform
 /// \return Inverse transformed point
-GSPLAT_HOST_DEVICE inline auto invtransform_point(
+TREND_HOST_DEVICE inline auto invtransform_point(
     const glm::fmat3 &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(rot) * (point - transl);
@@ -86,7 +86,7 @@ GSPLAT_HOST_DEVICE inline auto invtransform_point(
 /// \param transl Translation vector
 /// \param point Point to inverse transform
 /// \return Inverse transformed point
-GSPLAT_HOST_DEVICE inline auto invtransform_point(
+TREND_HOST_DEVICE inline auto invtransform_point(
     const glm::fquat &rot, const glm::fvec3 &transl, const glm::fvec3 &point
 ) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * (point - transl);
@@ -96,7 +96,7 @@ GSPLAT_HOST_DEVICE inline auto invtransform_point(
 /// \param rot Rotation matrix
 /// \param dir Direction to transform
 /// \return Transformed direction
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 transform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return rot * dir;
 }
@@ -105,7 +105,7 @@ transform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
 /// \param rot Rotation quaternion
 /// \param dir Direction to transform
 /// \return Transformed direction
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 transform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::mat3_cast(rot) * dir;
 }
@@ -114,7 +114,7 @@ transform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
 /// \param rot Rotation matrix
 /// \param dir Direction to inverse transform
 /// \return Inverse transformed direction
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 invtransform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(rot) * dir;
 }
@@ -123,7 +123,7 @@ invtransform_dir(const glm::fmat3 &rot, const glm::fvec3 &dir) -> glm::fvec3 {
 /// \param rot Rotation quaternion
 /// \param dir Direction to inverse transform
 /// \return Inverse transformed direction
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 invtransform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
     return glm::transpose(glm::mat3_cast(rot)) * dir;
 }
@@ -134,7 +134,7 @@ invtransform_dir(const glm::fquat &rot, const glm::fvec3 &dir) -> glm::fvec3 {
 /// \param ray_o Ray origin
 /// \param ray_d Ray direction
 /// \return Tuple of transformed ray origin and direction
-GSPLAT_HOST_DEVICE inline auto transform_ray(
+TREND_HOST_DEVICE inline auto transform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
     const glm::fvec3 &ray_o,
@@ -149,7 +149,7 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
 /// \param ray_o Ray origin
 /// \param ray_d Ray direction
 /// \return Tuple of transformed ray origin and direction
-GSPLAT_HOST_DEVICE inline auto transform_ray(
+TREND_HOST_DEVICE inline auto transform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
     const glm::fvec3 &ray_o,
@@ -165,7 +165,7 @@ GSPLAT_HOST_DEVICE inline auto transform_ray(
 /// \param ray_o Ray origin
 /// \param ray_d Ray direction
 /// \return Tuple of inverse transformed ray origin and direction
-GSPLAT_HOST_DEVICE inline auto invtransform_ray(
+TREND_HOST_DEVICE inline auto invtransform_ray(
     const glm::fmat3 &rot,
     const glm::fvec3 &transl,
     const glm::fvec3 &ray_o,
@@ -181,7 +181,7 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
 /// \param ray_o Ray origin
 /// \param ray_d Ray direction
 /// \return Tuple of inverse transformed ray origin and direction
-GSPLAT_HOST_DEVICE inline auto invtransform_ray(
+TREND_HOST_DEVICE inline auto invtransform_ray(
     const glm::fquat &rot,
     const glm::fvec3 &transl,
     const glm::fvec3 &ray_o,
@@ -195,7 +195,7 @@ GSPLAT_HOST_DEVICE inline auto invtransform_ray(
 /// \param rot Rotation matrix
 /// \param covar Covariance matrix to transform
 /// \return Transformed covariance matrix
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 transform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     return rot * covar * glm::transpose(rot);
 }
@@ -204,7 +204,7 @@ transform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
 /// \param rot Rotation quaternion
 /// \param covar Covariance matrix to transform
 /// \return Transformed covariance matrix
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 transform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     auto const R = glm::mat3_cast(rot);
     return R * covar * glm::transpose(R);
@@ -214,7 +214,7 @@ transform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
 /// \param rot Rotation matrix
 /// \param covar Covariance matrix to inverse transform
 /// \return Inverse transformed covariance matrix
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 invtransform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     return glm::transpose(rot) * covar * rot;
 }
@@ -223,7 +223,7 @@ invtransform_covar(const glm::fmat3 &rot, const glm::fmat3 &covar) -> glm::fmat3
 /// \param rot Rotation quaternion
 /// \param covar Covariance matrix to inverse transform
 /// \return Inverse transformed covariance matrix
-GSPLAT_HOST_DEVICE inline auto
+TREND_HOST_DEVICE inline auto
 invtransform_covar(const glm::fquat &rot, const glm::fmat3 &covar) -> glm::fmat3 {
     auto const R = glm::mat3_cast(rot);
     return glm::transpose(R) * covar * R;

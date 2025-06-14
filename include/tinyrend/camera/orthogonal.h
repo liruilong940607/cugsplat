@@ -6,7 +6,7 @@
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 
 namespace tinyrend::camera::orthogonal {
 
@@ -16,7 +16,7 @@ namespace tinyrend::camera::orthogonal {
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return Projected 2D point in image space
-GSPLAT_HOST_DEVICE inline auto project(
+TREND_HOST_DEVICE inline auto project(
     glm::fvec3 const &camera_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point
@@ -30,7 +30,7 @@ GSPLAT_HOST_DEVICE inline auto project(
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return Jacobian of the projection function
-GSPLAT_HOST_DEVICE inline auto project_jac(
+TREND_HOST_DEVICE inline auto project_jac(
     glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> glm::fmat3x2 {
     auto const J = glm::fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};
@@ -41,7 +41,7 @@ GSPLAT_HOST_DEVICE inline auto project_jac(
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
-GSPLAT_HOST_DEVICE inline auto project_hess(
+TREND_HOST_DEVICE inline auto project_hess(
     glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
 ) -> std::array<glm::fmat3x3, 2> {
     // Hessian is zero for orthogonal projection
@@ -53,7 +53,7 @@ GSPLAT_HOST_DEVICE inline auto project_hess(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return Ray in camera space (origin, direction)
-GSPLAT_HOST_DEVICE inline auto unproject(
+TREND_HOST_DEVICE inline auto unproject(
     glm::fvec2 const &image_point,
     glm::fvec2 const &focal_length,
     glm::fvec2 const &principal_point

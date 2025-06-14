@@ -4,14 +4,14 @@
 #include <glm/glm.hpp>
 
 #include "tinyrend/core/cholesky3x3.h"
-#include "tinyrend/core/macros.h" // for GSPLAT_HOST_DEVICE
+#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/core/math.h"
 
 namespace tinyrend::gaussian {
 
 // Convert a quaternion to a rotation matrix. We fused in the quaternion
 // normalization step to avoid the need for a separate normalization pass.
-inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fmat3 {
+inline TREND_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fmat3 {
     auto const quat_n = quat * tinyrend::math::rsqrtf(glm::dot(quat, quat));
     float w = quat_n[0], x = quat_n[1], y = quat_n[2], z = quat_n[3];
     float x2 = x * x, y2 = y * y, z2 = z * z;
@@ -31,7 +31,7 @@ inline GSPLAT_HOST_DEVICE auto quat_to_rotmat(const glm::fvec4 &quat) -> glm::fm
 }
 
 // Given d(o)/d(R), Return d(o)/d(quat)
-inline GSPLAT_HOST_DEVICE auto
+inline TREND_HOST_DEVICE auto
 quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
     auto const inv_norm = tinyrend::math::rsqrtf(glm::dot(quat, quat));
     auto const quat_n = quat * inv_norm;
@@ -51,7 +51,7 @@ quat_to_rotmat_vjp(const glm::fvec4 quat, const glm::fmat3 v_R) -> glm::fvec4 {
 }
 
 // Convert {quat, scale} to R * S.
-inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
+inline TREND_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
     glm::fvec4 const &quat, glm::fvec3 const &scale
 ) -> glm::fmat3 {
     auto const R = quat_to_rotmat(quat);
@@ -59,7 +59,7 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat(
     return M;
 }
 
-inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat_vjp(
+inline TREND_HOST_DEVICE auto quat_scale_to_scaled_rotmat_vjp(
     // inputs
     glm::fvec4 const &quat,
     glm::fvec3 const &scale,
@@ -77,13 +77,13 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_scaled_rotmat_vjp(
 }
 
 // Convert {quat, scale} to a covariance matrix: RSSᵀRᵀ
-inline GSPLAT_HOST_DEVICE auto
+inline TREND_HOST_DEVICE auto
 quat_scale_to_covar(glm::fvec4 const &quat, glm::fvec3 const &scale) -> glm::fmat3 {
     auto const M = quat_scale_to_scaled_rotmat(quat, scale);
     return M * glm::transpose(M);
 }
 
-inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar_vjp(
+inline TREND_HOST_DEVICE auto quat_scale_to_covar_vjp(
     // inputs
     glm::fvec4 const &quat,
     glm::fvec3 const &scale,
@@ -114,7 +114,7 @@ inline GSPLAT_HOST_DEVICE auto quat_scale_to_covar_vjp(
 // Note for numerical stability, we take in the cholesky factorization L
 // of the covariance matrix, where L is lower triangular:
 //     covar = L * Lᵀ
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray(
     glm::fvec3 const &mu,
     glm::fmat3 const &L,
     glm::fvec3 const &ray_o,
@@ -134,7 +134,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
 // - sigma
 // - v_mu: d(sigma)/d(mu)
 // - v_covar: d(sigma)/d(covar)
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     glm::fvec3 const &mu,
     glm::fmat3 const &L,
     glm::fvec3 const &ray_o,
@@ -173,7 +173,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
 //     S = diag(scale[0], scale[1], scale[2])
 // Note the quaternion *does not need to be normalized* here, as we will
 // normalize it in the function.
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray(
     glm::fvec3 const &mu,
     glm::fvec4 const &quat,
     glm::fvec3 const &scale,
@@ -200,7 +200,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray(
 // - v_mu: d(sigma)/d(mu)
 // - v_quat: d(sigma)/d(quat)
 // - v_scale: d(sigma)/d(scale)
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
     glm::fvec3 const &mu,
     glm::fvec4 const &quat,
     glm::fvec3 const &scale,
@@ -247,7 +247,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_wgrad(
 //
 // In this function we will blur the 3D Gaussian with a 2D filter perpendicular
 // to the ray direction, which leads to a new covariace matrix.
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
     glm::fvec3 const &mu,
     glm::fmat3 const &L,
     glm::fmat3 const &L2,
@@ -283,7 +283,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d(
 // - v_mu: d(o)/d(mu)
 // - v_covar: d(o)/d(covar)
 // - v_covar2: d(o)/d(covar2)
-inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
+inline TREND_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
     glm::fvec3 const &mu,
     glm::fmat3 const &L,
     glm::fmat3 const &L2,
@@ -335,7 +335,7 @@ inline GSPLAT_HOST_DEVICE auto gaussian_max_response_along_ray_filter2d_wgrad(
 // Solve the tight axis-aligned bounding box radius for a Gaussian defined as
 //      y = prefactor * exp(-1/2 * xᵀ * covar⁻¹ * x)
 // at the given y value.
-inline GSPLAT_HOST_DEVICE auto solve_tight_radius(
+inline TREND_HOST_DEVICE auto solve_tight_radius(
     glm::fmat2 covar, float prefactor, float y = 1.0f / 255.0f
 ) -> glm::fvec2 {
     if (prefactor < y) {
