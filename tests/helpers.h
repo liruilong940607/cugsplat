@@ -1,10 +1,7 @@
+#pragma once
 
-
-// Helper macro for assertions with messages
-#define ASSERT_MSG(condition, message)                                                 \
-    do {                                                                               \
-        if (!(condition)) {                                                            \
-            printf("[FAIL] condition: %s, message: %s\n", #condition, message);        \
-            assert(condition);                                                         \
-        }                                                                              \
-    } while (0)
+// Helper macro: Returns 1 if the condition is false, 0 otherwise
+#define CHECK(condition, message)                                                      \
+    ((condition)                                                                       \
+         ? 0                                                                           \
+         : (printf("[FAIL] condition: %s, message: %s\n", #condition, message), 1))
