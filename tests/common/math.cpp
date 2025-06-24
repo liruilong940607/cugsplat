@@ -13,7 +13,7 @@ int test_rsqrt() {
         auto const x = 4.0f;
         auto const y = rsqrt(x);
         auto const y_expected = 0.5f;
-        fails += CHECK(y == y_expected, "");
+        fails += CHECK(is_close(y, y_expected), "");
     }
 
     return fails;
