@@ -2,7 +2,8 @@
 
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
-#include <glm/glm.hpp>
+
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::warp {
 
@@ -20,38 +21,38 @@ template <class WarpT> inline __device__ void warpSum(float &val, WarpT &warp) {
     val = cg::reduce(warp, val, cg::plus<float>());
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::fvec4 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fvec4 &val, WarpT &warp) {
     val.x = cg::reduce(warp, val.x, cg::plus<float>());
     val.y = cg::reduce(warp, val.y, cg::plus<float>());
     val.z = cg::reduce(warp, val.z, cg::plus<float>());
     val.w = cg::reduce(warp, val.w, cg::plus<float>());
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::fvec3 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fvec3 &val, WarpT &warp) {
     val.x = cg::reduce(warp, val.x, cg::plus<float>());
     val.y = cg::reduce(warp, val.y, cg::plus<float>());
     val.z = cg::reduce(warp, val.z, cg::plus<float>());
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::fvec2 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fvec2 &val, WarpT &warp) {
     val.x = cg::reduce(warp, val.x, cg::plus<float>());
     val.y = cg::reduce(warp, val.y, cg::plus<float>());
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::mat4 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(mat4 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
     warpSum(val[3], warp);
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::mat3 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(mat3 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
 }
 
-template <class WarpT> inline __device__ void warpSum(glm::mat2 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(mat2 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
 }
