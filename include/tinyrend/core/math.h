@@ -8,28 +8,6 @@
 
 namespace tinyrend::math {
 
-template <typename T> inline TREND_HOST_DEVICE T rsqrtf(const T x) {
-#ifdef __CUDACC__
-    return ::rsqrtf(x); // use CUDA's fast rsqrtf()
-#else
-    return 1.0f / std::sqrt(x); // use standard sqrt on CPU
-#endif
-}
-
-inline TREND_HOST_DEVICE float numerically_stable_norm2(float x, float y) {
-    // Computes 2-norm of a [x,y] vector in a numerically stable way
-    auto const abs_x = std::fabs(x);
-    auto const abs_y = std::fabs(y);
-    auto const min = std::fmin(abs_x, abs_y);
-    auto const max = std::fmax(abs_x, abs_y);
-
-    if (max <= 0.f)
-        return 0.f;
-
-    auto const min_max_ratio = min / max;
-    return max * std::sqrt(1.f + min_max_ratio * min_max_ratio);
-}
-
 template <size_t N_COEFFS>
 inline TREND_HOST_DEVICE float
 eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
