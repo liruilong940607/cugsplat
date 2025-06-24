@@ -24,6 +24,17 @@ template <> struct NewtonSolverResult<2> {
     bool converged;
 };
 
+// Check if all elements in the array are zero, starting from SKIP_FIRST_N.
+template <size_t SKIP_FIRST_N = 0, size_t N>
+inline TREND_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
+#pragma unroll
+    for (size_t i = SKIP_FIRST_N; i < N; ++i) {
+        if (fabsf(arr[i]) >= std::numeric_limits<float>::epsilon())
+            return false;
+    }
+    return true;
+}
+
 template <size_t N_COEFFS>
 inline TREND_HOST_DEVICE float
 eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
@@ -212,7 +223,7 @@ inline TREND_HOST_DEVICE float polyN_minimal_positive_newton(
     std::array<float, N_COEFFS> const &poly, float y, float guess, float default_value
 ) {
     // check if all coefficients from x^4 onwards are zero
-    if (tinyrend::math::is_all_zero<4, N_COEFFS>(poly)) {
+    if (is_all_zero<4, N_COEFFS>(poly)) {
         // reduce to cubic
         return cubic_minimal_positive(
             {poly[0], poly[1], poly[2], poly[3]}, y, default_value
