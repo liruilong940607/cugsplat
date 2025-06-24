@@ -25,8 +25,9 @@ int test_rsqrt() {
         cudaMemcpy(d_x, h_x, 2 * sizeof(float), cudaMemcpyHostToDevice);
         test_rsqrt_kernel<<<1, 2>>>(d_x, d_y);
         cudaMemcpy(h_y, d_y, 2 * sizeof(float), cudaMemcpyDeviceToHost);
-        CHECK(h_y[0] == h_y_expected[0], "");
-        CHECK(h_y[1] == h_y_expected[1], "");
+        fails += CHECK((is_close<float, 2>(h_y, h_y_expected)), "");
+        cudaFree(d_x);
+        cudaFree(d_y);
     }
 
     return fails;
