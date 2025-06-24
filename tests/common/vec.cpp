@@ -91,6 +91,10 @@ int test() {
         CHECK(length(v1) == 5.0f, "");
         CHECK(safe_length(v1) == 5.0f, "");
 
+        fvec3 v2 = fvec3(1.0f, 2.0f, 2.0f);
+        CHECK(length(v2) == 3.0f, "");
+        CHECK(safe_length(v2) == 3.0f, "");
+
         CHECK(
             length(v1 * 1e-20f) != 5.0f * 1e-20f, ""
         ); // expected to fail bc of numerical issue
