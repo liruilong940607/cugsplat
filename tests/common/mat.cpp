@@ -155,6 +155,55 @@ int test() {
         fails += CHECK((outer(v1, v2)).is_close(expected), "");
     }
 
+    // Inverse
+    {
+        fmat2x2 m(1.0f, 3.0f, 2.0f, 4.0f);
+        fmat2x2 expected(-2.0f, 1.5f, 1.0f, -0.5f);
+        fails += CHECK(inverse(m).is_close(expected), "");
+
+        fmat3x3 m2(1.0f, 4.0f, 2.0f, 2.0f, 4.0f, 4.0f, 3.0f, 5.0f, 5.0f);
+        fmat3x3 expected2(0.0f, -2.5f, 2.0f, 0.5f, -0.25f, 0.0f, -0.5f, 1.75f, -1.0f);
+        fails += CHECK(inverse(m2).is_close(expected2), "");
+
+        fmat4x4 m3(
+            1.0f,
+            4.0f,
+            2.0f,
+            1.0f,
+            2.0f,
+            4.0f,
+            4.0f,
+            2.0f,
+            3.0f,
+            5.0f,
+            5.0f,
+            2.0f,
+            4.0f,
+            2.0f,
+            3.0f,
+            3.0f
+        );
+        fmat4x4 expected3(
+            0.125f,
+            -1.1875f,
+            0.75f,
+            0.25f,
+            0.5f,
+            -0.25f,
+            0.0f,
+            0.0f,
+            -0.625f,
+            0.4375f,
+            0.25f,
+            -0.25f,
+            0.125f,
+            1.3125f,
+            -1.25f,
+            0.25f
+        );
+        fails += CHECK(inverse(m3).is_close(expected3), "");
+    }
+
     return fails;
 }
 

@@ -88,7 +88,10 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
         mat result;
 #pragma unroll
         for (size_t i = 0; i < Rows; ++i) {
-            result(i, i) = T(1);
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = i == j ? T(1) : T(0);
+            }
         }
         return result;
     }
@@ -420,6 +423,95 @@ outer(const vec<T, N1> &v1, const vec<T, N2> &v2) {
         }
     }
     return result;
+}
+
+template <typename T>
+inline TREND_HOST_DEVICE mat<T, 2, 2> inverse2x2(const mat<T, 2, 2> &m) {
+    T det = m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
+    T inv_det = T(1) / det;
+
+    T a00 = m(1, 1) * inv_det;
+    T a01 = -m(0, 1) * inv_det;
+    T a10 = -m(1, 0) * inv_det;
+    T a11 = m(0, 0) * inv_det;
+    return mat<T, 2, 2>(a00, a01, a10, a11);
+}
+
+template <typename T>
+inline TREND_HOST_DEVICE mat<T, 3, 3> inverse3x3(const mat<T, 3, 3> &m) {
+    T det = m(0, 0) * (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1)) -
+            m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+            m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+    T inv_det = T(1) / det;
+
+    T a00 = (m(1, 1) * m(2, 2) - m(1, 2) * m(2, 1)) * inv_det;
+    T a01 = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * inv_det;
+    T a02 = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) * inv_det;
+    T a10 = (m(1, 2) * m(2, 0) - m(1, 0) * m(2, 2)) * inv_det;
+    T a11 = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) * inv_det;
+    T a12 = (m(0, 2) * m(1, 0) - m(0, 0) * m(1, 2)) * inv_det;
+    T a20 = (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0)) * inv_det;
+    T a21 = (m(0, 1) * m(2, 0) - m(0, 0) * m(2, 1)) * inv_det;
+    T a22 = (m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0)) * inv_det;
+
+    return mat<T, 3, 3>(a00, a01, a02, a10, a11, a12, a20, a21, a22);
+}
+
+template <typename T>
+inline TREND_HOST_DEVICE mat<T, 4, 4> inverse4x4(const mat<T, 4, 4> &m) {
+    // Precompute sub-determinants for efficiency
+    T s0 = m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
+    T s1 = m(0, 0) * m(1, 2) - m(0, 2) * m(1, 0);
+    T s2 = m(0, 0) * m(1, 3) - m(0, 3) * m(1, 0);
+    T s3 = m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1);
+    T s4 = m(0, 1) * m(1, 3) - m(0, 3) * m(1, 1);
+    T s5 = m(0, 2) * m(1, 3) - m(0, 3) * m(1, 2);
+
+    T c0 = m(2, 0) * m(3, 1) - m(2, 1) * m(3, 0);
+    T c1 = m(2, 0) * m(3, 2) - m(2, 2) * m(3, 0);
+    T c2 = m(2, 0) * m(3, 3) - m(2, 3) * m(3, 0);
+    T c3 = m(2, 1) * m(3, 2) - m(2, 2) * m(3, 1);
+    T c4 = m(2, 1) * m(3, 3) - m(2, 3) * m(3, 1);
+    T c5 = m(2, 2) * m(3, 3) - m(2, 3) * m(3, 2);
+
+    T det = s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0;
+    T inv_det = T(1) / det;
+
+    return mat<T, 4, 4>(
+        (m(1, 1) * c5 - m(1, 2) * c4 + m(1, 3) * c3) * inv_det,
+        (-m(0, 1) * c5 + m(0, 2) * c4 - m(0, 3) * c3) * inv_det,
+        (m(3, 1) * s5 - m(3, 2) * s4 + m(3, 3) * s3) * inv_det,
+        (-m(2, 1) * s5 + m(2, 2) * s4 - m(2, 3) * s3) * inv_det,
+        (-m(1, 0) * c5 + m(1, 2) * c2 - m(1, 3) * c1) * inv_det,
+        (m(0, 0) * c5 - m(0, 2) * c2 + m(0, 3) * c1) * inv_det,
+        (-m(3, 0) * s5 + m(3, 2) * s2 - m(3, 3) * s1) * inv_det,
+        (m(2, 0) * s5 - m(2, 2) * s2 + m(2, 3) * s1) * inv_det,
+        (m(1, 0) * c4 - m(1, 1) * c2 + m(1, 3) * c0) * inv_det,
+        (-m(0, 0) * c4 + m(0, 1) * c2 - m(0, 3) * c0) * inv_det,
+        (m(3, 0) * s4 - m(3, 1) * s2 + m(3, 3) * s0) * inv_det,
+        (-m(2, 0) * s4 + m(2, 1) * s2 - m(2, 3) * s0) * inv_det,
+        (-m(1, 0) * c3 + m(1, 1) * c1 - m(1, 2) * c0) * inv_det,
+        (m(0, 0) * c3 - m(0, 1) * c1 + m(0, 2) * c0) * inv_det,
+        (-m(3, 0) * s3 + m(3, 1) * s1 - m(3, 2) * s0) * inv_det,
+        (m(2, 0) * s3 - m(2, 1) * s1 + m(2, 2) * s0) * inv_det
+    );
+}
+
+template <typename T, size_t Rows, size_t Cols>
+inline TREND_HOST_DEVICE mat<T, Rows, Cols> inverse(const mat<T, Rows, Cols> &m) {
+    static_assert(Rows == Cols, "Non-square matrix does not have a regular inverse");
+    static_assert(
+        Rows == 2 || Rows == 3 || Rows == 4,
+        "Only 2x2, 3x3, and 4x4 matrices are supported"
+    );
+
+    if constexpr (Rows == 2) {
+        return inverse2x2(m);
+    } else if constexpr (Rows == 3) {
+        return inverse3x3(m);
+    } else if constexpr (Rows == 4) {
+        return inverse4x4(m);
+    }
 }
 
 } // namespace tinyrend

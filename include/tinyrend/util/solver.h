@@ -4,10 +4,9 @@
 #include <array>
 #include <cmath>
 #include <cstdint>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
-#include "tinyrend/core/math.h"
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::solver {
 
@@ -20,10 +19,28 @@ template <> struct NewtonSolverResult<1> {
 };
 
 template <> struct NewtonSolverResult<2> {
-    using dtype = glm::fvec2;
+    using dtype = fvec2;
     dtype x;
     bool converged;
 };
+
+template <size_t N_COEFFS>
+inline TREND_HOST_DEVICE float
+eval_poly_horner(std::array<float, N_COEFFS> const &poly, float x) {
+    // Evaluates a polynomial y=f(x) with
+    //
+    // f(x) = c_0*x^0 + c_1*x^1 + c_2*x^2 + c_3*x^3 + c_4*x^4 ...
+    //
+    // given by poly_coefficients c_i at points x using numerically stable
+    // Horner scheme.
+    //
+    // The degree of the polynomial is N_COEFFS - 1
+
+    auto y = float{0};
+    for (auto cit = poly.rbegin(); cit != poly.rend(); ++cit)
+        y = x * y + (*cit);
+    return y;
+}
 
 template <
     size_t N_ITER,
@@ -53,7 +70,7 @@ template <
     size_t N_ITER,
     typename Func> // Func(xy) -> pair<residual[2], jacobian[2][2]>
 inline TREND_HOST_DEVICE auto newton_2d(
-    const Func &f, const glm::fvec2 &x0, float epsilon = 1e-6f
+    const Func &f, const fvec2 &x0, float epsilon = 1e-6f
 ) -> NewtonSolverResult<2> {
     auto x = x0;
     auto converged = false;
@@ -62,7 +79,7 @@ inline TREND_HOST_DEVICE auto newton_2d(
     for (size_t i = 0; i < N_ITER; ++i) {
         auto const &[r, J] = f(x);
 
-        auto const dx = r * glm::inverse(J);
+        auto const dx = r * inverse(J);
         x -= dx;
 
         if (fabs(dx[0]) < epsilon && fabs(dx[1]) < epsilon) {
@@ -210,8 +227,8 @@ inline TREND_HOST_DEVICE float polyN_minimal_positive_newton(
     }
     // define the residual and Jacobian of the equation
     auto const func = [&y, &poly, &d_poly](const float &x) -> std::pair<float, float> {
-        auto const J = tinyrend::math::eval_poly_horner<N_COEFFS - 1>(d_poly, x);
-        auto const residual = tinyrend::math::eval_poly_horner<N_COEFFS>(poly, x) - y;
+        auto const J = eval_poly_horner<N_COEFFS - 1>(d_poly, x);
+        auto const residual = eval_poly_horner<N_COEFFS>(poly, x) - y;
         return {residual, J};
     };
     // solve the equation.
