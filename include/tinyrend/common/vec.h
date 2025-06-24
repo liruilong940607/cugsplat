@@ -308,15 +308,43 @@ template <typename T, size_t N> inline TREND_HOST_DEVICE T length(const vec<T, N
     return std::sqrt(dot(v, v));
 }
 
+template <typename T, size_t N> inline TREND_HOST_DEVICE T length2(const vec<T, N> &v) {
+    return dot(v, v);
+}
+
 template <typename T, size_t N>
-inline TREND_HOST_DEVICE T normalize(const vec<T, N> &v) {
-    return v * rsqrt(dot(v, v));
+inline TREND_HOST_DEVICE T safe_length(const vec<T, N> &v) {
+    // Find the maximum absolute value
+    T max_abs = std::fabs(v[0]);
+#pragma unroll
+    for (size_t i = 1; i < N; ++i) {
+        max_abs = std::fmax(max_abs, std::fabs(v[i]));
+    }
+
+    if (max_abs <= T(0))
+        return T(0);
+
+    // Compute sum of squares normalized by max_abs
+    T inv_max_abs = T(1) / max_abs;
+    T sum_squares = T(0);
+#pragma unroll
+    for (size_t i = 0; i < N; ++i) {
+        T ratio = v[i] * inv_max_abs;
+        sum_squares += ratio * ratio;
+    }
+
+    return max_abs * std::sqrt(sum_squares);
+}
+
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N> normalize(const vec<T, N> &v) {
+    return v * rsqrt(length2(v));
 }
 
 template <typename T, size_t N>
 inline TREND_HOST_DEVICE vec<T, N> safe_normalize(const vec<T, N> &v) {
-    const T l2 = dot(v, v);
-    return (l2 > 0.0f) ? (v * rsqrt(l2)) : v;
+    const T l = safe_length(v);
+    return (l > 0.0f) ? (v / l) : v;
 }
 
 } // namespace tinyrend

@@ -56,6 +56,19 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
         return result;
     }
 
+    // Unary minus operator
+    TREND_HOST_DEVICE mat<T, Cols, Rows> operator-() const {
+        mat<T, Cols, Rows> result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = -data[j][i];
+            }
+        }
+        return result;
+    }
+
     // Access operators [col] to return vec<T>
     TREND_HOST_DEVICE vec<T, Rows> &operator[](size_t col) { return data[col]; }
     TREND_HOST_DEVICE const vec<T, Rows> &operator[](size_t col) const {

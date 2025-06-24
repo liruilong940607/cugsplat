@@ -2,17 +2,17 @@
 #pragma once
 
 #include <algorithm>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::cholesky3x3 {
 
 // Solve Lx = y where L is lower triangular
-inline TREND_HOST_DEVICE glm::fvec3
-forward_substitution(const glm::fmat3 &L, const glm::fvec3 &y) {
+inline TREND_HOST_DEVICE fvec3 forward_substitution(const fmat3 &L, const fvec3 &y) {
     constexpr float eps = 1e-10f;
-    glm::fvec3 x;
+    fvec3 x;
     x[0] = y[0] / L[0][0];
     x[1] = (y[1] - L[0][1] * x[0]) / (std::abs(L[1][1]) > eps ? L[1][1] : eps);
     x[2] = (y[2] - L[0][2] * x[0] - L[1][2] * x[1]) /
@@ -22,10 +22,9 @@ forward_substitution(const glm::fmat3 &L, const glm::fvec3 &y) {
 #define cholesky_Linv_y forward_substitution
 
 // Solve Lᵀx = y where L is lower triangular
-inline TREND_HOST_DEVICE glm::fvec3
-backward_substitution(const glm::fmat3 &L, const glm::fvec3 &y) {
+inline TREND_HOST_DEVICE fvec3 backward_substitution(const fmat3 &L, const fvec3 &y) {
     constexpr float eps = 1e-10f;
-    glm::fvec3 x;
+    fvec3 x;
     x[2] = y[2] / (std::abs(L[2][2]) > eps ? L[2][2] : eps);
     x[1] = (y[1] - L[1][2] * x[2]) / (std::abs(L[1][1]) > eps ? L[1][1] : eps);
     x[0] = (y[0] - L[0][1] * x[1] - L[0][2] * x[2]) / L[0][0];
@@ -34,36 +33,34 @@ backward_substitution(const glm::fmat3 &L, const glm::fvec3 &y) {
 #define cholesky_LTinv_y backward_substitution
 
 // VJP for forward substitution: do/dL from do/dx
-inline TREND_HOST_DEVICE glm::fmat3 forward_substitution_vjp(
-    const glm::fmat3 &L, const glm::fvec3 &x, const glm::fvec3 &v_x
-) {
-    glm::fvec3 w = backward_substitution(L, v_x);
-    return -glm::outerProduct(w, x);
+inline TREND_HOST_DEVICE fmat3
+forward_substitution_vjp(const fmat3 &L, const fvec3 &x, const fvec3 &v_x) {
+    fvec3 w = backward_substitution(L, v_x);
+    return -outer(w, x);
 }
 #define cholesky_Linv_y_vjp forward_substitution_vjp
 
 // Solve Wx = y, with W = LLᵀ
-inline TREND_HOST_DEVICE glm::fvec3
-cholesky_Winv_y(const glm::fmat3 &L, const glm::fvec3 &y) {
+inline TREND_HOST_DEVICE fvec3 cholesky_Winv_y(const fmat3 &L, const fvec3 &y) {
     return backward_substitution(L, forward_substitution(L, y));
 }
 
 // Compute W⁻¹ = (LLᵀ)⁻¹
-inline TREND_HOST_DEVICE glm::fmat3 cholesky_Winv(const glm::fmat3 &L) {
-    glm::fmat3 Winv;
+inline TREND_HOST_DEVICE fmat3 cholesky_Winv(const fmat3 &L) {
+    fmat3 Winv;
     for (int i = 0; i < 3; ++i) {
-        glm::fvec3 ei(0.0f);
+        fvec3 ei(0.0f);
         ei[i] = 1.0f;
         Winv[i] = cholesky_Winv_y(L, ei);
     }
-    return 0.5f * (Winv + glm::transpose(Winv));
+    return 0.5f * (Winv + Winv.transpose());
 }
 
 // Compute L⁻¹ from L
-inline TREND_HOST_DEVICE glm::fmat3 cholesky_Linv(const glm::fmat3 &L) {
-    glm::fmat3 Linv;
+inline TREND_HOST_DEVICE fmat3 cholesky_Linv(const fmat3 &L) {
+    fmat3 Linv;
     for (int i = 0; i < 3; ++i) {
-        glm::fvec3 ei(0.0f);
+        fvec3 ei(0.0f);
         ei[i] = 1.0f;
         Linv[i] = forward_substitution(L, ei);
     }
@@ -71,16 +68,15 @@ inline TREND_HOST_DEVICE glm::fmat3 cholesky_Linv(const glm::fmat3 &L) {
 }
 
 // VJP for cholesky_Linv: do/dL from do/d(L⁻¹)
-inline TREND_HOST_DEVICE glm::fmat3
-cholesky_Linv_vjp(const glm::fmat3 &L, const glm::fmat3 &v_Linv) {
-    glm::fmat3 X;
+inline TREND_HOST_DEVICE fmat3 cholesky_Linv_vjp(const fmat3 &L, const fmat3 &v_Linv) {
+    fmat3 X;
     for (int c = 0; c < 3; ++c) {
         X[c] = backward_substitution(L, v_Linv[c]);
     }
-    glm::fmat3 G;
+    fmat3 G;
     for (int r = 0; r < 3; ++r) {
-        glm::fvec3 y(X[0][r], X[1][r], X[2][r]);
-        glm::fvec3 solved = forward_substitution(L, y);
+        fvec3 y(X[0][r], X[1][r], X[2][r]);
+        fvec3 solved = forward_substitution(L, y);
         G[0][r] = -solved[0];
         G[1][r] = -solved[1];
         G[2][r] = -solved[2];
@@ -89,8 +85,8 @@ cholesky_Linv_vjp(const glm::fmat3 &L, const glm::fmat3 &v_Linv) {
 }
 
 // Compute Cholesky decomposition: A = LLᵀ
-inline TREND_HOST_DEVICE std::pair<glm::fmat3, bool> cholesky(const glm::fmat3 &A) {
-    glm::fmat3 L(0.0f);
+inline TREND_HOST_DEVICE std::pair<fmat3, bool> cholesky(const fmat3 &A) {
+    fmat3 L(0.0f);
     constexpr double eps = 1e-10;
 
     double l00_sq = static_cast<double>(A[0][0]);
@@ -122,10 +118,9 @@ inline TREND_HOST_DEVICE std::pair<glm::fmat3, bool> cholesky(const glm::fmat3 &
 }
 
 // VJP for cholesky: do/dA from do/dL
-inline TREND_HOST_DEVICE glm::fmat3
-cholesky_vjp(const glm::fmat3 &L, const glm::fmat3 &v_L) {
-    glm::fmat3 S = glm::transpose(L) * v_L;
-    glm::fmat3 P(0.0f);
+inline TREND_HOST_DEVICE fmat3 cholesky_vjp(const fmat3 &L, const fmat3 &v_L) {
+    fmat3 S = L.transpose() * v_L;
+    fmat3 P(0.0f);
     P[0][0] = 0.5f * S[0][0];
     P[0][1] = S[0][1];
     P[0][2] = S[0][2];
@@ -133,10 +128,10 @@ cholesky_vjp(const glm::fmat3 &L, const glm::fmat3 &v_L) {
     P[1][2] = S[1][2];
     P[2][2] = 0.5f * S[2][2];
 
-    glm::fmat3 Sym = P + glm::transpose(P);
-    glm::fmat3 Linv = cholesky_Linv(L);
-    glm::fmat3 v_A = 0.5f * glm::transpose(Linv) * Sym * Linv;
-    return 0.5f * (v_A + glm::transpose(v_A));
+    fmat3 Sym = P + P.transpose();
+    fmat3 Linv = cholesky_Linv(L);
+    fmat3 v_A = 0.5f * Linv.transpose() * Sym * Linv;
+    return 0.5f * (v_A + v_A.transpose());
 }
 
 } // namespace tinyrend::cholesky3x3

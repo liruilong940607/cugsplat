@@ -85,6 +85,40 @@ int test() {
         CHECK(v1.to_string() == "vec3(1.2, 2, 3)", "");
     }
 
+    // Functions: length, safe_length
+    {
+        fvec2 v1 = fvec2(4.0f, 3.0f);
+        CHECK(length(v1) == 5.0f, "");
+        CHECK(safe_length(v1) == 5.0f, "");
+
+        CHECK(
+            length(v1 * 1e-20f) != 5.0f * 1e-20f, ""
+        ); // expected to fail bc of numerical issue
+        CHECK(safe_length(v1 * 1e-20f) == 5.0f * 1e-20f, "");
+
+        CHECK(
+            length(v1 * 1e20f) != 5.0f * 1e20f, ""
+        ); // expected to fail bc of numerical issue
+        CHECK(safe_length(v1 * 1e20f) == 5.0f * 1e20f, "");
+    }
+
+    // Functions: normalize, safe_normalize
+    {
+        fvec2 v1 = fvec2(4.0f, 3.0f);
+        CHECK(normalize(v1).is_close(fvec2(0.8f, 0.6f)), "");
+        CHECK(safe_normalize(v1).is_close(fvec2(0.8f, 0.6f)), "");
+
+        CHECK(
+            normalize(v1 * 1e-30f) != fvec2(0.8f, 0.6f), ""
+        ); // expected to fail bc of numerical issue
+        CHECK(safe_normalize(v1 * 1e-30f) == fvec2(0.8f, 0.6f), "");
+
+        CHECK(
+            normalize(v1 * 1e20f) != fvec2(0.8f, 0.6f), ""
+        ); // expected to fail bc of numerical issue
+        CHECK(safe_normalize(v1 * 1e20f) == fvec2(0.8f, 0.6f), "");
+    }
+
     return fails;
 }
 
