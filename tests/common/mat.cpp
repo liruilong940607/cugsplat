@@ -129,6 +129,14 @@ int test() {
         fails += CHECK(m.transpose().is_close(expected), "");
     }
 
+    // Outer product
+    {
+        fvec2 v1(1.0f, 2.0f);
+        fvec3 v2(3.0f, 4.0f, 5.0f);
+        fmat3x2 expected(3.0f, 6.0f, 4.0f, 8.0f, 5.0f, 10.0f);
+        fails += CHECK((outer(v1, v2)).is_close(expected), "");
+    }
+
     return fails;
 }
 

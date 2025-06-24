@@ -353,4 +353,23 @@ using fmat4x2 = fmat<4, 2>;
 using fmat4x3 = fmat<4, 3>;
 using fmat4x4 = fmat<4, 4>;
 
+using fmat2 = fmat<2, 2>;
+using fmat3 = fmat<3, 3>;
+using fmat4 = fmat<4, 4>;
+
+// Functions
+template <typename T, size_t N1, size_t N2>
+inline TREND_HOST_DEVICE mat<T, N2, N1>
+outer(const vec<T, N1> &v1, const vec<T, N2> &v2) {
+    mat<T, N2, N1> result;
+#pragma unroll
+    for (size_t r = 0; r < N1; ++r) {
+#pragma unroll
+        for (size_t c = 0; c < N2; ++c) {
+            result(c, r) = v1[r] * v2[c];
+        }
+    }
+    return result;
+}
+
 } // namespace tinyrend
