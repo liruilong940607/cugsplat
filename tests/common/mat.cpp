@@ -25,6 +25,24 @@ int test() {
         fails += CHECK(m1 == m2, "");
     }
 
+    // Zero initialization
+    {
+        fmat2x2 m1 = fmat2x2::zero();
+        CHECK(m1.is_close(fmat2x2(0.0f, 0.0f, 0.0f, 0.0f)), "");
+    }
+
+    // Ones initialization
+    {
+        fmat2x2 m1 = fmat2x2::ones();
+        CHECK(m1.is_close(fmat2x2(1.0f, 1.0f, 1.0f, 1.0f)), "");
+    }
+
+    // Identity initialization
+    {
+        fmat2x2 m1 = fmat2x2::identity();
+        CHECK(m1.is_close(fmat2x2(1.0f, 0.0f, 0.0f, 1.0f)), "");
+    }
+
     // Access operators [col]
     {
         fmat2x2 m(1.2f, 2.0f, 3.0f, 4.0f);

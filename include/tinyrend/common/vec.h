@@ -37,6 +37,26 @@ template <typename T, size_t N> struct alignas(T) vec {
         return result;
     }
 
+    // Zero initialization
+    TREND_HOST_DEVICE static vec zero() {
+        vec result;
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            result[i] = T(0);
+        }
+        return result;
+    }
+
+    // Ones initialization
+    TREND_HOST_DEVICE static vec ones() {
+        vec result;
+#pragma unroll
+        for (size_t i = 0; i < N; ++i) {
+            result[i] = T(1);
+        }
+        return result;
+    }
+
     // Unary minus operator
     TREND_HOST_DEVICE vec operator-() const {
         vec result;

@@ -17,6 +17,18 @@ int test() {
         fails += CHECK(v1 == v2, "");
     }
 
+    // Zero initialization
+    {
+        fvec3 v1 = fvec3::zero();
+        CHECK(v1.is_close(fvec3(0.0f, 0.0f, 0.0f)), "");
+    }
+
+    // Ones initialization
+    {
+        fvec3 v1 = fvec3::ones();
+        CHECK(v1.is_close(fvec3(1.0f, 1.0f, 1.0f)), "");
+    }
+
     // Sum
     {
         fvec3 v1 = fvec3(1.2f, 2.0f, 3.0f);

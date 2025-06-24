@@ -56,6 +56,43 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
         return result;
     }
 
+    // Zero initialization
+    TREND_HOST_DEVICE static mat zero() {
+        mat result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = T(0);
+            }
+        }
+        return result;
+    }
+
+    // Ones initialization
+    TREND_HOST_DEVICE static mat ones() {
+        mat result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+#pragma unroll
+            for (size_t j = 0; j < Cols; ++j) {
+                result(j, i) = T(1);
+            }
+        }
+        return result;
+    }
+
+    // Identity initialization
+    TREND_HOST_DEVICE static mat identity() {
+        static_assert(Rows == Cols, "Identity matrix must be square");
+        mat result;
+#pragma unroll
+        for (size_t i = 0; i < Rows; ++i) {
+            result(i, i) = T(1);
+        }
+        return result;
+    }
+
     // Unary minus operator
     TREND_HOST_DEVICE mat<T, Cols, Rows> operator-() const {
         mat<T, Cols, Rows> result;
