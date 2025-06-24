@@ -347,4 +347,16 @@ inline TREND_HOST_DEVICE vec<T, N> safe_normalize(const vec<T, N> &v) {
     return (l > 0.0f) ? (v / l) : v;
 }
 
+template <typename T, size_t N>
+inline TREND_HOST_DEVICE vec<T, N>
+safe_normalize_vjp(const vec<T, N> &v, const vec<T, N> &dl_dout) {
+    const T l = safe_length(v);
+    if (l > 0.0f) {
+        const T il = T(1) / l;
+        const T il3 = il * il * il;
+        return il * dl_dout - il3 * dot(dl_dout, v) * v;
+    }
+    return dl_dout;
+}
+
 } // namespace tinyrend

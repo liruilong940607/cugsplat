@@ -36,22 +36,4 @@ inline TREND_HOST_DEVICE bool is_all_zero(std::array<float, N> const &arr) {
     return true;
 }
 
-template <typename T, size_t N>
-inline TREND_HOST_DEVICE vec<T, N> safe_normalize(const vec<T, N> &x) {
-    const T l2 = dot(x, x);
-    return (l2 > 0.0f) ? (x * rsqrtf(l2)) : x;
-}
-
-template <typename T, size_t N>
-inline TREND_HOST_DEVICE vec<T, N>
-safe_normalize_vjp(const vec<T, N> &x, const vec<T, N> &v_out) {
-    const T l2 = dot(x, x);
-    if (l2 > 0.0f) {
-        const T il = rsqrtf(l2);
-        const T il3 = il * il * il;
-        return il * v_out - il3 * dot(v_out, x) * x;
-    }
-    return v_out;
-}
-
 } // namespace tinyrend::math

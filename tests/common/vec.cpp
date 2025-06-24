@@ -123,6 +123,14 @@ int test() {
         CHECK(safe_normalize(v1 * 1e20f) == fvec2(0.8f, 0.6f), "");
     }
 
+    // Functions: safe_normalize_vjp
+    {
+        fvec2 v1 = fvec2(4.0f, 3.0f);
+        fvec2 dl_dout = fvec2(1.0f, 2.0f);
+        fvec2 dl_dv1_expected = fvec2(-0.12f, 0.16f);
+        CHECK(safe_normalize_vjp(v1, dl_dout).is_close(dl_dv1_expected), "");
+    }
+
     return fails;
 }
 
