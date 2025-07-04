@@ -68,12 +68,12 @@ int test_linear_transform() {
 
     // Test case 1: Simple 2D to 2D linear transform
     {
-        auto const A = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
-        auto const b = fvec<2>(1.0f, 2.0f);
+        auto const A = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const b = fvec2(1.0f, 2.0f);
         auto const f = LinearTransform<2, 2>(A, b);
 
-        auto const mu = fvec<2>(0.0f, 0.0f);
-        auto const sqrt_covar = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const mu = fvec2(0.0f, 0.0f);
+        auto const sqrt_covar = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
 
         auto const [mu_ut, covar_ut, success, aux] =
             transform<2, 2, AuxData>(f, mu, sqrt_covar);
@@ -87,7 +87,7 @@ int test_linear_transform() {
             "Linear transform test 1: mean mismatch"
         );
 
-        auto const expected_covar = A * fmat<2, 2>::identity() * A.transpose();
+        auto const expected_covar = A * fmat2::identity() * A.transpose();
         fails += CHECK(
             covar_ut.is_close(expected_covar, 1e-5f, 1e-5f),
             "Linear transform test 1: covariance mismatch"
@@ -97,11 +97,11 @@ int test_linear_transform() {
     // Test case 2: 3D to 2D linear transform
     {
         auto const A = fmat<3, 2>(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-        auto const b = fvec<2>(1.0f, 2.0f);
+        auto const b = fvec2(1.0f, 2.0f);
         auto const f = LinearTransform<3, 2>(A, b);
 
-        auto const mu = fvec<3>(0.0f, 0.0f, 0.0f);
-        auto const sqrt_covar = fmat<3, 3>::identity();
+        auto const mu = fvec3(0.0f, 0.0f, 0.0f);
+        auto const sqrt_covar = fmat3::identity();
 
         auto const [mu_ut, covar_ut, success, aux] =
             transform<3, 2, AuxData>(f, mu, sqrt_covar);
@@ -109,7 +109,7 @@ int test_linear_transform() {
         fails += CHECK(success, "Linear transform test 2: transform returned false");
 
         // For 3D to 2D case, we need to handle dimensions correctly
-        auto const expected_mu = fvec<2>(
+        auto const expected_mu = fvec2(
             A(0, 0) * mu[0] + A(1, 0) * mu[1] + A(2, 0) * mu[2] + b[0],
             A(0, 1) * mu[0] + A(1, 1) * mu[1] + A(2, 1) * mu[2] + b[1]
         );
@@ -121,7 +121,7 @@ int test_linear_transform() {
         // For covariance, we need to handle the 3D to 2D transformation
         // For y = Ax + b, cov(y) = A * cov(x) * A^T
         // Since cov(x) is identity, we just need A * A^T
-        auto expected_covar = fmat<2, 2>::zero();
+        auto expected_covar = fmat2::zero();
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
                 for (int k = 0; k < 3; k++) {
@@ -143,12 +143,12 @@ int test_quadratic_transform() {
 
     // Test case 1: Simple 2D to 2D quadratic transform
     {
-        auto const A = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
-        auto const b = fvec<2>(1.0f, 2.0f);
+        auto const A = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const b = fvec2(1.0f, 2.0f);
         auto const f = QuadraticTransform<2, 2>(A, b, 0.1f);
 
-        auto const mu = fvec<2>(0.0f, 0.0f);
-        auto const sqrt_covar = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const mu = fvec2(0.0f, 0.0f);
+        auto const sqrt_covar = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
 
         auto const [mu_ut, covar_ut, success, aux] =
             transform<2, 2, AuxData>(f, mu, sqrt_covar);
@@ -175,12 +175,12 @@ int test_failing_transform() {
 
     // Test case 1: Transform that succeeds for small inputs
     {
-        auto const A = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
-        auto const b = fvec<2>(1.0f, 2.0f);
+        auto const A = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const b = fvec2(1.0f, 2.0f);
         auto const f = FailingTransform<2, 2>(A, b, 2.0f);
 
-        auto const mu = fvec<2>(0.0f, 0.0f);
-        auto const sqrt_covar = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const mu = fvec2(0.0f, 0.0f);
+        auto const sqrt_covar = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
 
         auto const [mu_ut, covar_ut, success, aux] =
             transform<2, 2, AuxData>(f, mu, sqrt_covar);
@@ -193,12 +193,12 @@ int test_failing_transform() {
 
     // Test case 2: Transform that fails for large inputs
     {
-        auto const A = fmat<2, 2>(1.0f, 0.0f, 0.0f, 1.0f);
-        auto const b = fvec<2>(1.0f, 2.0f);
+        auto const A = fmat2(1.0f, 0.0f, 0.0f, 1.0f);
+        auto const b = fvec2(1.0f, 2.0f);
         auto const f = FailingTransform<2, 2>(A, b, 0.5f);
 
-        auto const mu = fvec<2>(0.0f, 3.0f);
-        auto const sqrt_covar = fmat<2, 2>(2.0f, 0.0f, 0.0f, 2.0f); // Larger covariance
+        auto const mu = fvec2(0.0f, 3.0f);
+        auto const sqrt_covar = fmat2(2.0f, 0.0f, 0.0f, 2.0f); // Larger covariance
 
         auto const [mu_ut, covar_ut, success, aux] =
             transform<2, 2, AuxData>(f, mu, sqrt_covar);
