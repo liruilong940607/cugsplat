@@ -39,9 +39,9 @@ int main() {
     fails += test_rsqrt();
 
     if (fails > 0) {
-        printf("[common/math.cpp] %d tests failed!\n", fails);
+        printf("[common/math_cuda.cu] %d tests failed!\n", fails);
     } else {
-        printf("[common/math.cpp] All tests passed!\n");
+        printf("[common/math_cuda.cu] All tests passed!\n");
     }
 
     return fails;
