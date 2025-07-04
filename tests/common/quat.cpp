@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "../helpers.h"
+#include "tinyrend/common/mat.h"
 #include "tinyrend/common/quat.h"
 
 using namespace tinyrend;
@@ -65,6 +66,14 @@ int test() {
         fquat result = slerp(q1, q2, 0.5f);
 
         fails += CHECK(result.is_close(expected, 1e-5f, 1e-5f), "");
+    }
+
+    // inverse
+    {
+        fquat q1 = normalize(fquat(1.0f, 2.0f, 3.0f, 4.0f));
+        fmat3 inv1 = mat3_cast(inverse(q1));
+        fmat3 inv2 = inverse(mat3_cast(q1));
+        fails += CHECK(inv1.is_close(inv2, 1e-5f, 1e-5f), "");
     }
 
     return fails;

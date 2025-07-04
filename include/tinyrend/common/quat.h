@@ -227,4 +227,12 @@ inline TREND_HOST_DEVICE quat<T> slerp(const quat<T> &q1, const quat<T> &q2, T t
     }
 }
 
+inline TREND_HOST_DEVICE fquat conjugate(const fquat &q) {
+    return fquat(q.w, -q.x, -q.y, -q.z);
+}
+
+inline TREND_HOST_DEVICE fquat inverse(const fquat &q) {
+    return conjugate(q) / length2(q);
+}
+
 } // namespace tinyrend
