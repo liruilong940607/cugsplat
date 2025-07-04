@@ -12,7 +12,7 @@
 namespace tinyrend {
 
 template <typename T, size_t N> struct alignas(T) vec {
-    T data[N]; // Use raw array instead of std::array to match glm's layout
+    T data[N];
 
     // Default constructor
     vec() = default;
