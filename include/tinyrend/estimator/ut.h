@@ -4,10 +4,11 @@
 
 #include <array>
 #include <functional>
-#include <glm/glm.hpp>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::ut {
 
@@ -15,9 +16,9 @@ namespace tinyrend::ut {
 /// \tparam M Output dimension of the function
 template <int M, typename Aux> struct UnscentedTransformResult {
     /// \brief Mean of the transformed distribution
-    glm::vec<M, float> mu;
+    fvec<M> mu;
     /// \brief Covariance of the transformed distribution
-    glm::mat<M, M, float> covar;
+    fmat<M, M> covar;
     /// \brief Success flag
     bool valid_flag;
     /// \brief Auxiliary data
@@ -34,8 +35,8 @@ template <int M, typename Aux> struct UnscentedTransformResult {
  *
  * @tparam N Input dimension of the function
  * @tparam M Output dimension of the function
- * @tparam Func Function type that takes a glm::vec<N, float> and returns a tuple of
- * (glm::vec<M, float>, bool)
+ * @tparam Func Function type that takes a fvec<N> and returns a tuple of
+ * (fvec<M>, bool, Aux)
  *
  * @param f The nonlinear function to transform. Must return a tuple of
  *     (transformed_point, valid_flag, aux_data)
@@ -54,14 +55,14 @@ template <int M, typename Aux> struct UnscentedTransformResult {
 template <int N, int M, typename Aux, typename Func>
 TREND_HOST_DEVICE inline auto transform(
     Func const &f,
-    glm::vec<N, float> const &mu,
-    glm::mat<N, N, float> const &sqrt_covar,
+    fvec<N> const &mu,
+    fmat<N, N> const &sqrt_covar,
     const float &alpha = 0.1f,
     const float &beta = 2.0f,
     const float &kappa = 0.0f
 ) -> UnscentedTransformResult<M, Aux> {
-    auto mu_ut = glm::vec<M, float>{};
-    auto covar_ut = glm::mat<M, M, float>{};
+    auto mu_ut = fvec<M>{};
+    auto covar_ut = fmat<M, M>{};
 
     constexpr int num_sigma = 2 * N + 1;
 
@@ -69,7 +70,7 @@ TREND_HOST_DEVICE inline auto transform(
     auto const std_dev = std::sqrt(N + lambda);
 
     // Calculate the sigma points
-    glm::vec<N, float> sigma_points[num_sigma];
+    fvec<N> sigma_points[num_sigma];
     sigma_points[0] = mu;
 #pragma unroll
     for (int i = 0; i < N; i++) {
@@ -90,7 +91,7 @@ TREND_HOST_DEVICE inline auto transform(
     }
 
     // Calculate the transformed sigma points
-    glm::vec<M, float> transformed_points[num_sigma];
+    fvec<M> transformed_points[num_sigma];
     Aux center_aux;
 #pragma unroll
     for (int i = 0; i < num_sigma; i++) {
@@ -115,7 +116,7 @@ TREND_HOST_DEVICE inline auto transform(
 #pragma unroll
     for (int i = 0; i < num_sigma; i++) {
         auto const diff = transformed_points[i] - mu_ut;
-        covar_ut += weights_covar[i] * glm::outerProduct(diff, diff);
+        covar_ut += weights_covar[i] * outer(diff, diff);
     }
 
     return {mu_ut, covar_ut, true, center_aux};
