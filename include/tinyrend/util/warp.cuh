@@ -3,6 +3,7 @@
 #include <cooperative_groups.h>
 #include <cooperative_groups/reduce.h>
 
+#include "tinyrend/common/mat.h"
 #include "tinyrend/common/vec.h"
 
 namespace tinyrend::warp {
