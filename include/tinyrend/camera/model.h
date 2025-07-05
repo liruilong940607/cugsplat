@@ -205,10 +205,10 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
     }
 };
 
-struct PerfectPinholeCameraModelImpl : BaseCameraModel<PerfectPinholeCameraModelImpl> {
+struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     // OpenCV-like pinhole camera model without any distortion
 
-    using Base = BaseCameraModel<PerfectPinholeCameraModelImpl>;
+    using Base = BaseCameraModel<PerfectPinholeCameraModel>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -218,8 +218,7 @@ struct PerfectPinholeCameraModelImpl : BaseCameraModel<PerfectPinholeCameraModel
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    PerfectPinholeCameraModelImpl(Parameters const &parameters)
-        : parameters(parameters) {}
+    PerfectPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto
     camera_point_to_image_point_impl(fvec3 const &camera_point
@@ -240,10 +239,10 @@ struct PerfectPinholeCameraModelImpl : BaseCameraModel<PerfectPinholeCameraModel
     }
 };
 
-struct OpenCVPinholeCameraModelImpl : BaseCameraModel<OpenCVPinholeCameraModelImpl> {
+struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
     // OpenCV-like pinhole camera model with distortion
 
-    using Base = BaseCameraModel<OpenCVPinholeCameraModelImpl>;
+    using Base = BaseCameraModel<OpenCVPinholeCameraModel>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -258,8 +257,7 @@ struct OpenCVPinholeCameraModelImpl : BaseCameraModel<OpenCVPinholeCameraModelIm
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OpenCVPinholeCameraModelImpl(Parameters const &parameters)
-        : parameters(parameters) {}
+    OpenCVPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto
     camera_point_to_image_point_impl(fvec3 const &camera_point
@@ -296,10 +294,10 @@ struct OpenCVPinholeCameraModelImpl : BaseCameraModel<OpenCVPinholeCameraModelIm
     }
 };
 
-struct PerfectFisheyeCameraModelImpl : BaseCameraModel<PerfectFisheyeCameraModelImpl> {
+struct PerfectFisheyeCameraModel : BaseCameraModel<PerfectFisheyeCameraModel> {
     // Perfect fisheye camera model without any distortion
 
-    using Base = BaseCameraModel<PerfectFisheyeCameraModelImpl>;
+    using Base = BaseCameraModel<PerfectFisheyeCameraModel>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -310,8 +308,7 @@ struct PerfectFisheyeCameraModelImpl : BaseCameraModel<PerfectFisheyeCameraModel
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    PerfectFisheyeCameraModelImpl(Parameters const &parameters)
-        : parameters(parameters) {}
+    PerfectFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto
     camera_point_to_image_point_impl(fvec3 const &camera_point
@@ -338,10 +335,10 @@ struct PerfectFisheyeCameraModelImpl : BaseCameraModel<PerfectFisheyeCameraModel
     }
 };
 
-struct OpenCVFisheyeCameraModelImpl : BaseCameraModel<OpenCVFisheyeCameraModelImpl> {
+struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
     // OpenCV-like fisheye camera model with distortion
 
-    using Base = BaseCameraModel<OpenCVFisheyeCameraModelImpl>;
+    using Base = BaseCameraModel<OpenCVFisheyeCameraModel>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -354,8 +351,7 @@ struct OpenCVFisheyeCameraModelImpl : BaseCameraModel<OpenCVFisheyeCameraModelIm
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OpenCVFisheyeCameraModelImpl(Parameters const &parameters)
-        : parameters(parameters) {}
+    OpenCVFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto
     camera_point_to_image_point_impl(fvec3 const &camera_point
@@ -388,10 +384,10 @@ struct OpenCVFisheyeCameraModelImpl : BaseCameraModel<OpenCVFisheyeCameraModelIm
     }
 };
 
-struct OrthogonalCameraModelImpl : BaseCameraModel<OrthogonalCameraModelImpl> {
+struct OrthogonalCameraModel : BaseCameraModel<OrthogonalCameraModel> {
     // Orthogonal camera model
 
-    using Base = BaseCameraModel<OrthogonalCameraModelImpl>;
+    using Base = BaseCameraModel<OrthogonalCameraModel>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -401,7 +397,7 @@ struct OrthogonalCameraModelImpl : BaseCameraModel<OrthogonalCameraModelImpl> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OrthogonalCameraModelImpl(Parameters const &parameters) : parameters(parameters) {}
+    OrthogonalCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto
     camera_point_to_image_point_impl(fvec3 const &camera_point
@@ -421,11 +417,5 @@ struct OrthogonalCameraModelImpl : BaseCameraModel<OrthogonalCameraModelImpl> {
         return Ray{camera_ray_o, camera_ray_d, true};
     }
 };
-
-using PerfectPinholeCameraModel = BaseCameraModel<PerfectPinholeCameraModelImpl>;
-using OpenCVPinholeCameraModel = BaseCameraModel<OpenCVPinholeCameraModelImpl>;
-using PerfectFisheyeCameraModel = BaseCameraModel<PerfectFisheyeCameraModelImpl>;
-using OpenCVFisheyeCameraModel = BaseCameraModel<OpenCVFisheyeCameraModelImpl>;
-using OrthogonalCameraModel = BaseCameraModel<OrthogonalCameraModelImpl>;
 
 } // namespace tinyrend::camera
