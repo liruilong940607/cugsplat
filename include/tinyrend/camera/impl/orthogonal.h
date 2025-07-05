@@ -21,7 +21,7 @@ namespace tinyrend::camera::impl::orthogonal {
 TREND_HOST_DEVICE inline auto project(
     fvec3 const &camera_point, fvec2 const &focal_length, fvec2 const &principal_point
 ) -> fvec2 {
-    auto const xy = fvec2(camera_point);
+    auto const xy = fvec2(camera_point[0], camera_point[1]);
     auto const image_point = focal_length * xy + principal_point;
     return image_point;
 }

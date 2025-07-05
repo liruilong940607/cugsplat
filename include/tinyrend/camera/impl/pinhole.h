@@ -186,8 +186,7 @@ TREND_HOST_DEVICE inline auto undistortion(
                        &tangential_coeffs,
                        &thin_prism_coeffs,
                        &min_radial_dist,
-                       &max_radial_dist](const glm::fvec2 &xy
-                      ) -> std::pair<glm::fvec2, glm::fmat2> {
+                       &max_radial_dist](const fvec2 &xy) -> std::pair<fvec2, fmat2> {
         auto const &[J, icD, r2, valid_flag] = distortion_jac(
             xy,
             radial_coeffs,
@@ -196,8 +195,9 @@ TREND_HOST_DEVICE inline auto undistortion(
             min_radial_dist,
             max_radial_dist
         );
-        if (!valid_flag)
+        if (!valid_flag) {
             return {fvec2{}, fmat2{}};
+        }
         auto const delta = compute_delta(xy, r2, tangential_coeffs, thin_prism_coeffs);
         auto const residual = icD * xy + delta - uv;
         return {residual, J};

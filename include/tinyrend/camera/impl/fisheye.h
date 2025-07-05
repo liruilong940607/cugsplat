@@ -357,7 +357,7 @@ TREND_HOST_DEVICE inline auto project_hess(
     }
 
     // ∂s/∂xy  and  ∂²s/∂xy²
-    fvec2 Js = (r > min_2d_norm) ? s1 * invr * fvec2(x_, y_) : fvec2(0.f);
+    fvec2 Js = (r > min_2d_norm) ? s1 * invr * fvec2(x_, y_) : fvec2{};
     float Hs[2][2]{{0.f, 0.f}, {0.f, 0.f}};
     if (r > min_2d_norm) {
         const float invr2 = invr * invr;

@@ -36,8 +36,9 @@ struct Ray {
     bool valid_flag;
 };
 
-struct ImagePoint {
+struct ImagePointAndZBuffer {
     fvec2 p; // pixel coordinates
+    float z; // z-depth
     bool valid_flag;
 };
 
@@ -91,11 +92,11 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
         fvec2 const &image_point, ShutterPoses const &shutter_poses
     ) -> Ray {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
-        auto const camera_ray = derived->image_point_to_camera_ray(image_point);
+        auto const camera_ray = derived->image_point_to_camera_ray_impl(image_point);
 
         // If the camera ray in not valid, return a zero ray
         if (!camera_ray.valid_flag) {
-            return Ray{fvec3(0.f), fvec3(0.f), false};
+            return Ray{fvec3{}, fvec3{}, false};
         }
 
         // Interpolate the shutter poses
@@ -112,23 +113,24 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
 
     inline TREND_HOST_DEVICE auto _transform_world_to_image(
         fvec3 const &world_point, ShutterPoses::Pose const &pose
-    ) const -> ImagePoint {
+    ) const -> ImagePointAndZBuffer {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
         auto const camera_point =
             tinyrend::se3::transform_point(pose.r, pose.t, world_point);
+        auto const z_depth = camera_point[2];
 
         // Treat all the points behind the camera plane to invalid
-        if (camera_point[2] <= 0.f) {
-            return ImagePoint{fvec2{}, false};
+        if (z_depth <= 0.f) {
+            return ImagePointAndZBuffer{fvec2{}, 0.f, false};
         }
 
         // Project the camera point to the image plane
         auto const &[image_point, valid_flag] =
-            derived->camera_point_to_image_point(camera_point);
+            derived->camera_point_to_image_point_impl(camera_point);
 
         if (!valid_flag) {
             // If the camera point is invalid, return an invalid image point
-            return ImagePoint{fvec2{}, false};
+            return ImagePointAndZBuffer{fvec2{}, 0.f, false};
         } else {
             // In case camera point is valid, check if the image point is valid
             // Check if the image points fall within the image, set points that have
@@ -139,7 +141,7 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
                 derived->parameters.resolution,
                 derived->parameters.margin_factor
             );
-            return ImagePoint{image_point, valid};
+            return ImagePointAndZBuffer{image_point, z_depth, valid};
         }
     }
 
@@ -147,35 +149,38 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
     template <size_t N_ROLLING_SHUTTER_ITERATIONS = 10>
     inline TREND_HOST_DEVICE auto world_point_to_image_point(
         fvec3 const &world_point, ShutterPoses const &shutter_poses
-    ) const -> ImagePoint {
+    ) const -> ImagePointAndZBuffer {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
 
         // Always perform transformation using start pose
-        auto const image_point_start =
+        auto const image_point_and_depth_start =
             _transform_world_to_image(world_point, shutter_poses.start);
 
         // Exit early if we have a global shutter sensor
         if (derived->parameters.shutter_type ==
             tinyrend::camera::impl::shutter::Type::GLOBAL) {
-            return image_point_start;
+            return image_point_and_depth_start;
         }
 
         // This selection prefers points at the start-of-frame pose over
         // end-of-frame points
         auto p_rs = fvec2{};
-        if (image_point_start.valid_flag) {
-            p_rs = image_point_start.p;
+        auto z_rs = 0.f;
+        if (image_point_and_depth_start.valid_flag) {
+            p_rs = image_point_and_depth_start.p;
+            z_rs = image_point_and_depth_start.z;
         } else {
             // Do initial transformations using both start and end poses to
             // determine all candidate points and take union of valid projections as
             // iteration starting points
-            auto const image_point_end =
+            auto const image_point_and_depth_end =
                 _transform_world_to_image(world_point, shutter_poses.end);
-            if (image_point_end.valid_flag) {
-                p_rs = image_point_end.p;
+            if (image_point_and_depth_end.valid_flag) {
+                p_rs = image_point_and_depth_end.p;
+                z_rs = image_point_and_depth_end.z;
             } else {
                 // No valid projection at start or finish -> mark point as invalid.
-                return ImagePoint{fvec2{}, false};
+                return ImagePointAndZBuffer{fvec2{}, 0.f, false};
             }
         }
 
@@ -185,23 +190,25 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
             auto const pose_rs = interpolate_shutter_poses(
                 _shutter_relative_frame_time(p_rs), shutter_poses
             );
-            auto const image_point_rs = _transform_world_to_image(world_point, pose_rs);
-            if (image_point_rs.valid_flag) {
-                p_rs = image_point_rs.p;
+            auto const image_point_and_depth_rs =
+                _transform_world_to_image(world_point, pose_rs);
+            if (image_point_and_depth_rs.valid_flag) {
+                p_rs = image_point_and_depth_rs.p;
+                z_rs = image_point_and_depth_rs.z;
             } else {
                 // Rolling shutter optimization failed -> mark point as invalid.
-                return ImagePoint{fvec2{}, false};
+                return ImagePointAndZBuffer{fvec2{}, 0.f, false};
             }
         }
 
-        return ImagePoint{p_rs, true};
+        return ImagePointAndZBuffer{p_rs, z_rs, true};
     }
 };
 
-struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
+struct PerfectPinholeCameraModelImpl : BaseCameraModel<PerfectPinholeCameraModelImpl> {
     // OpenCV-like pinhole camera model without any distortion
 
-    using Base = BaseCameraModel<PerfectPinholeCameraModel>;
+    using Base = BaseCameraModel<PerfectPinholeCameraModelImpl>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -211,18 +218,20 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    PerfectPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+    PerfectPinholeCameraModelImpl(Parameters const &parameters)
+        : parameters(parameters) {}
 
-    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
-    ) const -> ImagePoint {
+    inline TREND_HOST_DEVICE auto
+    camera_point_to_image_point_impl(fvec3 const &camera_point
+    ) const -> std::pair<fvec2, bool> {
         auto const image_point = tinyrend::camera::impl::pinhole::project(
             camera_point, parameters.focal_length, parameters.principal_point
         );
-        return ImagePoint{image_point, true};
+        return {image_point, true};
     }
 
-    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
-    ) const -> Ray {
+    inline TREND_HOST_DEVICE auto
+    image_point_to_camera_ray_impl(fvec2 const &image_point) const -> Ray {
         auto const camera_ray_o = fvec3{};
         auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
             image_point, parameters.focal_length, parameters.principal_point
@@ -231,10 +240,10 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     }
 };
 
-struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
+struct OpenCVPinholeCameraModelImpl : BaseCameraModel<OpenCVPinholeCameraModelImpl> {
     // OpenCV-like pinhole camera model with distortion
 
-    using Base = BaseCameraModel<OpenCVPinholeCameraModel>;
+    using Base = BaseCameraModel<OpenCVPinholeCameraModelImpl>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -249,10 +258,12 @@ struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OpenCVPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+    OpenCVPinholeCameraModelImpl(Parameters const &parameters)
+        : parameters(parameters) {}
 
-    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
-    ) const -> ImagePoint {
+    inline TREND_HOST_DEVICE auto
+    camera_point_to_image_point_impl(fvec3 const &camera_point
+    ) const -> std::pair<fvec2, bool> {
         auto const &[image_point, valid_flag] =
             tinyrend::camera::impl::pinhole::project(
                 camera_point,
@@ -264,11 +275,11 @@ struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
                 parameters.min_radial_dist,
                 parameters.max_radial_dist
             );
-        return ImagePoint{image_point, valid_flag};
+        return {image_point, valid_flag};
     }
 
-    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
-    ) const -> Ray {
+    inline TREND_HOST_DEVICE auto
+    image_point_to_camera_ray_impl(fvec2 const &image_point) const -> Ray {
         auto const camera_ray_o = fvec3{};
         auto const &[camera_ray_d, valid_flag] =
             tinyrend::camera::impl::pinhole::unproject(
@@ -285,10 +296,10 @@ struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
     }
 };
 
-struct PerfectFisheyeCameraModel : BaseCameraModel<PerfectFisheyeCameraModel> {
+struct PerfectFisheyeCameraModelImpl : BaseCameraModel<PerfectFisheyeCameraModelImpl> {
     // Perfect fisheye camera model without any distortion
 
-    using Base = BaseCameraModel<PerfectFisheyeCameraModel>;
+    using Base = BaseCameraModel<PerfectFisheyeCameraModelImpl>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -299,21 +310,23 @@ struct PerfectFisheyeCameraModel : BaseCameraModel<PerfectFisheyeCameraModel> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    PerfectFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+    PerfectFisheyeCameraModelImpl(Parameters const &parameters)
+        : parameters(parameters) {}
 
-    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
-    ) const -> ImagePoint {
+    inline TREND_HOST_DEVICE auto
+    camera_point_to_image_point_impl(fvec3 const &camera_point
+    ) const -> std::pair<fvec2, bool> {
         auto const image_point = tinyrend::camera::impl::fisheye::project(
             camera_point,
             parameters.focal_length,
             parameters.principal_point,
             parameters.min_2d_norm
         );
-        return ImagePoint{image_point, true};
+        return {image_point, true};
     }
 
-    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
-    ) const -> Ray {
+    inline TREND_HOST_DEVICE auto
+    image_point_to_camera_ray_impl(fvec2 const &image_point) const -> Ray {
         auto const camera_ray_o = fvec3{};
         auto const camera_ray_d = tinyrend::camera::impl::fisheye::unproject(
             image_point,
@@ -325,10 +338,10 @@ struct PerfectFisheyeCameraModel : BaseCameraModel<PerfectFisheyeCameraModel> {
     }
 };
 
-struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
+struct OpenCVFisheyeCameraModelImpl : BaseCameraModel<OpenCVFisheyeCameraModelImpl> {
     // OpenCV-like fisheye camera model with distortion
 
-    using Base = BaseCameraModel<OpenCVFisheyeCameraModel>;
+    using Base = BaseCameraModel<OpenCVFisheyeCameraModelImpl>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -341,10 +354,12 @@ struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OpenCVFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+    OpenCVFisheyeCameraModelImpl(Parameters const &parameters)
+        : parameters(parameters) {}
 
-    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
-    ) const -> ImagePoint {
+    inline TREND_HOST_DEVICE auto
+    camera_point_to_image_point_impl(fvec3 const &camera_point
+    ) const -> std::pair<fvec2, bool> {
         auto const &[image_point, valid_flag] =
             tinyrend::camera::impl::fisheye::project(
                 camera_point,
@@ -354,11 +369,11 @@ struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
                 parameters.min_2d_norm,
                 parameters.max_theta
             );
-        return ImagePoint{image_point, valid_flag};
+        return {image_point, valid_flag};
     }
 
-    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
-    ) const -> Ray {
+    inline TREND_HOST_DEVICE auto
+    image_point_to_camera_ray_impl(fvec2 const &image_point) const -> Ray {
         auto const camera_ray_o = fvec3{};
         auto const &[camera_ray_d, valid_flag] =
             tinyrend::camera::impl::fisheye::unproject(
@@ -373,10 +388,10 @@ struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
     }
 };
 
-struct OrthogonalCameraModel : BaseCameraModel<OrthogonalCameraModel> {
+struct OrthogonalCameraModelImpl : BaseCameraModel<OrthogonalCameraModelImpl> {
     // Orthogonal camera model
 
-    using Base = BaseCameraModel<OrthogonalCameraModel>;
+    using Base = BaseCameraModel<OrthogonalCameraModelImpl>;
 
     struct Parameters : Base::Parameters {
         fvec2 principal_point;
@@ -386,18 +401,19 @@ struct OrthogonalCameraModel : BaseCameraModel<OrthogonalCameraModel> {
     Parameters parameters;
 
     TREND_HOST_DEVICE
-    OrthogonalCameraModel(Parameters const &parameters) : parameters(parameters) {}
+    OrthogonalCameraModelImpl(Parameters const &parameters) : parameters(parameters) {}
 
-    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
-    ) const -> ImagePoint {
+    inline TREND_HOST_DEVICE auto
+    camera_point_to_image_point_impl(fvec3 const &camera_point
+    ) const -> std::pair<fvec2, bool> {
         auto const image_point = tinyrend::camera::impl::orthogonal::project(
             camera_point, parameters.focal_length, parameters.principal_point
         );
-        return ImagePoint{image_point, true};
+        return {image_point, true};
     }
 
-    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
-    ) const -> Ray {
+    inline TREND_HOST_DEVICE auto
+    image_point_to_camera_ray_impl(fvec2 const &image_point) const -> Ray {
         auto const &[camera_ray_o, camera_ray_d] =
             tinyrend::camera::impl::orthogonal::unproject(
                 image_point, parameters.focal_length, parameters.principal_point
@@ -405,5 +421,11 @@ struct OrthogonalCameraModel : BaseCameraModel<OrthogonalCameraModel> {
         return Ray{camera_ray_o, camera_ray_d, true};
     }
 };
+
+using PerfectPinholeCameraModel = BaseCameraModel<PerfectPinholeCameraModelImpl>;
+using OpenCVPinholeCameraModel = BaseCameraModel<OpenCVPinholeCameraModelImpl>;
+using PerfectFisheyeCameraModel = BaseCameraModel<PerfectFisheyeCameraModelImpl>;
+using OpenCVFisheyeCameraModel = BaseCameraModel<OpenCVFisheyeCameraModelImpl>;
+using OrthogonalCameraModel = BaseCameraModel<OrthogonalCameraModelImpl>;
 
 } // namespace tinyrend::camera
