@@ -11,7 +11,7 @@
 #include "tinyrend/common/vec.h"
 #include "tinyrend/util/solver.h"
 
-namespace tinyrend::camera::pinhole {
+namespace tinyrend::camera::impl::pinhole {
 
 TREND_HOST_DEVICE constexpr float DEFAULT_MIN_RADIAL_DIST = 0.8f;
 TREND_HOST_DEVICE constexpr float DEFAULT_MAX_RADIAL_DIST =
@@ -451,4 +451,4 @@ TREND_HOST_DEVICE inline auto unproject(
     return {normalize(dir), true};
 }
 
-} // namespace tinyrend::camera::pinhole
+} // namespace tinyrend::camera::impl::pinhole

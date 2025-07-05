@@ -11,7 +11,7 @@
 #include "tinyrend/common/vec.h"
 #include "tinyrend/util/solver.h"
 
-namespace tinyrend::camera::fisheye {
+namespace tinyrend::camera::impl::fisheye {
 
 /// \brief Compute the radial distortion: theta -> theta_d
 /// \param theta Angle in radians
@@ -479,4 +479,4 @@ TREND_HOST_DEVICE inline auto unproject(
     return {dir, true};
 }
 
-} // namespace tinyrend::camera::fisheye
+} // namespace tinyrend::camera::impl::fisheye

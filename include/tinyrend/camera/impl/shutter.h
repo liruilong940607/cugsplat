@@ -11,7 +11,7 @@
 #include "tinyrend/common/vec.h"
 #include "tinyrend/util/se3.h"
 
-namespace tinyrend::camera::shutter {
+namespace tinyrend::camera::impl::shutter {
 
 /// \brief Enumeration of shutter types
 /// \details Defines different types of camera shutters
@@ -149,4 +149,4 @@ TREND_HOST_DEVICE inline auto point_world_to_image(
     };
 }
 
-} // namespace tinyrend::camera::shutter
+} // namespace tinyrend::camera::impl::shutter

@@ -10,7 +10,7 @@
 #include "tinyrend/common/math.h"
 #include "tinyrend/common/vec.h"
 
-namespace tinyrend::camera::orthogonal {
+namespace tinyrend::camera::impl::orthogonal {
 
 /// \brief Project a 3D point in camera space to 2D image space using
 /// orthogonal projection.
@@ -61,4 +61,4 @@ TREND_HOST_DEVICE inline auto unproject(
     return {origin, dir};
 }
 
-} // namespace tinyrend::camera::orthogonal
+} // namespace tinyrend::camera::impl::orthogonal
