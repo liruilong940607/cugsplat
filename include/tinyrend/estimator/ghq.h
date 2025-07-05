@@ -13,7 +13,6 @@
 #include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
 #include "tinyrend/common/mat.h"
 #include "tinyrend/common/vec.h"
-
 #include "tinyrend/estimator/hermgauss.h"
 
 namespace tinyrend::ghq {

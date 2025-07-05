@@ -4,3 +4,16 @@ BinPackArguments: false
 BinPackParameters: false
 IndentWidth: 4
 ColumnLimit: 88
+
+# Include sorting configuration (system headers first)
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # System headers first
+  - Regex: '^<.*>$'
+    Priority: 1
+  # Project headers second
+  - Regex: '^".*"$'
+    Priority: 2
+# Disable main header special treatment
+IncludeIsMainRegex: '$^'
