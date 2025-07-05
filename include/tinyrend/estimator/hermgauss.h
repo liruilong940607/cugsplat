@@ -6,9 +6,9 @@
 #pragma once
 
 #include <array>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::ghq {
 
@@ -75,11 +75,10 @@ TREND_HOST_DEVICE constexpr auto hermgauss_weights_impl(
 // Recursive implementation for tensor points
 template <int N, int I = 0, int J = 0, int K = 0>
 TREND_HOST_DEVICE constexpr auto hermgauss_points_impl(
-    std::array<float, N> const &x1d,
-    std::array<glm::fvec3, constexpr_pow<N, 3>::value> &p
+    std::array<float, N> const &x1d, std::array<fvec3, constexpr_pow<N, 3>::value> &p
 ) -> void {
     if constexpr (K < N) {
-        p[K * N * N + J * N + I] = glm::fvec3(x1d[I], x1d[J], x1d[K]);
+        p[K * N * N + J * N + I] = fvec3(x1d[I], x1d[J], x1d[K]);
         if constexpr (I + 1 < N) {
             hermgauss_points_impl<N, I + 1, J, K>(x1d, p);
         } else if constexpr (J + 1 < N) {
@@ -102,8 +101,8 @@ TREND_HOST_DEVICE constexpr auto hermgauss_weights(std::array<float, N> const &w
 // Main function to generate tensor points
 template <int N>
 TREND_HOST_DEVICE constexpr auto hermgauss_points(std::array<float, N> const &x1d
-) -> std::array<glm::fvec3, constexpr_pow<N, 3>::value> {
-    std::array<glm::fvec3, constexpr_pow<N, 3>::value> p{};
+) -> std::array<fvec3, constexpr_pow<N, 3>::value> {
+    std::array<fvec3, constexpr_pow<N, 3>::value> p{};
     hermgauss_points_impl<N>(x1d, p);
     return p;
 }

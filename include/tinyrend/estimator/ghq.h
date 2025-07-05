@@ -9,9 +9,11 @@
 
 #include <array>
 #include <functional>
-#include <glm/glm.hpp>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/vec.h"
+
 #include "tinyrend/estimator/hermgauss.h"
 
 namespace tinyrend::ghq {
@@ -25,8 +27,7 @@ template <int N> constexpr int num_quadratic_features() {
 /// @private
 // Helper function to compute quadratic features for a single point
 template <int N>
-TREND_HOST_DEVICE constexpr auto
-build_quadratic_features_point(glm::vec<N, float> const &point
+TREND_HOST_DEVICE constexpr auto build_quadratic_features_point(fvec<N> const &point
 ) -> std::array<float, num_quadratic_features<N>()> {
     std::array<float, num_quadratic_features<N>()> features{};
 
@@ -53,7 +54,7 @@ build_quadratic_features_point(glm::vec<N, float> const &point
 // Build quadratic features matrix for all points
 template <int N, int M>
 TREND_HOST_DEVICE constexpr auto
-build_quadratic_features(std::array<glm::vec<N, float>, M> const &points
+build_quadratic_features(std::array<fvec<N>, M> const &points
 ) -> std::array<std::array<float, num_quadratic_features<N>()>, M> {
     std::array<std::array<float, num_quadratic_features<N>()>, M> features_matrix{};
     for (int i = 0; i < M; ++i) {
@@ -249,7 +250,7 @@ TREND_HOST_DEVICE constexpr auto weighted_least_squares_coefficients_order5 =
 /// @private
 // Struct to hold precomputed matrices
 template <int N, int Size> struct PrecomputedMatrices {
-    std::array<glm::vec<N, float>, Size> points_std;
+    std::array<fvec<N>, Size> points_std;
     std::array<std::array<float, Size>, num_quadratic_features<N>()> coefficients;
 };
 
@@ -297,21 +298,21 @@ template <int N, int order> auto get_precomputed_matrices() {
  */
 template <int N, int M, int order = 3, typename Func>
 TREND_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
-    Func const &f, glm::vec<N, float> const &mu, glm::vec<N, float> const &std_dev
-) -> std::pair<glm::mat<M, N, float>, std::array<glm::mat<N, N, float>, M>> {
+    Func const &f, fvec<N> const &mu, fvec<N> const &std_dev
+) -> std::pair<fmat<M, N>, std::array<fmat<N, N>, M>> {
     // Get precomputed matrices based on order
     auto matrices = get_precomputed_matrices<N, order>();
 
     // Evaluate function at all points
-    std::array<glm::vec<M, float>, matrices.points_std.size()> outputs;
+    std::array<fvec<M>, matrices.points_std.size()> outputs;
 #pragma unroll
     for (size_t i = 0; i < matrices.points_std.size(); ++i) {
         outputs[i] = f(mu + matrices.points_std[i] * std_dev);
     }
 
     // Initialize results
-    glm::mat<M, N, float> J{};
-    std::array<glm::mat<N, N, float>, M> H{};
+    fmat<M, N> J{};
+    std::array<fmat<N, N>, M> H{};
 
 // For each output dimension
 #pragma unroll

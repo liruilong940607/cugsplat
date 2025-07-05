@@ -15,10 +15,10 @@ template <typename T, size_t Cols, size_t Rows> struct alignas(T) mat {
     vec<T, Rows> data[Cols]; // Column vectors for access
 
     // Default constructor
-    mat() = default;
+    constexpr mat() = default;
 
     // Initialize from values
-    template <typename... Args> TREND_HOST_DEVICE mat(Args... args) {
+    template <typename... Args> TREND_HOST_DEVICE constexpr mat(Args... args) {
         static_assert(sizeof...(args) == Rows * Cols, "Invalid number of arguments");
         T arr[] = {static_cast<T>(args)...};
 #pragma unroll

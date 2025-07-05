@@ -15,16 +15,12 @@ template <typename T, size_t N> struct alignas(T) vec {
     T data[N];
 
     // Default constructor
-    vec() = default;
+    constexpr vec() = default;
 
     // Initialize from values
-    template <typename... Args> TREND_HOST_DEVICE vec(Args... args) {
+    template <typename... Args>
+    TREND_HOST_DEVICE constexpr vec(Args... args) : data{static_cast<T>(args)...} {
         static_assert(sizeof...(args) == N, "Invalid number of arguments");
-        T arr[] = {static_cast<T>(args)...};
-#pragma unroll
-        for (size_t i = 0; i < N; ++i) {
-            data[i] = arr[i];
-        }
     }
 
     // Initialize from pointer
@@ -78,8 +74,8 @@ template <typename T, size_t N> struct alignas(T) vec {
     }
 
     // Access operators
-    TREND_HOST_DEVICE T &operator[](size_t i) { return data[i]; }
-    TREND_HOST_DEVICE const T &operator[](size_t i) const { return data[i]; }
+    TREND_HOST_DEVICE constexpr T &operator[](size_t i) { return data[i]; }
+    TREND_HOST_DEVICE constexpr const T &operator[](size_t i) const { return data[i]; }
 
     // Pointer casting operators
     TREND_HOST_DEVICE operator T *() { return data; }
