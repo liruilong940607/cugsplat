@@ -2,12 +2,14 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <glm/glm.hpp>
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
-#include "tinyrend/core/se3.h"
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/math.h"
+#include "tinyrend/common/vec.h"
+#include "tinyrend/util/se3.h"
 
 namespace tinyrend::camera::shutter {
 
@@ -33,7 +35,7 @@ enum class Type {
 /// \return Relative time in [0, 1] range where 0 is start of frame and 1 is end of
 /// frame
 TREND_HOST_DEVICE inline auto relative_frame_time(
-    const glm::fvec2 &image_point,
+    const fvec2 &image_point,
     const std::array<uint32_t, 2> &resolution,
     const Type &shutter_type
 ) -> float {
@@ -56,18 +58,18 @@ TREND_HOST_DEVICE inline auto relative_frame_time(
 }
 
 /// \brief Result structure for point_world_to_image function
-/// \tparam RotationType Type of rotation representation (glm::fmat3 or glm::fquat)
+/// \tparam RotationType Type of rotation representation (fmat3 or fquat)
 template <typename RotationType> struct PointWorldToImageResult {
-    glm::fvec2 image_point;  ///< Projected 2D point in image space
-    glm::fvec3 camera_point; ///< 3D point in camera space
+    fvec2 image_point;       ///< Projected 2D point in image space
+    fvec3 camera_point;      ///< 3D point in camera space
     RotationType pose_r;     ///< Camera rotation at exposure time
-    glm::fvec3 pose_t;       ///< Camera translation at exposure time
+    fvec3 pose_t;            ///< Camera translation at exposure time
     bool valid_flag = false; ///< Flag indicating if projection was successful
 };
 
 /// \brief Project a world point to an image point using rolling shutter
 /// \tparam N_ITER Number of iterations for convergence
-/// \tparam RotationType Type of rotation representation (glm::fmat3 or glm::fquat)
+/// \tparam RotationType Type of rotation representation (fmat3 or fquat)
 /// \tparam Func Type of projection function
 /// \param project_fn Function to project a camera point to an image point
 /// \param resolution Image resolution (width, height)
@@ -82,17 +84,16 @@ template <size_t N_ITER = 10, typename RotationType, typename Func>
 TREND_HOST_DEVICE inline auto point_world_to_image(
     Func project_fn, // Function to project a camera point to an image point
     const std::array<uint32_t, 2> &resolution,
-    const glm::fvec3 &world_point,
+    const fvec3 &world_point,
     const RotationType &pose_r_start,
-    const glm::fvec3 &pose_t_start,
+    const fvec3 &pose_t_start,
     const RotationType &pose_r_end,
-    const glm::fvec3 &pose_t_end,
+    const fvec3 &pose_t_end,
     const Type &shutter_type
 ) -> PointWorldToImageResult<RotationType> {
     static_assert(
-        std::is_same_v<RotationType, glm::fmat3> ||
-            std::is_same_v<RotationType, glm::fquat>,
-        "RotationType must be either glm::fmat3 or glm::fquat"
+        std::is_same_v<RotationType, fmat3> || std::is_same_v<RotationType, fquat>,
+        "RotationType must be either fmat3 or fquat"
     );
 
     // Always perform transformation using start pose
@@ -109,7 +110,7 @@ TREND_HOST_DEVICE inline auto point_world_to_image(
     }
 
     // Initialize the image point using the start or end pose
-    glm::fvec2 init_image_point;
+    fvec2 init_image_point;
     if (valid_flag_start) {
         init_image_point = image_point_start;
     } else {
@@ -125,10 +126,10 @@ TREND_HOST_DEVICE inline auto point_world_to_image(
 
     // Iterate to converge to the correct image point
     auto image_point_rs = init_image_point;
-    glm::fvec3 camera_point_rs;
+    fvec3 camera_point_rs;
     bool valid_flag_rs;
     RotationType pose_r_rs;
-    glm::fvec3 pose_t_rs;
+    fvec3 pose_t_rs;
 #pragma unroll
     for (auto j = 0; j < N_ITER; ++j) {
         auto const t = relative_frame_time(image_point_rs, resolution, shutter_type);

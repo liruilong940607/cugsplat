@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <glm/glm.hpp>
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/math.h"
+#include "tinyrend/common/vec.h"
 
 namespace tinyrend::camera::orthogonal {
 
@@ -17,11 +19,9 @@ namespace tinyrend::camera::orthogonal {
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return Projected 2D point in image space
 TREND_HOST_DEVICE inline auto project(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point
-) -> glm::fvec2 {
-    auto const xy = glm::fvec2(camera_point);
+    fvec3 const &camera_point, fvec2 const &focal_length, fvec2 const &principal_point
+) -> fvec2 {
+    auto const xy = fvec2(camera_point);
     auto const image_point = focal_length * xy + principal_point;
     return image_point;
 }
@@ -30,10 +30,9 @@ TREND_HOST_DEVICE inline auto project(
 /// \param camera_point 3D point in camera space (x, y, z)
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return Jacobian of the projection function
-TREND_HOST_DEVICE inline auto project_jac(
-    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
-) -> glm::fmat3x2 {
-    auto const J = glm::fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};
+TREND_HOST_DEVICE inline auto
+project_jac(fvec3 const &camera_point, fvec2 const &focal_length) -> fmat3x2 {
+    auto const J = fmat3x2{focal_length[0], 0.f, 0.f, focal_length[1], 0.f, 0.f};
     return J;
 }
 
@@ -42,10 +41,10 @@ TREND_HOST_DEVICE inline auto project_jac(
 /// \param focal_length Focal length in pixels (fx, fy)
 /// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
 TREND_HOST_DEVICE inline auto project_hess(
-    glm::fvec3 const &camera_point, glm::fvec2 const &focal_length
-) -> std::array<glm::fmat3x3, 2> {
+    fvec3 const &camera_point, fvec2 const &focal_length
+) -> std::array<fmat3, 2> {
     // Hessian is zero for orthogonal projection
-    return {glm::fmat3x3{}, glm::fmat3x3{}};
+    return {fmat3{}, fmat3{}};
 }
 
 /// \brief Unproject a 2D image point to a ray in camera space.
@@ -54,13 +53,11 @@ TREND_HOST_DEVICE inline auto project_hess(
 /// \param principal_point Principal point in pixels (cx, cy)
 /// \return Ray in camera space (origin, direction)
 TREND_HOST_DEVICE inline auto unproject(
-    glm::fvec2 const &image_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point
-) -> std::pair<glm::fvec3, glm::fvec3> {
+    fvec2 const &image_point, fvec2 const &focal_length, fvec2 const &principal_point
+) -> std::pair<fvec3, fvec3> {
     auto const xy = (image_point - principal_point) / focal_length;
-    auto const origin = glm::fvec3{xy[0], xy[1], 0.f};
-    auto const dir = glm::fvec3{0.f, 0.f, 1.f};
+    auto const origin = fvec3{xy[0], xy[1], 0.f};
+    auto const dir = fvec3{0.f, 0.f, 1.f};
     return {origin, dir};
 }
 

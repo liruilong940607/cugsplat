@@ -2,13 +2,14 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <glm/glm.hpp>
 #include <limits>
 #include <tuple>
 
-#include "tinyrend/core/macros.h" // for TREND_HOST_DEVICE
-#include "tinyrend/core/math.h"
-#include "tinyrend/core/solver.h"
+#include "tinyrend/common/macros.h" // for TREND_HOST_DEVICE
+#include "tinyrend/common/mat.h"
+#include "tinyrend/common/math.h"
+#include "tinyrend/common/vec.h"
+#include "tinyrend/util/solver.h"
 
 namespace tinyrend::camera::fisheye {
 
@@ -20,7 +21,7 @@ TREND_HOST_DEVICE inline auto
 distortion(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return theta * tinyrend::math::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
+    return theta * tinyrend::solver::eval_poly_horner<5>({1.f, k1, k2, k3, k4}, theta2);
 }
 
 /// \brief Compute the Jacobian of the distortion: J = d(theta_d) / d(theta)
@@ -31,7 +32,7 @@ TREND_HOST_DEVICE inline auto
 distortion_jac(float const &theta, std::array<float, 4> const &radial_coeffs) -> float {
     auto const theta2 = theta * theta;
     auto const &[k1, k2, k3, k4] = radial_coeffs;
-    return tinyrend::math::eval_poly_horner<5>(
+    return tinyrend::solver::eval_poly_horner<5>(
         {1.f, 3.f * k1, 5.f * k2, 7.f * k3, 9.f * k4}, theta2
     );
 }
@@ -102,14 +103,14 @@ TREND_HOST_DEVICE inline auto monotonic_max_theta(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Projected 2D point in image space
 TREND_HOST_DEVICE inline auto project(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
+    fvec3 const &camera_point,
+    fvec2 const &focal_length,
+    fvec2 const &principal_point,
     float const &min_2d_norm = 1e-6f
-) -> glm::fvec2 {
-    auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = tinyrend::math::numerically_stable_norm2(xy[0], xy[1]);
-    glm::fvec2 uv;
+) -> fvec2 {
+    auto const xy = fvec2(camera_point[0], camera_point[1]) / camera_point[2];
+    auto const r = safe_length(xy);
+    fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion
         uv = xy;
@@ -131,16 +132,16 @@ TREND_HOST_DEVICE inline auto project(
 /// \param max_theta Maximum theta angle for valid projection
 /// \return Pair of projected 2D point and validity flag
 TREND_HOST_DEVICE inline auto project(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
+    fvec3 const &camera_point,
+    fvec2 const &focal_length,
+    fvec2 const &principal_point,
     std::array<float, 4> const &radial_coeffs,
     float const &min_2d_norm = 1e-6f,
     float const &max_theta = std::numeric_limits<float>::max()
-) -> std::pair<glm::fvec2, bool> {
-    auto const xy = glm::fvec2(camera_point) / camera_point.z;
-    auto const r = tinyrend::math::numerically_stable_norm2(xy[0], xy[1]);
-    glm::fvec2 uv;
+) -> std::pair<fvec2, bool> {
+    auto const xy = fvec2(camera_point[0], camera_point[1]) / camera_point[2];
+    auto const r = safe_length(xy);
+    fvec2 uv;
     if (r < min_2d_norm) {
         // For points at the image center, there is no distortion
         uv = xy;
@@ -148,7 +149,7 @@ TREND_HOST_DEVICE inline auto project(
         auto const theta = std::atan(r);
         if (theta > max_theta) {
             // Theta is too large, might be in the invalid region
-            return {glm::fvec2{}, false};
+            return {fvec2{}, false};
         }
         auto const theta_d = distortion(theta, radial_coeffs);
         uv = theta_d / r * xy;
@@ -163,19 +164,19 @@ TREND_HOST_DEVICE inline auto project(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return 3x2 Jacobian matrix
 TREND_HOST_DEVICE inline auto project_jac(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
+    fvec3 const &camera_point,
+    fvec2 const &focal_length,
     float const &min_2d_norm = 1e-6f
-) -> glm::fmat3x2 {
+) -> fmat3x2 {
     // forward:
-    auto const invz = 1.0f / camera_point.z;
-    auto const xy = glm::fvec2(camera_point) * invz;
-    auto const r = tinyrend::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const invz = 1.0f / camera_point[2];
+    auto const xy = fvec2(camera_point[0], camera_point[1]) * invz;
+    auto const r = safe_length(xy);
 
-    glm::fmat2 J_uv_xy;
+    fmat2 J_uv_xy;
     if (r < min_2d_norm) {
         // For points at the image center, J_uv_xy = I
-        J_uv_xy = glm::fmat2(1.0f);
+        J_uv_xy = fmat2::identity();
     } else {
         auto const invr = 1.0f / r;
         auto const theta = std::atan(r);
@@ -187,39 +188,38 @@ TREND_HOST_DEVICE inline auto project_jac(
         // Note: this can be slightly optimized by fusing the matrix multiplications.
         auto const J_theta_r = 1.0f / (1.0f + r * r);
         auto const J_s_xy = (J_theta_r - s) * invr * invr * xy;
-        J_uv_xy = s * glm::fmat2(1.0f) + glm::outerProduct(J_s_xy, xy);
+        J_uv_xy = s * fmat2::identity() + outer(J_s_xy, xy);
     }
 
-    auto const J_im_xy = glm::fmat2x2(
+    auto const J_im_xy = fmat2x2(
         focal_length[0] * J_uv_xy[0][0],
         focal_length[1] * J_uv_xy[0][1],
         focal_length[0] * J_uv_xy[1][0],
         focal_length[1] * J_uv_xy[1][1]
     );
-    auto const J_xy_cam =
-        glm::fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
+    auto const J_xy_cam = fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
     auto const J = J_im_xy * J_xy_cam;
     return J;
 }
 
 // This version is slower than the one below.
 TREND_HOST_DEVICE inline auto _project_hess(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
+    fvec3 const &camera_point,
+    fvec2 const &focal_length,
     float const &min_2d_norm = 1e-6f
-) -> std::array<glm::fmat3x3, 2> {
+) -> std::array<fmat3, 2> {
     // forward:
-    auto const invz = 1.0f / camera_point.z;
+    auto const invz = 1.0f / camera_point[2];
     auto const invz2 = invz * invz;
-    auto const xy = glm::fvec2(camera_point) * invz;
-    auto const r = tinyrend::math::numerically_stable_norm2(xy[0], xy[1]);
+    auto const xy = fvec2(camera_point[0], camera_point[1]) * invz;
+    auto const r = safe_length(xy);
 
-    glm::fmat2 J_uv_xy;
-    glm::fmat2 d_J_uv_xy_d_x, d_J_uv_xy_d_y;
+    fmat2 J_uv_xy;
+    fmat2 d_J_uv_xy_d_x, d_J_uv_xy_d_y;
     if (r < min_2d_norm) {
         // For points at the image center, J_uv_xy = I
-        d_J_uv_xy_d_x = glm::fmat2(0.0f);
-        d_J_uv_xy_d_y = glm::fmat2(0.0f);
+        d_J_uv_xy_d_x = fmat2::zero();
+        d_J_uv_xy_d_y = fmat2::zero();
     } else {
         auto const invr = 1.0f / r;
         auto const invr2 = invr * invr;
@@ -232,8 +232,8 @@ TREND_HOST_DEVICE inline auto _project_hess(
         // Note: this can be slightly optimized by fusing the matrix multiplications.
         auto const J_theta_r = 1.0f / (1.0f + r * r);
         auto const tmp = (J_theta_r - s) * invr * invr;
-        auto const xy_outer = glm::outerProduct(xy, xy);
-        J_uv_xy = s * glm::fmat2(1.0f) + tmp * xy_outer;
+        auto const xy_outer = outer(xy, xy);
+        J_uv_xy = s * fmat2::identity() + tmp * xy_outer;
 
         auto const d_r_d_xy = xy * invr;
         auto const d_s_d_r = J_theta_r * invr - theta * invr2;
@@ -243,14 +243,14 @@ TREND_HOST_DEVICE inline auto _project_hess(
         auto const d_s_d_xy = d_s_d_r * d_r_d_xy;
         auto const d_tmp_d_xy = d_tmp_d_r * d_r_d_xy;
 
-        d_J_uv_xy_d_x = d_s_d_xy[0] * glm::fmat2(1.0f) + d_tmp_d_xy[0] * xy_outer +
-                        tmp * glm::fmat2(2.0f * xy[0], xy[1], xy[1], 0.0f);
+        d_J_uv_xy_d_x = d_s_d_xy[0] * fmat2::identity() + d_tmp_d_xy[0] * xy_outer +
+                        tmp * fmat2(2.0f * xy[0], xy[1], xy[1], 0.0f);
 
-        d_J_uv_xy_d_y = d_s_d_xy[1] * glm::fmat2(1.0f) + d_tmp_d_xy[1] * xy_outer +
-                        tmp * glm::fmat2(0.0f, xy[0], xy[0], 2.0f * xy[1]);
+        d_J_uv_xy_d_y = d_s_d_xy[1] * fmat2::identity() + d_tmp_d_xy[1] * xy_outer +
+                        tmp * fmat2(0.0f, xy[0], xy[0], 2.0f * xy[1]);
     }
 
-    auto const J_im_xy = glm::fmat2x2(
+    auto const J_im_xy = fmat2(
         focal_length[0] * J_uv_xy[0][0],
         focal_length[1] * J_uv_xy[0][1],
         focal_length[0] * J_uv_xy[1][0],
@@ -260,14 +260,14 @@ TREND_HOST_DEVICE inline auto _project_hess(
     //     glm::fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
     // auto const J = J_im_xy * J_xy_cam;
 
-    auto const d_J_im_xy_d_x = glm::fmat2x2(
+    auto const d_J_im_xy_d_x = fmat2(
         focal_length[0] * d_J_uv_xy_d_x[0][0],
         focal_length[1] * d_J_uv_xy_d_x[0][1],
         focal_length[0] * d_J_uv_xy_d_x[1][0],
         focal_length[1] * d_J_uv_xy_d_x[1][1]
     );
 
-    auto const d_J_im_xy_d_y = glm::fmat2x2(
+    auto const d_J_im_xy_d_y = fmat2(
         focal_length[0] * d_J_uv_xy_d_y[0][0],
         focal_length[1] * d_J_uv_xy_d_y[0][1],
         focal_length[0] * d_J_uv_xy_d_y[1][0],
@@ -276,7 +276,7 @@ TREND_HOST_DEVICE inline auto _project_hess(
 
     auto const d_J_d_cam_x =
         invz2 *
-        glm::fmat3x2(
+        fmat3x2(
             d_J_im_xy_d_x[0][0],
             d_J_im_xy_d_x[0][1],
             d_J_im_xy_d_x[1][0],
@@ -286,7 +286,7 @@ TREND_HOST_DEVICE inline auto _project_hess(
         );
     auto const d_J_d_cam_y =
         invz2 *
-        glm::fmat3x2(
+        fmat3x2(
             d_J_im_xy_d_y[0][0],
             d_J_im_xy_d_y[0][1],
             d_J_im_xy_d_y[1][0],
@@ -296,11 +296,11 @@ TREND_HOST_DEVICE inline auto _project_hess(
         );
 
     auto const d_J_xy_cam_d_z_direct =
-        glm::fmat3x2(-invz2, 0.0f, 0.0f, -invz2, xy[0] * invz2, xy[1] * invz2);
+        fmat3x2(-invz2, 0.0f, 0.0f, -invz2, xy[0] * invz2, xy[1] * invz2);
     auto const d_J_d_cam_z =
         -d_J_d_cam_x * xy[0] - d_J_d_cam_y * xy[1] + J_im_xy * d_J_xy_cam_d_z_direct;
 
-    auto const H1 = glm::fmat3x3(
+    auto const H1 = fmat3(
         d_J_d_cam_x[0][0],
         d_J_d_cam_x[1][0],
         d_J_d_cam_x[2][0],
@@ -312,7 +312,7 @@ TREND_HOST_DEVICE inline auto _project_hess(
         d_J_d_cam_z[2][0]
     );
 
-    auto const H2 = glm::fmat3x3(
+    auto const H2 = fmat3(
         d_J_d_cam_x[0][1],
         d_J_d_cam_x[1][1],
         d_J_d_cam_x[2][1],
@@ -332,16 +332,16 @@ TREND_HOST_DEVICE inline auto _project_hess(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Array of two 3x3 Hessian matrices (H1 = ∂²u/∂p², H2 = ∂²v/∂p²)
 TREND_HOST_DEVICE inline auto project_hess(
-    glm::fvec3 const &camera_point,
-    glm::fvec2 const &focal_length,
+    fvec3 const &camera_point,
+    fvec2 const &focal_length,
     float const min_2d_norm = 1e-6f
-) -> std::array<glm::fmat3x3, 2> {
+) -> std::array<fmat3, 2> {
     // ‑‑‑ stage‑0 : helpers
-    const float invz = 1.f / camera_point.z;
-    const float x_ = camera_point.x * invz;
-    const float y_ = camera_point.y * invz;
+    const float invz = 1.f / camera_point[2];
+    const float x_ = camera_point[0] * invz;
+    const float y_ = camera_point[1] * invz;
     const float r2 = x_ * x_ + y_ * y_;
-    const float r = tinyrend::math::numerically_stable_norm2(x_, y_);
+    const float r = safe_length(fvec2(x_, y_));
     const float invr = (r > 0.f) ? 1.f / r : 0.f;
 
     // ‑‑‑ stage‑1 : s(r) and radial derivatives
@@ -357,8 +357,7 @@ TREND_HOST_DEVICE inline auto project_hess(
     }
 
     // ∂s/∂xy  and  ∂²s/∂xy²
-    glm::fvec2 Js =
-        (r > min_2d_norm) ? s1 * invr * glm::fvec2(x_, y_) : glm::fvec2(0.f);
+    fvec2 Js = (r > min_2d_norm) ? s1 * invr * fvec2(x_, y_) : fvec2(0.f);
     float Hs[2][2]{{0.f, 0.f}, {0.f, 0.f}};
     if (r > min_2d_norm) {
         const float invr2 = invr * invr;
@@ -376,10 +375,10 @@ TREND_HOST_DEVICE inline auto project_hess(
     float Hxy[2][3][3]{}; // zero‑init
     /*  x'/z  */
     Hxy[0][0][2] = Hxy[0][2][0] = -invz2;
-    Hxy[0][2][2] = 2.f * camera_point.x * invz3;
+    Hxy[0][2][2] = 2.f * camera_point[0] * invz3;
     /*  y'/z  */
     Hxy[1][1][2] = Hxy[1][2][1] = -invz2;
-    Hxy[1][2][2] = 2.f * camera_point.y * invz3;
+    Hxy[1][2][2] = 2.f * camera_point[1] * invz3;
 
     // H_uv in xy‑space
     float Huv[2][2][2]{};
@@ -390,10 +389,10 @@ TREND_HOST_DEVICE inline auto project_hess(
                                ((i == 0) ? x_ : y_) * Hs[j][k];
 
     // J_uv in xy‑space
-    float Juv[2][2] = {{s + x_ * Js.x, x_ * Js.y}, {y_ * Js.x, s + y_ * Js.y}};
+    float Juv[2][2] = {{s + x_ * Js[0], x_ * Js[1]}, {y_ * Js[0], s + y_ * Js[1]}};
 
     // ‑‑‑ stage‑2 : assemble Hessians  (two 3×3 blocks)
-    std::array<glm::fmat3x3, 2> H{glm::fmat3x3(0.f), glm::fmat3x3(0.f)};
+    std::array<fmat3, 2> H{fmat3::zero(), fmat3::zero()};
 
     for (int i = 0; i < 2; ++i) { // 0 = u , 1 = v
         float Htmp[3][3]{};       // row,col in p‑space
@@ -426,22 +425,22 @@ TREND_HOST_DEVICE inline auto project_hess(
 /// \param min_2d_norm Minimum 2D norm threshold for numerical stability
 /// \return Normalized ray direction in camera space
 TREND_HOST_DEVICE inline auto unproject(
-    glm::fvec2 const &image_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
+    fvec2 const &image_point,
+    fvec2 const &focal_length,
+    fvec2 const &principal_point,
     float const &min_2d_norm = 1e-6f
-) -> glm::fvec3 {
+) -> fvec3 {
     auto const uv = (image_point - principal_point) / focal_length;
-    auto const theta = sqrtf(glm::dot(uv, uv));
+    auto const theta = sqrtf(dot(uv, uv));
 
     if (theta < min_2d_norm) {
         // For points at the image center, the ray direction is
         // simply pointing forward.
-        return glm::fvec3{0.f, 0.f, 1.f};
+        return fvec3{0.f, 0.f, 1.f};
     }
 
     auto const xy = std::sin(theta) / theta * uv;
-    auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
+    auto const dir = fvec3{xy[0], xy[1], std::cos(theta)};
     return dir;
 }
 
@@ -454,29 +453,29 @@ TREND_HOST_DEVICE inline auto unproject(
 /// \param max_theta Maximum theta angle for valid unprojection
 /// \return Pair of normalized ray direction and validity flag
 TREND_HOST_DEVICE inline auto unproject(
-    glm::fvec2 const &image_point,
-    glm::fvec2 const &focal_length,
-    glm::fvec2 const &principal_point,
+    fvec2 const &image_point,
+    fvec2 const &focal_length,
+    fvec2 const &principal_point,
     std::array<float, 4> const &radial_coeffs,
     float const &min_2d_norm = 1e-6f,
     float const &max_theta = std::numeric_limits<float>::max()
-) -> std::pair<glm::fvec3, bool> {
+) -> std::pair<fvec3, bool> {
     auto const uv = (image_point - principal_point) / focal_length;
-    auto const theta_d = sqrtf(glm::dot(uv, uv));
+    auto const theta_d = sqrtf(dot(uv, uv));
 
     if (theta_d < min_2d_norm) {
         // For points at the image center, the ray direction is
         // simply pointing forward.
-        return {glm::fvec3{0.f, 0.f, 1.f}, true};
+        return {fvec3{0.f, 0.f, 1.f}, true};
     }
 
     auto const &[theta, valid_flag] = undistortion(theta_d, radial_coeffs, max_theta);
     if (!valid_flag) {
-        return {glm::fvec3{}, false};
+        return {fvec3{}, false};
     }
 
     auto const xy = std::sin(theta) / theta_d * uv;
-    auto const dir = glm::fvec3{xy[0], xy[1], std::cos(theta)};
+    auto const dir = fvec3{xy[0], xy[1], std::cos(theta)};
     return {dir, true};
 }
 
