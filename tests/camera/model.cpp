@@ -28,19 +28,11 @@ int test_perfect_pinhole() {
         auto const world_point = fvec3(1.0f, 1.0f, 1.0f);
         auto const image_point =
             model.world_point_to_image_point(world_point, shutter_poses);
-        // printf("image_point_p: %s\n", image_point.p.to_string().c_str());
-        // printf("image_point_z: %f\n", image_point.z);
-        // printf("image_point_valid_flag: %d\n", image_point.valid_flag);
-
         auto const world_ray =
             model.image_point_to_world_ray(image_point.p, shutter_poses);
-        // printf("world_ray_o: %s\n", world_ray.o.to_string().c_str());
-        // printf("world_ray_d: %s\n", world_ray.d.to_string().c_str());
-        // printf("world_ray_valid_flag: %d\n", world_ray.valid_flag);
 
         auto const t_dist = length(world_point - world_ray.o);
         auto const world_point_reproj = world_ray.o + world_ray.d * t_dist;
-        // printf("world_point_reproj: %s\n", world_point_reproj.to_string().c_str());
 
         fails += CHECK(image_point.valid_flag && world_ray.valid_flag, "");
         fails += CHECK(is_close(world_point_reproj, world_point), "");
@@ -52,7 +44,7 @@ int test_perfect_pinhole() {
 int main() {
     int fails = 0;
 
-    fails += test_pinhole();
+    fails += test_perfect_pinhole();
 
     if (fails > 0) {
         printf("[camera/model.cpp] %d tests failed!\n", fails);
