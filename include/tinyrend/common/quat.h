@@ -131,6 +131,17 @@ template <typename T> inline TREND_HOST_DEVICE quat<T> normalize(const quat<T> &
 }
 
 template <typename T>
+inline TREND_HOST_DEVICE quat<T> normalize_vjp(const quat<T> &q, const quat<T> &v_o) {
+    T len2 = length2(q);
+    if (len2 > T(0)) {
+        auto const inv_len = rsqrtf(len2);
+        auto const o = q * inv_len; // normalized quat
+        return (v_o - dot(v_o, o) * o) * inv_len;
+    }
+    return v_o;
+}
+
+template <typename T>
 inline TREND_HOST_DEVICE mat<T, 3, 3> mat3_cast(const quat<T> &q) {
     T xx = q.x * q.x; // x*x
     T yy = q.y * q.y; // y*y
@@ -152,6 +163,21 @@ inline TREND_HOST_DEVICE mat<T, 3, 3> mat3_cast(const quat<T> &q) {
         T(2) * (xz + wy),
         T(2) * (yz - wx),
         T(1) - T(2) * (xx + yy)
+    );
+}
+
+template <typename T>
+inline TREND_HOST_DEVICE mat<T, 3, 3>
+mat3_cast_vjp(const quat<T> &q, const mat<T, 3, 3> &v_m) {
+    return quat<T>(
+        2.f * (q.x * (v_m[1][2] - v_m[2][1]) + q.y * (v_m[2][0] - v_m[0][2]) +
+               q.z * (v_m[0][1] - v_m[1][0])),
+        2.f * (-2.f * q.x * (v_m[1][1] + v_m[2][2]) + q.y * (v_m[0][1] + v_m[1][0]) +
+               q.z * (v_m[0][2] + v_m[2][0]) + q.w * (v_m[1][2] - v_m[2][1])),
+        2.f * (q.x * (v_m[0][1] + v_m[1][0]) - 2.f * q.y * (v_m[0][0] + v_m[2][2]) +
+               q.z * (v_m[1][2] + v_m[2][1]) + q.w * (v_m[2][0] - v_m[0][2])),
+        2.f * (q.x * (v_m[0][2] + v_m[2][0]) + q.y * (v_m[1][2] + v_m[2][1]) -
+               2.f * q.z * (v_m[0][0] + v_m[1][1]) + q.w * (v_m[0][1] - v_m[1][0]))
     );
 }
 
