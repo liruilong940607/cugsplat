@@ -285,4 +285,125 @@ struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
     }
 };
 
+struct PerfectFisheyeCameraModel : BaseCameraModel<PerfectFisheyeCameraModel> {
+    // Perfect fisheye camera model without any distortion
+
+    using Base = BaseCameraModel<PerfectFisheyeCameraModel>;
+
+    struct Parameters : Base::Parameters {
+        fvec2 principal_point;
+        fvec2 focal_length;
+        float min_2d_norm = 1e-6f;
+    };
+
+    Parameters parameters;
+
+    TREND_HOST_DEVICE
+    PerfectFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+
+    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
+    ) const -> ImagePoint {
+        auto const image_point = tinyrend::camera::impl::fisheye::project(
+            camera_point,
+            parameters.focal_length,
+            parameters.principal_point,
+            parameters.min_2d_norm
+        );
+        return ImagePoint{image_point, true};
+    }
+
+    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
+    ) const -> Ray {
+        auto const camera_ray_o = fvec3{};
+        auto const camera_ray_d = tinyrend::camera::impl::fisheye::unproject(
+            image_point,
+            parameters.focal_length,
+            parameters.principal_point,
+            parameters.min_2d_norm
+        );
+        return Ray{camera_ray_o, camera_ray_d, true};
+    }
+};
+
+struct OpenCVFisheyeCameraModel : BaseCameraModel<OpenCVFisheyeCameraModel> {
+    // OpenCV-like fisheye camera model with distortion
+
+    using Base = BaseCameraModel<OpenCVFisheyeCameraModel>;
+
+    struct Parameters : Base::Parameters {
+        fvec2 principal_point;
+        fvec2 focal_length;
+        std::array<float, 4> radial_coeffs;
+        float min_2d_norm = 1e-6f;
+        float max_theta = std::numeric_limits<float>::max();
+    };
+
+    Parameters parameters;
+
+    TREND_HOST_DEVICE
+    OpenCVFisheyeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+
+    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
+    ) const -> ImagePoint {
+        auto const &[image_point, valid_flag] =
+            tinyrend::camera::impl::fisheye::project(
+                camera_point,
+                parameters.focal_length,
+                parameters.principal_point,
+                parameters.radial_coeffs,
+                parameters.min_2d_norm,
+                parameters.max_theta
+            );
+        return ImagePoint{image_point, valid_flag};
+    }
+
+    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
+    ) const -> Ray {
+        auto const camera_ray_o = fvec3{};
+        auto const &[camera_ray_d, valid_flag] =
+            tinyrend::camera::impl::fisheye::unproject(
+                image_point,
+                parameters.focal_length,
+                parameters.principal_point,
+                parameters.radial_coeffs,
+                parameters.min_2d_norm,
+                parameters.max_theta
+            );
+        return Ray{camera_ray_o, camera_ray_d, valid_flag};
+    }
+};
+
+struct OrthogonalCameraModel : BaseCameraModel<OrthogonalCameraModel> {
+    // Orthogonal camera model
+
+    using Base = BaseCameraModel<OrthogonalCameraModel>;
+
+    struct Parameters : Base::Parameters {
+        fvec2 principal_point;
+        fvec2 focal_length;
+    };
+
+    Parameters parameters;
+
+    TREND_HOST_DEVICE
+    OrthogonalCameraModel(Parameters const &parameters) : parameters(parameters) {}
+
+    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
+    ) const -> ImagePoint {
+        auto const image_point = tinyrend::camera::impl::orthogonal::project(
+            camera_point, parameters.focal_length, parameters.principal_point
+        );
+        return ImagePoint{image_point, true};
+    }
+
+    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
+    ) const -> Ray {
+        auto const &[camera_ray_o, camera_ray_d] =
+            tinyrend::camera::impl::orthogonal::unproject(
+                image_point, parameters.focal_length, parameters.principal_point
+            );
+        return Ray{camera_ray_o, camera_ray_d, true};
+    }
+};
+
 } // namespace tinyrend::camera
