@@ -19,7 +19,7 @@ TREND_HOST_DEVICE inline auto image_point_in_image_bounds_margin(
     fvec2 const &image_point,
     std::array<uint32_t, 2> const &resolution,
     float margin_factor
-) {
+) -> bool {
     const float MARGIN_X = resolution[0] * margin_factor;
     const float MARGIN_Y = resolution[1] * margin_factor;
     bool valid = true;
@@ -69,8 +69,9 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
     // CRTP base class for all camera model types
 
     struct Parameters {
+        tinyrend::camera::impl::shutter::Type shutter_type;
         std::array<uint32_t, 2> resolution;
-        ShutterType shutter_type;
+        float margin_factor;
     };
 
     Parameters parameters;
@@ -80,7 +81,7 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
         auto const &resolution = derived->parameters.resolution;
         auto const &shutter_type = derived->parameters.shutter_type;
-        return ::impl::shutter::relative_frame_time(
+        return tinyrend::camera::impl::shutter::relative_frame_time(
             image_point, resolution, shutter_type
         );
     }
@@ -115,9 +116,31 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
         auto const camera_point =
             tinyrend::se3::transform_point(pose.r, pose.t, world_point);
+
+        // Treat all the points behind the camera plane to invalid
+        if (camera_point[2] <= 0.f) {
+            return ImagePoint{fvec2{}, false};
+        }
+
+        // Project the camera point to the image plane
         auto const &[image_point, valid_flag] =
             derived->camera_point_to_image_point(camera_point);
-        return ImagePoint{image_point, valid_flag};
+
+        if (!valid_flag) {
+            // If the camera point is invalid, return an invalid image point
+            return ImagePoint{fvec2{}, false};
+        } else {
+            // In case camera point is valid, check if the image point is valid
+            // Check if the image points fall within the image, set points that have
+            // too large distortion or fall outside the image sensor to invalid
+            auto valid = true;
+            valid &= image_point_in_image_bounds_margin(
+                image_point,
+                derived->parameters.resolution,
+                derived->parameters.margin_factor
+            );
+            return ImagePoint{image_point, valid};
+        }
     }
 
     // Project world point to image point (with rolling shutter)
@@ -132,7 +155,8 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
             _transform_world_to_image(world_point, shutter_poses.start);
 
         // Exit early if we have a global shutter sensor
-        if (derived->parameters.shutter_type == ShutterType::GLOBAL) {
+        if (derived->parameters.shutter_type ==
+            tinyrend::camera::impl::shutter::Type::GLOBAL) {
             return image_point_start;
         }
 
@@ -185,43 +209,75 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     };
 
     Parameters parameters;
-    float margin_factor = 0.f;
 
-    // Constructor
     TREND_HOST_DEVICE
-    PerfectPinholeCameraModel(Parameters const &parameters, float margin_factor = 0.f)
-        : parameters(parameters), margin_factor(margin_factor) {}
+    PerfectPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
 
     inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
     ) const -> ImagePoint {
-        auto image_point = fvec2{};
-
-        // Treat all the points behind the camera plane to invalid / projecting
-        // to origin
-        if (camera_point[2] <= 0.f)
-            return {image_point, false};
-
-        // Project using ideal pinhole model
-        image_point = tinyrend::camera::impl::pinhole::project(
+        auto const image_point = tinyrend::camera::impl::pinhole::project(
             camera_point, parameters.focal_length, parameters.principal_point
         );
-
-        // Check if the image points fall within the image, set points that have
-        // too large distortion or fall outside the image sensor to invalid
-        auto valid = true;
-        valid &= image_point_in_image_bounds_margin(
-            image_point, parameters.resolution, margin_factor
-        );
-
-        return {image_point, valid};
+        return {image_point, true};
     }
 
     inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
     ) const -> Ray {
-        // Transform the image point to uv coordinate
         auto const camera_ray_o = fvec3{};
         auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
             image_point, parameters.focal_length, parameters.principal_point
+        );
+        return {camera_ray_o, camera_ray_d, true};
+    }
+};
+
+struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
+    // OpenCV-like pinhole camera model with distortion
+
+    using Base = BaseCameraModel<OpenCVPinholeCameraModel>;
+
+    struct Parameters : Base::Parameters {
+        fvec2 principal_point;
+        fvec2 focal_length;
+        std::array<float, 6> radial_coeffs;
+        std::array<float, 2> tangential_coeffs;
+        std::array<float, 4> thin_prism_coeffs;
+        float min_radial_dist = 0.8f;
+        float max_radial_dist = std::numeric_limits<float>::max();
+    };
+
+    Parameters parameters;
+
+    TREND_HOST_DEVICE
+    OpenCVPinholeCameraModel(Parameters const &parameters) : parameters(parameters) {}
+
+    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
+    ) const -> ImagePoint {
+        auto const image_point = tinyrend::camera::impl::pinhole::project(
+            camera_point,
+            parameters.focal_length,
+            parameters.principal_point,
+            parameters.radial_coeffs,
+            parameters.tangential_coeffs,
+            parameters.thin_prism_coeffs,
+            parameters.min_radial_dist,
+            parameters.max_radial_dist
+        );
+        return {image_point, true};
+    }
+
+    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
+    ) const -> Ray {
+        auto const camera_ray_o = fvec3{};
+        auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
+            image_point,
+            parameters.focal_length,
+            parameters.principal_point,
+            parameters.radial_coeffs,
+            parameters.tangential_coeffs,
+            parameters.thin_prism_coeffs,
+            parameters.min_radial_dist,
+            parameters.max_radial_dist
         );
         return {camera_ray_o, camera_ray_d, true};
     }
