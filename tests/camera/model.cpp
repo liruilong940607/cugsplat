@@ -23,7 +23,7 @@ int test_perfect_pinhole() {
         parameters.margin_factor = 0.0f;
         parameters.focal_length = fvec2(100.0f, 100.0f);
         parameters.principal_point = fvec2(320.0f, 240.0f);
-        auto model = PerfectPinholeCameraModelImpl(parameters);
+        auto const model = PerfectPinholeCameraModelImpl(parameters);
 
         auto const world_point = fvec3(1.0f, 1.0f, 1.0f);
         auto const image_point =

@@ -90,7 +90,7 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
     // Unproject image point to world ray (with rolling shutter)
     inline TREND_HOST_DEVICE auto image_point_to_world_ray(
         fvec2 const &image_point, ShutterPoses const &shutter_poses
-    ) -> Ray {
+    ) const -> Ray {
         auto const derived = static_cast<DerivedCameraModel const *>(this);
         auto const camera_ray = derived->image_point_to_camera_ray_impl(image_point);
 
