@@ -218,7 +218,7 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
         auto const image_point = tinyrend::camera::impl::pinhole::project(
             camera_point, parameters.focal_length, parameters.principal_point
         );
-        return {image_point, true};
+        return ImagePoint{image_point, true};
     }
 
     inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
@@ -227,7 +227,7 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
         auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
             image_point, parameters.focal_length, parameters.principal_point
         );
-        return {camera_ray_o, camera_ray_d, true};
+        return Ray{camera_ray_o, camera_ray_d, true};
     }
 };
 
@@ -253,33 +253,35 @@ struct OpenCVPinholeCameraModel : BaseCameraModel<OpenCVPinholeCameraModel> {
 
     inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
     ) const -> ImagePoint {
-        auto const image_point = tinyrend::camera::impl::pinhole::project(
-            camera_point,
-            parameters.focal_length,
-            parameters.principal_point,
-            parameters.radial_coeffs,
-            parameters.tangential_coeffs,
-            parameters.thin_prism_coeffs,
-            parameters.min_radial_dist,
-            parameters.max_radial_dist
-        );
-        return {image_point, true};
+        auto const &[image_point, valid_flag] =
+            tinyrend::camera::impl::pinhole::project(
+                camera_point,
+                parameters.focal_length,
+                parameters.principal_point,
+                parameters.radial_coeffs,
+                parameters.tangential_coeffs,
+                parameters.thin_prism_coeffs,
+                parameters.min_radial_dist,
+                parameters.max_radial_dist
+            );
+        return ImagePoint{image_point, valid_flag};
     }
 
     inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
     ) const -> Ray {
         auto const camera_ray_o = fvec3{};
-        auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
-            image_point,
-            parameters.focal_length,
-            parameters.principal_point,
-            parameters.radial_coeffs,
-            parameters.tangential_coeffs,
-            parameters.thin_prism_coeffs,
-            parameters.min_radial_dist,
-            parameters.max_radial_dist
-        );
-        return {camera_ray_o, camera_ray_d, true};
+        auto const &[camera_ray_d, valid_flag] =
+            tinyrend::camera::impl::pinhole::unproject(
+                image_point,
+                parameters.focal_length,
+                parameters.principal_point,
+                parameters.radial_coeffs,
+                parameters.tangential_coeffs,
+                parameters.thin_prism_coeffs,
+                parameters.min_radial_dist,
+                parameters.max_radial_dist
+            );
+        return Ray{camera_ray_o, camera_ray_d, valid_flag};
     }
 };
 
