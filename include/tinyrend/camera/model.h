@@ -180,8 +180,8 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     using Base = BaseCameraModel<PerfectPinholeCameraModel>;
 
     struct Parameters : Base::Parameters {
-        std::array<float, 2> principal_point;
-        std::array<float, 2> focal_length;
+        fvec2 principal_point;
+        fvec2 focal_length;
     };
 
     Parameters parameters;
@@ -202,13 +202,8 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
             return {image_point, false};
 
         // Project using ideal pinhole model
-        auto const focal_length =
-            fvec2(parameters.focal_length[0], parameters.focal_length[1]);
-        auto const principal_point =
-            fvec2(parameters.principal_point[0], parameters.principal_point[1]);
-        image_point =
-            (fvec2(camera_point[0], camera_point[1]) / camera_point[2]) * focal_length +
-            principal_point;
+        auto const uv = fvec2(camera_point[0], camera_point[1]) / camera_point[2];
+        image_point = uv * parameters.focal_length + parameters.principal_point;
 
         // Check if the image points fall within the image, set points that have
         // too large distortion or fall outside the image sensor to invalid
@@ -223,11 +218,8 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
     ) const -> Ray {
         // Transform the image point to uv coordinate
-        auto const principal_point =
-            fvec2(parameters.principal_point[0], parameters.principal_point[1]);
-        auto const focal_length =
-            fvec2(parameters.focal_length[0], parameters.focal_length[1]);
-        auto const uv = (image_point - principal_point) / focal_length;
+        auto const uv =
+            (image_point - parameters.principal_point) / parameters.focal_length;
 
         // Unproject the image point to camera ray
         auto const camera_ray_d = normalize(fvec3{uv[0], uv[1], 1.f});
