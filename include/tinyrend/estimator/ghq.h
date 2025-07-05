@@ -285,7 +285,7 @@ template <int N, int order> auto get_precomputed_matrices() {
  * @tparam Func Type of the function to differentiate
  * @tparam order Order of the Gauss-Hermite quadrature (default: 3)
  *
- * @param f The function to differentiate
+ * @param fn The function to differentiate
  * @param mu The point at which to estimate derivatives
  * @param std_dev The standard deviation for each input dimension
  *
@@ -298,8 +298,18 @@ template <int N, int order> auto get_precomputed_matrices() {
  */
 template <int N, int M, int order = 3, typename Func>
 TREND_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
-    Func const &f, fvec<N> const &mu, fvec<N> const &std_dev
+    Func const &fn, fvec<N> const &mu, fvec<N> const &std_dev
 ) -> std::pair<fmat<M, N>, std::array<fmat<N, N>, M>> {
+    // Compile-time constraint: ensure Func has the correct signature
+    static_assert(
+        std::is_invocable_v<Func, fvec<N>>,
+        "Func must be callable with a fvec<N> argument"
+    );
+    static_assert(
+        std::is_same_v<std::invoke_result_t<Func, fvec<N>>, fvec<M>>,
+        "Func must return fvec<M>"
+    );
+
     // Get precomputed matrices based on order
     auto matrices = get_precomputed_matrices<N, order>();
 
@@ -307,7 +317,7 @@ TREND_HOST_DEVICE inline auto estimate_jacobian_and_hessian(
     std::array<fvec<M>, matrices.points_std.size()> outputs;
 #pragma unroll
     for (size_t i = 0; i < matrices.points_std.size(); ++i) {
-        outputs[i] = f(mu + matrices.points_std[i] * std_dev);
+        outputs[i] = fn(mu + matrices.points_std[i] * std_dev);
     }
 
     // Initialize results

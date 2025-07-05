@@ -38,7 +38,7 @@ template <int M, typename Aux> struct UnscentedTransformResult {
  * @tparam Func Function type that takes a fvec<N> and returns a tuple of
  * (fvec<M>, bool, Aux)
  *
- * @param f The nonlinear function to transform. Must return a tuple of
+ * @param fn The nonlinear function to transform. Must return a tuple of
  *     (transformed_point, valid_flag, aux_data)
  * @param mu Mean of the input distribution
  * @param sqrt_covar Square root of the input covariance matrix
@@ -48,19 +48,32 @@ template <int M, typename Aux> struct UnscentedTransformResult {
  *
  * @return a UnscentedTransformResult structure
  *
- * @note The function f must return a tuple of (transformed_point, valid_flag) where
+ * @note The function fn must return a tuple of (transformed_point, valid_flag) where
  * valid_flag indicates if the transformation was successful. If any sigma point
  * transformation fails, the entire transform will return false.
  */
 template <int N, int M, typename Aux, typename Func>
 TREND_HOST_DEVICE inline auto transform(
-    Func const &f,
+    Func const &fn,
     fvec<N> const &mu,
     fmat<N, N> const &sqrt_covar,
     const float &alpha = 0.1f,
     const float &beta = 2.0f,
     const float &kappa = 0.0f
 ) -> UnscentedTransformResult<M, Aux> {
+    // Compile-time constraint: ensure Func has the correct signature
+    static_assert(
+        std::is_invocable_v<Func, fvec<N>>,
+        "Func must be callable with a fvec<N> argument"
+    );
+    static_assert(
+        std::is_same_v<
+            std::invoke_result_t<Func, fvec<N>>,
+            std::tuple<fvec<M>, bool, Aux>>,
+        "Func must return std::tuple<fvec<M>, bool, Aux> representing "
+        "{transformed_point, valid_flag, aux}"
+    );
+
     auto mu_ut = fvec<M>{};
     auto covar_ut = fmat<M, M>{};
 
@@ -95,7 +108,7 @@ TREND_HOST_DEVICE inline auto transform(
     Aux center_aux;
 #pragma unroll
     for (int i = 0; i < num_sigma; i++) {
-        auto const &[point, valid_flag, aux] = f(sigma_points[i]);
+        auto const &[point, valid_flag, aux] = fn(sigma_points[i]);
         if (!valid_flag) {
             return {mu_ut, covar_ut, false, center_aux};
         }

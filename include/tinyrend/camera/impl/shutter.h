@@ -91,6 +91,15 @@ TREND_HOST_DEVICE inline auto point_world_to_image(
     const fvec3 &pose_t_end,
     const Type &shutter_type
 ) -> PointWorldToImageResult<RotationType> {
+    // Compile-time constraint: ensure Func has the correct signature
+    static_assert(
+        std::is_invocable_v<Func, fvec3>, "Func must be callable with a fvec3 argument"
+    );
+    static_assert(
+        std::is_same_v<std::invoke_result_t<Func, fvec3>, std::pair<fvec2, bool>>,
+        "Func must return std::pair<fvec2, bool> representing {image_point, valid_flag}"
+    );
+
     static_assert(
         std::is_same_v<RotationType, fmat3> || std::is_same_v<RotationType, fquat>,
         "RotationType must be either fmat3 or fquat"

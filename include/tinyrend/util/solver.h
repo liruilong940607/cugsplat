@@ -59,6 +59,14 @@ template <
 inline TREND_HOST_DEVICE auto newton_1d(
     const Func &f, const float &x0, const float epsilon = 1e-6f
 ) -> NewtonSolverResult<1> {
+    // Compile-time constraint: ensure Func has the correct signature
+    static_assert(
+        std::is_invocable_v<Func, float>, "Func must be callable with a float argument"
+    );
+    static_assert(
+        std::is_same_v<std::invoke_result_t<Func, float>, std::pair<float, float>>,
+        "Func must return std::pair<float, float> representing {residual, dfdx}"
+    );
     auto x = x0;
     auto converged = false;
 
@@ -83,6 +91,14 @@ template <
 inline TREND_HOST_DEVICE auto newton_2d(
     const Func &f, const fvec2 &x0, float epsilon = 1e-6f
 ) -> NewtonSolverResult<2> {
+    // Compile-time constraint: ensure Func has the correct signature
+    static_assert(
+        std::is_invocable_v<Func, fvec2>, "Func must be callable with a fvec2 argument"
+    );
+    static_assert(
+        std::is_same_v<std::invoke_result_t<Func, fvec2>, std::pair<fvec2, fmat2>>,
+        "Func must return std::pair<fvec2, fmat2> representing {residual, jacobian}"
+    );
     auto x = x0;
     auto converged = false;
 
