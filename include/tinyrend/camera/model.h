@@ -202,8 +202,9 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
             return {image_point, false};
 
         // Project using ideal pinhole model
-        auto const uv = fvec2(camera_point[0], camera_point[1]) / camera_point[2];
-        image_point = uv * parameters.focal_length + parameters.principal_point;
+        image_point = tinyrend::camera::impl::pinhole::project(
+            camera_point, parameters.focal_length, parameters.principal_point
+        );
 
         // Check if the image points fall within the image, set points that have
         // too large distortion or fall outside the image sensor to invalid
@@ -218,12 +219,10 @@ struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
     inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
     ) const -> Ray {
         // Transform the image point to uv coordinate
-        auto const uv =
-            (image_point - parameters.principal_point) / parameters.focal_length;
-
-        // Unproject the image point to camera ray
-        auto const camera_ray_d = normalize(fvec3{uv[0], uv[1], 1.f});
         auto const camera_ray_o = fvec3{};
+        auto const camera_ray_d = tinyrend::camera::impl::pinhole::unproject(
+            image_point, parameters.focal_length, parameters.principal_point
+        );
         return {camera_ray_o, camera_ray_d, true};
     }
 };
