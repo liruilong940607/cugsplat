@@ -15,6 +15,21 @@
 
 namespace tinyrend::camera {
 
+TREND_HOST_DEVICE inline auto image_point_in_image_bounds_margin(
+    fvec2 const &image_point,
+    std::array<uint32_t, 2> const &resolution,
+    float margin_factor
+) {
+    const float MARGIN_X = resolution[0] * margin_factor;
+    const float MARGIN_Y = resolution[1] * margin_factor;
+    bool valid = true;
+    valid &=
+        (-MARGIN_X) <= image_point[0] && image_point[0] < (resolution[0] + MARGIN_X);
+    valid &=
+        (-MARGIN_Y) <= image_point[1] && image_point[1] < (resolution[1] + MARGIN_Y);
+    return valid;
+}
+
 struct Ray {
     fvec3 o; // origin
     fvec3 d; // direction
@@ -156,6 +171,68 @@ template <typename DerivedCameraModel> struct BaseCameraModel {
         }
 
         return ImagePoint{p_rs, true};
+    }
+};
+
+struct PerfectPinholeCameraModel : BaseCameraModel<PerfectPinholeCameraModel> {
+    // OpenCV-like pinhole camera model without any distortion
+
+    using Base = BaseCameraModel<PerfectPinholeCameraModel>;
+
+    struct Parameters : Base::Parameters {
+        std::array<float, 2> principal_point;
+        std::array<float, 2> focal_length;
+    };
+
+    Parameters parameters;
+    float margin_factor = 0.f;
+
+    // Constructor
+    TREND_HOST_DEVICE
+    PerfectPinholeCameraModel(Parameters const &parameters, float margin_factor = 0.f)
+        : parameters(parameters), margin_factor(margin_factor) {}
+
+    inline TREND_HOST_DEVICE auto camera_point_to_image_point(fvec3 const &camera_point
+    ) const -> ImagePoint {
+        auto image_point = fvec2{};
+
+        // Treat all the points behind the camera plane to invalid / projecting
+        // to origin
+        if (camera_point[2] <= 0.f)
+            return {image_point, false};
+
+        // Project using ideal pinhole model
+        auto const focal_length =
+            fvec2(parameters.focal_length[0], parameters.focal_length[1]);
+        auto const principal_point =
+            fvec2(parameters.principal_point[0], parameters.principal_point[1]);
+        image_point =
+            (fvec2(camera_point[0], camera_point[1]) / camera_point[2]) * focal_length +
+            principal_point;
+
+        // Check if the image points fall within the image, set points that have
+        // too large distortion or fall outside the image sensor to invalid
+        auto valid = true;
+        valid &= image_point_in_image_bounds_margin(
+            image_point, parameters.resolution, margin_factor
+        );
+
+        return {image_point, valid};
+    }
+
+    inline TREND_HOST_DEVICE auto image_point_to_camera_ray(fvec2 const &image_point
+    ) const -> Ray {
+        // Transform the image point to uv coordinate
+        auto const principal_point =
+            fvec2(parameters.principal_point[0], parameters.principal_point[1]);
+        auto const focal_length =
+            fvec2(parameters.focal_length[0], parameters.focal_length[1]);
+        auto const uv = (image_point - principal_point) / focal_length;
+
+        // Unproject the image point to camera ray
+        auto const camera_ray_d = normalize(fvec3{uv[0], uv[1], 1.f});
+        auto const camera_ray_o = fvec3{};
+        return {camera_ray_o, camera_ray_d, true};
     }
 };
 
