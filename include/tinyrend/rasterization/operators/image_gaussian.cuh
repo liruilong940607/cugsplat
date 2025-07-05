@@ -3,9 +3,9 @@
 #include <cooperative_groups.h>
 #include <cstdint>
 
-#include "tinyrend/core/vec.h"
-#include "tinyrend/core/warp.cuh"
+#include "tinyrend/common/vec.h"
 #include "tinyrend/rasterization/base.cuh"
+#include "tinyrend/util/warp.cuh"
 
 namespace tinyrend::rasterization {
 

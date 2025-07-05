@@ -10,8 +10,8 @@
 #include <cooperative_groups.h>
 #include <cstdint>
 
-#include "tinyrend/core/warp.cuh"
 #include "tinyrend/rasterization/base.cuh"
+#include "tinyrend/util/warp.cuh"
 
 namespace tinyrend::rasterization {
 
