@@ -9,7 +9,7 @@
 using namespace tinyrend;
 using namespace tinyrend::rasterization;
 
-auto test_rasterization_planer() -> int {
+auto test_rasterization_planer(bool save_img = false) -> int {
     check_cuda_set_device();
 
     // Configurations
@@ -53,9 +53,11 @@ auto test_rasterization_planer() -> int {
             assert(is_close(h_render_alpha_ptr[i], 0.5f + (1 - 0.5f) * 0.7f));
         }
     }
-    // save_png(
-    //     h_render_alpha_ptr, image_width, image_height, 1, "results/render_alpha.png"
-    // );
+    if (save_img) {
+        save_png(
+            h_render_alpha_ptr, image_width, image_height, 1, "results/render_alpha.png"
+        );
+    }
 
     // Prepare backward gradients
     auto const v_render_alpha_ptr =

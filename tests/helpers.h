@@ -7,6 +7,9 @@
 #include "tinyrend/common/math.h"
 #include "tinyrend/common/vec.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 // Helper macro: Returns 1 if the condition is false, 0 otherwise
 #define CHECK(condition, message)                                                      \
     ((condition)                                                                       \
@@ -75,4 +78,25 @@ bool is_close(const T *a, const T *b, float atol = 1e-4f, float rtol = 1e-4f) {
     std::copy(a, a + N, arr_a.begin());
     std::copy(b, b + N, arr_b.begin());
     return is_close(arr_a, arr_b, atol, rtol);
+}
+
+void save_png(
+    float *buffer, int width, int height, int channels, const char *filename
+) {
+    // Convert float buffer to unsigned char buffer
+    unsigned char *image_data = new unsigned char[width * height * channels];
+
+    // Normalize and convert float values to 0-255 range
+    for (int i = 0; i < width * height * channels; i++) {
+        // Clamp values between 0 and 1
+        float value = std::max(0.0f, std::min(1.0f, buffer[i]));
+        // Convert to 0-255 range
+        image_data[i] = static_cast<unsigned char>(value * 255.0f);
+    }
+
+    // Save as PNG
+    stbi_write_png(filename, width, height, channels, image_data, width * channels);
+
+    // Clean up
+    delete[] image_data;
 }
