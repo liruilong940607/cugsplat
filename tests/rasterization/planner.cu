@@ -14,8 +14,8 @@ auto test_rasterization_planer() -> int {
 
     // Configurations
     const int n_primitives = 2;
-    const uint32_t image_height = 16;
-    const uint32_t image_width = 8;
+    const uint32_t image_height = 22;
+    const uint32_t image_width = 18;
     const uint32_t tile_width = 8;
     const uint32_t tile_height = 16;
 
