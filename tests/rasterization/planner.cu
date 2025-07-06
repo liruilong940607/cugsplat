@@ -76,6 +76,8 @@ auto test_rasterization_planer() -> int {
         v_render_alpha_ptr,
         v_opacity_ptr
     );
+    check_cuda_device_synchronize();
+    check_cuda_get_last_error();
 
     // o = a + (1 - a) * b
     // o = 0.5f + (1 - 0.5f) * 0.7f
