@@ -17,8 +17,8 @@ namespace tinyrend::rasterization {
 
 namespace cg = cooperative_groups;
 
-struct SimplePlanerRasterizeKernelForwardOperator
-    : BaseRasterizeKernelOperator<SimplePlanerRasterizeKernelForwardOperator> {
+struct PlanerRasterizeKernelForwardOperator
+    : BaseRasterizeKernelOperator<PlanerRasterizeKernelForwardOperator> {
 
     // Inputs
     const float *__restrict__ opacity_ptr; // [N, 1]
@@ -67,8 +67,39 @@ struct SimplePlanerRasterizeKernelForwardOperator
     }
 };
 
-struct SimplePlanerRasterizeKernelBackwardOperator
-    : BaseRasterizeKernelOperator<SimplePlanerRasterizeKernelBackwardOperator> {
+void planer_rasterize_kernel_forward(
+    // Primitives
+    const size_t n_primitives,
+    const float *__restrict__ opacity_ptr, // [n_primitives]
+
+    // Images
+    const size_t n_images,
+    const size_t image_height,
+    const size_t image_width,
+    const size_t tile_width,
+    const size_t tile_height,
+
+    // Isect info
+    const uint32_t *__restrict__ isect_primitive_ids,       // [n_isects]
+    const uint32_t *__restrict__ isect_prefix_sum_per_tile, // [n_tiles]
+
+    // Outputs
+    float *__restrict__ render_alpha_ptr // [n_images, image_height, image_width, 1]
+) {
+    PlanerRasterizeKernelForwardOperator op{};
+    op.opacity_ptr = opacity_ptr;
+    op.render_alpha_ptr = render_alpha_ptr;
+
+    dim3 threads(tile_width, tile_height, 1);
+    dim3 grid(1, 1, 1);
+    size_t sm_size = decltype(op)::sm_size_per_primitive() * threads.x * threads.y;
+    rasterize_kernel<<<grid, threads, sm_size>>>(
+        op, image_height, image_width, isect_primitive_ids, isect_prefix_sum_per_tile
+    );
+}
+
+struct PlanerRasterizeKernelBackwardOperator
+    : BaseRasterizeKernelOperator<PlanerRasterizeKernelBackwardOperator> {
 
     // Forward Inputs
     const float *__restrict__ opacity_ptr; // [N, 1]
@@ -148,5 +179,51 @@ struct SimplePlanerRasterizeKernelBackwardOperator
         // Do nothing
     }
 };
+
+void planer_rasterize_kernel_backward(
+    // Primitives
+    const size_t n_primitives,
+    const float *__restrict__ opacity_ptr, // [n_primitives]
+
+    // Images
+    const size_t n_images,
+    const size_t image_height,
+    const size_t image_width,
+    const size_t tile_width,
+    const size_t tile_height,
+
+    // Isect info
+    const uint32_t *__restrict__ isect_primitive_ids,       // [n_isects]
+    const uint32_t *__restrict__ isect_prefix_sum_per_tile, // [n_tiles]
+
+    // Outputs
+    const float
+        *__restrict__ render_alpha_ptr, // [n_images, image_height, image_width, 1]
+
+    // Gradient for outputs
+    const float
+        *__restrict__ v_render_alpha_ptr, // [n_images, image_height, image_width, 1]
+
+    // Gradient for inputs
+    float *__restrict__ v_opacity_ptr // [n_primitives]
+) {
+    PlanerRasterizeKernelBackwardOperator op{};
+    op.opacity_ptr = opacity_ptr;
+    op.render_alpha_ptr = render_alpha_ptr;
+    op.v_render_alpha_ptr = v_render_alpha_ptr;
+    op.v_opacity_ptr = v_opacity_ptr;
+
+    dim3 threads(tile_width, tile_height, 1);
+    dim3 grid(1, 1, 1);
+    size_t sm_size = decltype(op)::sm_size_per_primitive() * tile_width * tile_height;
+    rasterize_kernel<<<grid, threads, sm_size>>>(
+        op,
+        image_height,
+        image_width,
+        isect_primitive_ids,
+        isect_prefix_sum_per_tile,
+        true // reverse order
+    );
+}
 
 } // namespace tinyrend::rasterization

@@ -23,37 +23,37 @@ template <class WarpT> inline __device__ void warpSum(float &val, WarpT &warp) {
 }
 
 template <class WarpT> inline __device__ void warpSum(fvec4 &val, WarpT &warp) {
-    val.x = cg::reduce(warp, val.x, cg::plus<float>());
-    val.y = cg::reduce(warp, val.y, cg::plus<float>());
-    val.z = cg::reduce(warp, val.z, cg::plus<float>());
-    val.w = cg::reduce(warp, val.w, cg::plus<float>());
+    val[0] = cg::reduce(warp, val[0], cg::plus<float>());
+    val[1] = cg::reduce(warp, val[1], cg::plus<float>());
+    val[2] = cg::reduce(warp, val[2], cg::plus<float>());
+    val[3] = cg::reduce(warp, val[3], cg::plus<float>());
 }
 
 template <class WarpT> inline __device__ void warpSum(fvec3 &val, WarpT &warp) {
-    val.x = cg::reduce(warp, val.x, cg::plus<float>());
-    val.y = cg::reduce(warp, val.y, cg::plus<float>());
-    val.z = cg::reduce(warp, val.z, cg::plus<float>());
+    val[0] = cg::reduce(warp, val[0], cg::plus<float>());
+    val[1] = cg::reduce(warp, val[1], cg::plus<float>());
+    val[2] = cg::reduce(warp, val[2], cg::plus<float>());
 }
 
 template <class WarpT> inline __device__ void warpSum(fvec2 &val, WarpT &warp) {
-    val.x = cg::reduce(warp, val.x, cg::plus<float>());
-    val.y = cg::reduce(warp, val.y, cg::plus<float>());
+    val[0] = cg::reduce(warp, val[0], cg::plus<float>());
+    val[1] = cg::reduce(warp, val[1], cg::plus<float>());
 }
 
-template <class WarpT> inline __device__ void warpSum(mat4 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fmat4 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
     warpSum(val[3], warp);
 }
 
-template <class WarpT> inline __device__ void warpSum(mat3 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fmat3 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
     warpSum(val[2], warp);
 }
 
-template <class WarpT> inline __device__ void warpSum(mat2 &val, WarpT &warp) {
+template <class WarpT> inline __device__ void warpSum(fmat2 &val, WarpT &warp) {
     warpSum(val[0], warp);
     warpSum(val[1], warp);
 }
