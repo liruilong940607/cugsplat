@@ -257,7 +257,7 @@ TREND_HOST_DEVICE inline auto _project_hess(
         focal_length[1] * J_uv_xy[1][1]
     );
     // auto const J_xy_cam =
-    //     glm::fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
+    //     fmat3x2(invz, 0.0f, 0.0f, invz, -xy[0] * invz, -xy[1] * invz);
     // auto const J = J_im_xy * J_xy_cam;
 
     auto const d_J_im_xy_d_x = fmat2(
@@ -410,7 +410,7 @@ TREND_HOST_DEVICE inline auto project_hess(
                 for (int b = 0; b < 3; ++b)
                     Htmp[a][b] += Juv[i][j] * Hxy[j][a][b];
 
-        /* write into column‑major glm::mat */
+        /* write into column‑major mat */
         for (int row = 0; row < 3; ++row)
             for (int col = 0; col < 3; ++col)
                 H[i][col][row] = focal_length[i] * Htmp[row][col];

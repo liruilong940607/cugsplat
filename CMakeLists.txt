@@ -19,8 +19,6 @@ option(LINK_TORCH "Link torch as a dependency" OFF)
 if(NOT BUILD_CPP_ONLY)
     project(tinyrend LANGUAGES CUDA CXX)
     set(CMAKE_CUDA_ARCHITECTURES 70 75 80)
-    # relax restrictions on glm constexpr functions so they can be called in device code.
-    add_compile_options($<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 else()
     project(tinyrend LANGUAGES CXX)
 endif()
@@ -35,7 +33,6 @@ endif()
 add_library(tinyrend INTERFACE)
 target_include_directories(tinyrend INTERFACE 
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glm
 )
 
 function(build_cuda_executables_recursive BASE_DIR PREFIX)
