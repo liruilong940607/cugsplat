@@ -94,9 +94,9 @@ auto main() -> int {
     fails += test_rasterization_planer();
 
     if (fails == 0) {
-        printf("\nAll tests passed!\n");
+        printf("[rasterization/planer.cpp] All tests passed!\n");
     } else {
-        printf("\n%d tests failed!\n", fails);
+        printf("[rasterization/planer.cpp] %d tests failed!\n", fails);
     }
 
     return fails;
